@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Stock Summary</div>
+        <div class="report-subtitle">{{ company.name }} | As at 03-Nov-2026</div>
+    </div>
+
+    <div class="report-toolbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <input type="text" id="stockSearchInput" onkeyup="filterStock()" placeholder="🔍 Search stock item (e.g. Monitor, Keyboard)..." class="tally-input" style="width: 280px; font-size: 13px;" autofocus>
+        <div style="display: flex; gap: 8px;">
+            <a href="/masters/stock-items/create" class="tally-btn-action">+ Create Stock Item (Alt+C)</a>
+            <a href="/inventory/physical-stock" class="tally-btn-action" style="background: #20687d;">Physical Stock (Ctrl+F7)</a>
+            <a href="/masters/price-lists" class="tally-btn-action" style="background: #d35400;">Price Lists</a>
+            <button type="button" class="tally-btn-action" onclick="window.print()">Print (P)</button>
+        </div>
+    </div>
+
+    <table class="tally-report-table" id="stockTable">
+        <thead>
+            <tr>
+                <th style="width: 22%;">Item Name</th>
+                <th style="width: 9%;">HSN/SAC</th>
+                <th style="width: 7%;">GST %</th>
+                <th style="width: 10%; text-align: right;">Opening Qty</th>
+                <th style="width: 10%; text-align: right;">Inwards</th>
+                <th style="width: 10%; text-align: right;">Outwards</th>
+                <th style="width: 12%; text-align: right;">Closing Qty</th>
+                <th style="width: 12%; text-align: right;">Closing Value (₹)</th>
+                <th style="width: 8%; text-align: center;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if stock_summary %}
+                {% for it in stock_summary %}
+                <tr class="stock-row">
+                    <td>
+                        <a href="/masters/stock-items/alter/{{ it.id }}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                            📦 {{ it.name }}
+                        </a>
+                    </td>
+                    <td><code>{{ it.hsn_sac or '-' }}</code></td>
+                    <td>{{ it.gst_rate }}%</td>
+                    <td style="text-align: right;">{{ it.opening_qty }} {{ it.unit }}</td>
+                    <td style="text-align: right; color: #1e8449;">+{{ it.inward_qty }}</td>
+                    <td style="text-align: right; color: #c0392b;">-{{ it.outward_qty }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ it.closing_qty }} {{ it.unit }}</td>
+                    <td style="text-align: right; font-weight: bold;">₹{{ "%.2f"|format(it.closing_value) }}</td>
+                    <td style="text-align: center;">
+                        <a href="/masters/stock-items/alter/{{ it.id }}" class="inline-btn">Alter</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="9" style="text-align: center; color: #888; padding: 25px;">No stock items created yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function filterStock() {
+    let q = document.getElementById('stockSearchInput').value.toLowerCase();
+    document.querySelectorAll('.stock-row').forEach(row => {
+        let txt = row.innerText.toLowerCase();
+        row.style.display = txt.includes(q) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}
+

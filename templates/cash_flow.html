@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="tally-card-header" style="background: #245882; color: #fff;">
+        <span>Cash Flow Statement</span>
+        <span style="font-size: 11px; font-weight: normal;">FY {{ report.fy_year }}-{{ report.fy_year + 1 }}</span>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; padding: 0;">
+        <table class="tally-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #e2ecf2; border-bottom: 2px solid #b3cddf;">
+                    <th rowspan="2" style="padding: 6px 12px; width: 35%; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Particulars</th>
+                    <th colspan="2" style="text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; padding: 4px; font-size: 12px;">Cash Movement</th>
+                    <th rowspan="2" style="text-align: right; width: 22%; padding: 6px 12px; font-size: 12px; text-transform: uppercase;">Nett Flow</th>
+                </tr>
+                <tr style="background: #eef4f8; border-bottom: 1px solid #cbd5e1; font-size: 11px;">
+                    <th style="text-align: right; width: 20%; padding: 4px 10px; border-left: 1px solid #cbd5e1;">Inflow (₹)</th>
+                    <th style="text-align: right; width: 20%; padding: 4px 10px; border-right: 1px solid #cbd5e1;">Outflow (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in report.monthly_flows %}
+                <tr style="cursor: pointer;" onmouseover="this.style.background='#fff8e1'" onmouseout="this.style.background=''">
+                    <td style="padding: 5px 14px; font-weight: 600; color: #1e3a50;">{{ m.month_name }}</td>
+                    <td style="text-align: right; padding: 5px 10px; color: #0d9488;">
+                        {% if m.inflow > 0 %}₹{{ "{:,.2f}".format(m.inflow) }}{% else %}0.00{% endif %}
+                    </td>
+                    <td style="text-align: right; padding: 5px 10px; color: #e11d48;">
+                        {% if m.outflow > 0 %}₹{{ "{:,.2f}".format(m.outflow) }}{% else %}0.00{% endif %}
+                    </td>
+                    <td style="text-align: right; padding: 5px 14px; font-weight: 700; color: {% if m.nett_flow >= 0 %}#047857{% else %}#b91c1c{% endif %};">
+                        ₹{{ "{:,.2f}".format(m.nett_flow) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #e2ecf2; border-top: 2px solid #245882; border-bottom: 2px solid #245882; font-weight: 700;">
+                    <td style="padding: 8px 14px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Grand Total</td>
+                    <td style="text-align: right; padding: 8px 10px; color: #0d9488;">₹{{ "{:,.2f}".format(report.total_inflow) }}</td>
+                    <td style="text-align: right; padding: 8px 10px; color: #e11d48;">₹{{ "{:,.2f}".format(report.total_outflow) }}</td>
+                    <td style="text-align: right; padding: 8px 14px; font-size: 13px; color: {% if report.grand_nett_flow >= 0 %}#047857{% else %}#b91c1c{% endif %};">
+                        ₹{{ "{:,.2f}".format(report.grand_nett_flow) }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Monthly Cash Movement Graph (Matching Tally Bottom Chart) -->
+        <div style="margin: 15px; padding: 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <div style="font-size: 11px; font-weight: bold; color: #4b6b82; margin-bottom: 8px; text-transform: uppercase;">
+                Monthly Cash Movement Graph
+            </div>
+            <div style="display: flex; height: 100px; align-items: flex-end; gap: 8px; border-bottom: 1px solid #94a3b8; padding-bottom: 4px;">
+                {% for m in report.monthly_flows %}
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end;">
+                    {% set max_val = report.total_inflow if report.total_inflow > 0 else 1.0 %}
+                    {% set bar_h = (m.inflow / max_val * 80) if m.inflow > 0 else 4 %}
+                    <div style="width: 16px; height: {{ bar_h }}px; background: #245882; border-radius: 2px 2px 0 0;" title="{{ m.month_name }}: Inflow ₹{{ m.inflow }}"></div>
+                    <span style="font-size: 9px; color: #64748b; margin-top: 4px;">{{ m.month_name[:3] }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

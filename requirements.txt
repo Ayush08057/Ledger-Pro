@@ -1,0 +1,3 @@
+# TallySoft Offline Accounting System
+# Production Dependencies
+Flask>=2.3.0

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-master-screen-split">
+    <!-- Left Half: Stock Group Form (Matching Frame 12 of Video) -->
+    <div class="tally-master-pane">
+        <form method="POST" action="/masters/stock-groups/create" id="masterForm" onsubmit="event.preventDefault(); showAcceptModal();">
+            <div class="tally-field-row">
+                <span class="tally-lbl">Name</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="name" class="tally-fld-input" required autofocus placeholder="e.g. Hardware Components">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl">(alias)</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="alias" class="tally-fld-input">
+            </div>
+
+            <div style="height: 25px;"></div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl">Under</span>
+                <span class="tally-colon">:</span>
+                <select name="parent_id" class="tally-fld-select">
+                    <option value="">♦ Primary</option>
+                    {% for g in stock_groups %}
+                    <option value="{{ g.id }}">♦ {{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 300px;">Should quantities of items be added</span>
+                <span class="tally-colon">:</span>
+                <select name="add_quantities" class="tally-fld-select-sm">
+                    <option value="0" selected>No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+
+            <div style="height: 20px;"></div>
+            <div class="tally-section-title">Statutory Details</div>
+
+            <div style="font-size: 11px; font-weight: bold; color: #4b6b82; margin: 8px 0 4px 0; text-transform: uppercase;">
+                HSN/SAC &amp; Related Details
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 220px;">HSN/SAC Details</span>
+                <span class="tally-colon">:</span>
+                <select name="hsn_source" class="tally-fld-select">
+                    <option value="company">♦ As per Company/Stock Group</option>
+                    <option value="specify">♦ Specify Details Here</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 220px;">HSN/SAC</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="hsn_sac" class="tally-fld-input" placeholder="e.g. 8471">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 220px;">Description</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="description" class="tally-fld-input">
+            </div>
+
+            <div style="font-size: 11px; font-weight: bold; color: #4b6b82; margin: 12px 0 4px 0; text-transform: uppercase;">
+                GST Rate &amp; Related Details
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 220px;">GST Rate Details</span>
+                <span class="tally-colon">:</span>
+                <select name="gst_rate_source" class="tally-fld-select">
+                    <option value="company">♦ As per Company/Stock Group</option>
+                    <option value="specify">♦ Specify Details Here</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 220px;">Taxability Type</span>
+                <span class="tally-colon">:</span>
+                <select name="taxability" class="tally-fld-select">
+                    <option value="Taxable">♦ Taxable</option>
+                    <option value="Exempt">♦ Exempt</option>
+                    <option value="Nil Rated">♦ Nil Rated</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 220px;">GST Rate</span>
+                <span class="tally-colon">:</span>
+                <select name="gst_rate" class="tally-fld-select">
+                    <option value="18" selected>18 %</option>
+                    <option value="12">12 %</option>
+                    <option value="5">5 %</option>
+                    <option value="28">28 %</option>
+                    <option value="0">0 %</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Half: Dimmed Gateway -->
+    <div class="tally-dimmed-pane">
+        <div style="font-size: 13px; color: #55728a; text-align: center; margin-top: 40px; font-weight: 600;">
+            Gateway of Tally (Press Esc to Cancel)
+        </div>
+    </div>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Yes or No</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="document.getElementById('masterForm').submit();"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal();"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('masterForm').submit();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+{% endblock %}

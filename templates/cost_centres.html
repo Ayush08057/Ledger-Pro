@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container" style="max-width: 800px;">
+    <div class="report-header">
+        <div class="report-title">Cost Categories &amp; Cost Centres</div>
+        <div class="report-subtitle">{{ company.name }} | Multi-Dimensional Cost Management</div>
+    </div>
+
+    <div class="bs-grid" style="margin-bottom: 20px;">
+        <!-- Create Category -->
+        <div class="bs-column">
+            <div class="tally-box">
+                <div class="tally-box-header">NEW COST CATEGORY</div>
+                <div class="tally-box-body">
+                    <form method="POST" action="/masters/cost-categories/create">
+                        <label class="field-label" style="display:block; margin-bottom: 4px;">Category Name:</label>
+                        <input type="text" name="name" class="tally-input" style="width: 100%; margin-bottom: 12px;" required placeholder="e.g. Projects, Branches">
+                        <button type="submit" class="tally-btn-action">+ Add Category</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Cost Centre -->
+        <div class="bs-column">
+            <div class="tally-box">
+                <div class="tally-box-header">NEW COST CENTRE</div>
+                <div class="tally-box-body">
+                    <form method="POST" action="/masters/cost-centres/create">
+                        <label class="field-label" style="display:block; margin-bottom: 4px;">Under Category:</label>
+                        <select name="category_id" class="tally-select" style="width: 100%; margin-bottom: 8px;">
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label class="field-label" style="display:block; margin-bottom: 4px;">Cost Centre Name:</label>
+                        <input type="text" name="name" class="tally-input" style="width: 100%; margin-bottom: 12px;" required placeholder="e.g. Pune Branch, Metro Line 3">
+                        <button type="submit" class="tally-btn-action">+ Add Centre</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Cost Centres List -->
+    <div class="menu-section-header" style="margin-bottom: 10px;">ACTIVE COST CENTRES</div>
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 50%;">Cost Centre Name</th>
+                <th style="width: 50%;">Parent Cost Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if centres %}
+                {% for cc in centres %}
+                <tr>
+                    <td><strong>🎯 {{ cc.centre_name }}</strong></td>
+                    <td><span class="group-tag">{{ cc.category_name }}</span></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="2" style="text-align: center; color: #888; padding: 20px;">No cost centres created yet.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 15px;">
+        <a href="/reports/cost-centres" class="tally-btn-action" style="background:#20687d;">View Cost Centre Breakup Report →</a>
+    </div>
+</div>
+{% endblock %}
+

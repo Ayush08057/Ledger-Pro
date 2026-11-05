@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container" style="max-width: 750px;">
+    <div class="form-header">
+        <div class="form-title">Stock Journal (Alt+F7)</div>
+        <div class="form-subtitle">Inter-Godown / Location Transfer</div>
+    </div>
+
+    <form method="POST" action="/inventory/stock-journal" class="tally-form">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Source Godown (Transfer From):</label>
+                <select name="source_godown_id" class="tally-select" required>
+                    {% for g in godowns %}
+                    <option value="{{ g.id }}">{{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Destination Godown (Transfer To):</label>
+                <select name="dest_godown_id" class="tally-select" required>
+                    {% for g in godowns %}
+                    <option value="{{ g.id }}" {% if loop.index == 2 %}selected{% endif %}>{{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Stock Item to Transfer:</label>
+                <select name="stock_item_id" class="tally-select" required>
+                    {% for s in stock_items %}
+                    <option value="{{ s.id }}">{{ s.name }} (Available: {{ s.closing_qty }} {{ s.unit_symbol }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Transfer Quantity:</label>
+                <input type="number" step="any" min="0.01" name="quantity" class="tally-input" required value="1">
+            </div>
+
+            <div class="form-group">
+                <label>Transfer Date:</label>
+                <input type="date" name="transfer_date" class="tally-input" value="{{ today }}">
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Narration / Transfer Reason:</label>
+                <input type="text" name="narration" class="tally-input" placeholder="Being stock transferred from factory to retail godown...">
+            </div>
+        </div>
+
+        <div class="voucher-actions" style="margin-top: 25px;">
+            <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+            <a href="/reports/godown-summary" class="tally-btn-cancel">Cancel (Esc)</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

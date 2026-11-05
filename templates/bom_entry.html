@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="max-width: 850px; margin: 0 auto;">
+    <div class="tally-card-header">
+        <span>Define Bill of Materials (BOM)</span>
+        <a href="/inventory/manufacturing" class="tally-btn" style="padding: 4px 10px; text-decoration: none;">Back</a>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <form method="POST" action="/inventory/bom/create">
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Finished Stock Item</label>
+                    <select name="finished_item_id" class="form-control" required>
+                        <option value="">-- Select Finished Good --</option>
+                        {% for it in stock_items %}
+                        <option value="{{ it.id }}">{{ it.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">BOM Name</label>
+                    <input type="text" name="name" class="form-control" value="Standard Assembly" required>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Unit of Manufacture (Qty)</label>
+                    <input type="number" step="0.01" name="finished_qty" class="form-control" value="1.0" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description / Remarks</label>
+                    <input type="text" name="narration" class="form-control" placeholder="Standard components breakdown">
+                </div>
+            </div>
+
+            <h4 style="color:var(--tally-yellow); margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--tally-border); padding-bottom: 5px;">
+                Required Component Items
+            </h4>
+
+            <table class="tally-table" style="margin-bottom: 15px;">
+                <thead>
+                    <tr>
+                        <th>Raw Material Item</th>
+                        <th style="width: 150px;">Item Type</th>
+                        <th style="width: 150px; text-align: right;">Quantity Required</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="bomItemsBody">
+                    <tr>
+                        <td>
+                            <select name="component_item_id[]" class="form-control" required>
+                                <option value="">-- Select Raw Item --</option>
+                                {% for it in stock_items %}
+                                <option value="{{ it.id }}">{{ it.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="component_type[]" class="form-control">
+                                <option value="Component" selected>Component</option>
+                                <option value="By-Product">By-Product</option>
+                                <option value="Co-Product">Co-Product</option>
+                                <option value="Scrap">Scrap</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="component_qty[]" class="form-control" value="1.0" min="0.01" required style="text-align: right;">
+                        </td>
+                        <td><button type="button" class="tally-btn" style="color:#ff6b6b; padding:2px 8px;" onclick="removeBomRow(this)">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-bottom: 20px;">
+                <button type="button" class="tally-btn" onclick="addBomRow()">+ Add Component Item</button>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                <a href="/inventory/manufacturing" class="tally-btn" style="text-decoration:none;">Cancel</a>
+                <button type="submit" class="tally-btn tally-btn-primary">Save Bill of Materials</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addBomRow() {
+    const tbody = document.getElementById('bomItemsBody');
+    const firstRow = tbody.querySelector('tr');
+    const clone = firstRow.cloneNode(true);
+    clone.querySelector('select').selectedIndex = 0;
+    clone.querySelector('input').value = "1.0";
+    tbody.appendChild(clone);
+}
+
+function removeBomRow(btn) {
+    const tbody = document.getElementById('bomItemsBody');
+    if (tbody.querySelectorAll('tr').length > 1) {
+        btn.closest('tr').remove();
+    }
+}
+</script>
+{% endblock %}
+

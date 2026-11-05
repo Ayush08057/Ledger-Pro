@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-master-screen-split">
+    <!-- Left Half: GST Details Form (Matching Video Frame 30) -->
+    <div class="tally-master-pane" style="max-width: 580px;">
+        <form method="POST" action="/company/alter" id="masterForm" onsubmit="event.preventDefault(); showAcceptModal();">
+            <div class="tally-section-title">GST Registration Details</div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">State</span>
+                <span class="tally-colon">:</span>
+                <select name="state" class="tally-fld-select">
+                    <option value="Maharashtra" selected>♦ Maharashtra (27)</option>
+                    <option value="Delhi">♦ Delhi (07)</option>
+                    <option value="Karnataka">♦ Karnataka (29)</option>
+                    <option value="Gujarat">♦ Gujarat (24)</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">Registration type</span>
+                <span class="tally-colon">:</span>
+                <select name="reg_type" class="tally-fld-select">
+                    <option value="Regular" selected>♦ Regular</option>
+                    <option value="Composition">♦ Composition</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">Assessee of Other Territory</span>
+                <span class="tally-colon">:</span>
+                <select name="other_territory" class="tally-fld-select-sm">
+                    <option value="0" selected>No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">GSTIN/UIN</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="gstin" class="tally-fld-input" required maxlength="15" value="{{ company.gstin if company else '' }}" placeholder="27ABCDE1234F1Z5">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">Periodicity of GSTR1</span>
+                <span class="tally-colon">:</span>
+                <select name="gstr1_periodicity" class="tally-fld-select">
+                    <option value="Monthly" selected>♦ Monthly</option>
+                    <option value="Quarterly">♦ Quarterly (QRMP)</option>
+                </select>
+            </div>
+
+            <div style="height: 20px;"></div>
+            <div class="tally-section-title">Invoice &amp; e-Way Bill Features</div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">e-Way Bill applicable</span>
+                <span class="tally-colon">:</span>
+                <select name="eway_bill" class="tally-fld-select-sm">
+                    <option value="1" selected>Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">Threshold limit includes</span>
+                <span class="tally-colon">:</span>
+                <select name="threshold_type" class="tally-fld-select">
+                    <option value="invoice_value" selected>♦ Invoice Value</option>
+                    <option value="taxable_value">♦ Taxable and Exempt value</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 240px;">Threshold limit (₹)</span>
+                <span class="tally-colon">:</span>
+                <input type="number" name="eway_threshold" value="50000" class="tally-fld-input" style="width: 100px;">
+            </div>
+
+            <!-- Preserve basic company fields -->
+            <input type="hidden" name="name" value="{{ company.name }}">
+            <input type="hidden" name="legal_name" value="{{ company.legal_name or company.name }}">
+            <input type="hidden" name="state_code" value="{{ company.state_code }}">
+            <input type="hidden" name="pan" value="{{ company.pan or '' }}">
+            <input type="hidden" name="address" value="{{ company.address or '' }}">
+            <input type="hidden" name="phone" value="{{ company.phone or '' }}">
+            <input type="hidden" name="email" value="{{ company.email or '' }}">
+
+            <div style="margin-top: 35px; display: flex; gap: 10px;">
+                <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+                <a href="/" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Half: Dimmed Gateway -->
+    <div class="tally-dimmed-pane">
+        <div style="font-size: 13px; color: #55728a; text-align: center; margin-top: 40px; font-weight: 600;">
+            Gateway of Tally (Press Esc to Cancel)
+        </div>
+    </div>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Yes or No</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="document.getElementById('masterForm').submit();"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal();"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('masterForm').submit();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+{% endblock %}
+

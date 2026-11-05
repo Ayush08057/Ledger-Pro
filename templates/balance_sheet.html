@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="tally-card-header" style="background: #245882; color: #fff;">
+        <span>Balance Sheet</span>
+        <div style="font-size: 11px; font-weight: normal; display: flex; gap: 15px;">
+            <span>{{ company.name if company else '' }}</span>
+            <span>as at {{ end_date or '1-Apr-2026' }}</span>
+            <span style="cursor: pointer; text-decoration: underline;" onclick="toggleDetailedView()">Alt+F1: Detailed</span>
+        </div>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; display: flex;">
+        <!-- Left Side: Liabilities -->
+        <div style="flex: 1; border-right: 1px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <table class="tally-table">
+                    <thead>
+                        <tr style="background: #e2ecf2;">
+                            <th style="padding: 6px 14px; text-transform: uppercase;">Liabilities</th>
+                            <th style="text-align: right; width: 150px; padding: 6px 14px;">as at {{ end_date or '1-Apr-2026' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liabilitiesBody">
+                        {% for l in bs.liabilities %}
+                        <tr>
+                            <td style="padding: 6px 14px;">
+                                <a href="{% if 'Sundry Creditors' in l.name %}/reports/outstanding-payables{% else %}/masters/chart-of-accounts{% endif %}" style="text-decoration: none; color: inherit;" title="Drill down">
+                                    <strong style="color: #0f2d3d;">{{ l.name }}</strong>
+                                </a>
+                                {% if l.details %}
+                                <div class="detailed-sub" style="font-size: 11px; color: #475569; padding-left: 14px; margin-top: 2px;">
+                                    {{ l.details }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right; padding: 6px 14px; font-weight: 600;">
+                                ₹{{ "{:,.2f}".format(l.amount) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="background: #e2ecf2; border-top: 2px solid #245882; border-bottom: 2px solid #245882; padding: 8px 14px; display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;">
+                <span>Total</span>
+                <span>₹{{ "{:,.2f}".format(bs.total_liabilities) }}</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Assets -->
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <table class="tally-table">
+                    <thead>
+                        <tr style="background: #e2ecf2;">
+                            <th style="padding: 6px 14px; text-transform: uppercase;">Assets</th>
+                            <th style="text-align: right; width: 150px; padding: 6px 14px;">as at {{ end_date or '1-Apr-2026' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetsBody">
+                        {% for a in bs.assets %}
+                        <tr>
+                            <td style="padding: 6px 14px;">
+                                <a href="{% if 'Stock' in a.name %}/reports/stock-summary{% elif 'Bank' in a.name or 'Cash' in a.name %}/reports/cash-bank-book{% elif 'Sundry Debtors' in a.name %}/reports/outstanding-receivables{% else %}/masters/chart-of-accounts{% endif %}" style="text-decoration: none; color: inherit;" title="Drill down">
+                                    <strong style="color: #0f2d3d;">{{ a.name }}</strong>
+                                </a>
+                                {% if a.details %}
+                                <div class="detailed-sub" style="font-size: 11px; color: #475569; padding-left: 14px; margin-top: 2px;">
+                                    {{ a.details }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right; padding: 6px 14px; font-weight: 600;">
+                                ₹{{ "{:,.2f}".format(a.amount) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="background: #e2ecf2; border-top: 2px solid #245882; border-bottom: 2px solid #245882; padding: 8px 14px; display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;">
+                <span>Total</span>
+                <span>₹{{ "{:,.2f}".format(bs.total_assets) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let isDetailed = false;
+function toggleDetailedView() {
+    isDetailed = !isDetailed;
+    document.querySelectorAll('.detailed-sub').forEach(el => {
+        el.style.display = isDetailed ? 'block' : 'none';
+    });
+}
+// Initial state
+toggleDetailedView();
+</script>
+{% endblock %}

@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container" style="background:#fff; height:100%; display:flex; flex-direction:column;">
+    <div class="report-header" style="background:#5d9bb8; color:#fff; padding:6px 14px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <div class="report-title" style="font-size:14px; font-weight:700;">List of Ledgers</div>
+            <div class="report-subtitle" style="font-size:11.5px; opacity:0.9;">
+                {{ company.name }} | Multi-select with <strong>Shift + ↑ / ↓</strong> (or Space) • Replace / Transfer (Ctrl+Y)
+            </div>
+        </div>
+        <div>
+            <span style="font-size:12px; font-weight:600;">Selected: <strong id="selectedCountBadge" style="background:#fcb92c; color:#000; padding:2px 8px; border-radius:3px;">1</strong></span>
+        </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div id="statusAlert" class="status-banner balanced" style="display: none; margin: 8px 12px 0 12px;"></div>
+
+    <div class="report-toolbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 6px 12px; background: #eaf1f6; border-bottom: 1px solid #b3cddf;">
+        <div style="display: flex; gap: 10px; align-items: center; flex: 1;">
+            <input type="text" id="ledgerSearchInput" onkeyup="filterLedgers()" placeholder="🔍 Type to filter ledgers (e.g. Cash, Sales, Debtors)..." class="tally-input" style="width: 320px; font-size: 12.5px; padding: 4px 8px;">
+            <span id="matchCount" style="font-size: 12px; color: #555;">Showing all {{ ledgers|length }} ledgers</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="tally-btn-action" style="background: #d35400; font-weight: bold; cursor: pointer;" onclick="openReplaceModal()" title="Shortcut: Ctrl+Y">
+                ⇄ Replace / Transfer (Ctrl+Y)
+            </button>
+            <a href="/masters/ledgers/create" class="tally-btn-action">+ Create (Alt+C)</a>
+            <a href="/masters/chart-of-accounts" class="tally-btn-action" style="background: #20687d;">Chart of Accounts</a>
+        </div>
+    </div>
+
+    <!-- Table without checkbox column, pure Shift+Arrow key navigation -->
+    <div style="flex:1; overflow-y:auto; background:#fff;">
+        <table class="tally-report-table" id="ledgersTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="background:#f1f5f9; border-bottom: 2px solid #94a3b8; height:28px;">
+                    <th style="width: 36%; text-align: left; padding: 4px 10px;">Ledger Name</th>
+                    <th style="width: 26%; text-align: left; padding: 4px 10px;">Department (Group)</th>
+                    <th style="width: 14%; text-align: left; padding: 4px 10px;">Nature</th>
+                    <th style="width: 14%; text-align: right; padding: 4px 10px;">Current Balance (₹)</th>
+                    <th style="width: 10%; text-align: center; padding: 4px 10px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ledgersBody">
+                {% for l in ledgers %}
+                <tr class="ledger-row {% if loop.first %}selected focused-row{% endif %}" 
+                    tabindex="0" 
+                    data-id="{{ l.id }}" 
+                    data-name="{{ l.name }}"
+                    onclick="handleRowClick(event, this)"
+                    ondblclick="openLedgerAlter({{ l.id }})">
+                    <td style="padding: 4px 10px;">
+                        <span class="ledger-name-text" style="font-weight: bold; color: inherit;">
+                            📄 {{ l.name }}
+                        </span>
+                        {% if l.gstin %}<br><small class="sub-text" style="font-size:11px;">GSTIN: <code>{{ l.gstin }}</code></small>{% endif %}
+                    </td>
+                    <td style="padding: 4px 10px;">
+                        <span class="group-tag" style="background: #eef5f8; padding: 2px 6px; border-radius: 3px; font-weight: 600;">{{ l.group_name }}</span>
+                    </td>
+                    <td style="padding: 4px 10px;">{{ l.group_nature }}</td>
+                    <td style="padding: 4px 10px; text-align: right; font-weight: bold; font-family: monospace; color: {% if l.current_balance_type == 'Dr' %}#1e8449{% else %}#2980b9{% endif %};">
+                        ₹{{ "%.2f"|format(l.current_balance) }} {{ l.current_balance_type }}
+                    </td>
+                    <td style="padding: 4px 10px; text-align: center;">
+                        <a href="/reports/ledger-statement/{{ l.id }}" class="inline-btn" title="View Statement">View</a>
+                        <a href="/masters/ledgers/alter/{{ l.id }}" class="inline-btn" style="background:#e2e8f0; color:#1e293b;" title="Alter Ledger">Alter</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Status Bar Hint -->
+    <div style="background:#d8e8f2; border-top:1px solid #b0c8d8; padding:4px 12px; display:flex; justify-content:space-between; font-size:11.5px; color:#092f3e;">
+        <div>
+            <strong>↑ / ↓</strong>: Move Focus &nbsp;|&nbsp; 
+            <strong>Shift + ↑ / ↓</strong>: Multi-Select Range &nbsp;|&nbsp; 
+            <strong>Space</strong>: Toggle Select &nbsp;|&nbsp; 
+            <strong>Enter</strong>: View Statement &nbsp;|&nbsp; 
+            <strong>Ctrl+Y</strong>: Replace / Reclassify &nbsp;|&nbsp; 
+            <strong>Alt+C</strong>: Create New
+        </div>
+        <div>
+            <strong>Esc</strong>: Back to Gateway
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dialog for Replace Ledger / Reclassify Department (Ctrl+Y) -->
+<div id="replaceModal" class="tally-modal-overlay" style="display: none; z-index: 9999;">
+    <div class="tally-modal-box" style="width: 520px; background: #fff; border: 2px solid #245882; box-shadow: 0 8px 30px rgba(0,0,0,0.35);">
+        <div style="background: #245882; color: #fff; padding: 8px 14px; font-weight: bold; font-size: 13.5px; text-align: center;">
+            Replace / Transfer Ledgers (Ctrl+Y)
+        </div>
+
+        <div style="padding: 16px;">
+            <div style="font-size: 12.5px; margin-bottom: 14px; background: #fdfefe; border: 1px solid #dce6e8; padding: 8px 12px; border-radius: 3px;">
+                <strong>Selected Ledgers (<span id="modalSelCount">0</span>):</strong>
+                <div id="modalSelectedNames" style="color: #0f3d4c; font-weight: bold; max-height: 70px; overflow-y: auto; margin-top: 4px; font-size: 12px;"></div>
+            </div>
+
+            <!-- Operation Radio -->
+            <div style="margin-bottom: 14px; background: #f4f8fa; padding: 10px 12px; border: 1px solid #d2e1e6; border-radius: 4px;">
+                <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 6px;">Select Action:</label>
+                <div style="display: flex; gap: 20px;">
+                    <label style="font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <input type="radio" name="replace_mode" value="department" checked onchange="toggleOperationMode()">
+                        <span>Re-classify Department / Group</span>
+                    </label>
+                    <label style="font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <input type="radio" name="replace_mode" value="merge" onchange="toggleOperationMode()">
+                        <span>Transfer to Another Ledger</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 1: Department (Group) Selection -->
+            <div id="section_department" style="margin-bottom: 16px;">
+                <label class="field-label" style="display: block; margin-bottom: 4px; font-weight:bold; font-size:12px;">Select Department (Group) to show in:</label>
+                <select id="target_department_select" class="tally-select" style="width: 100%; font-size: 12.5px; padding:3px 6px;">
+                    {% for g in groups %}
+                    <option value="{{ g.id }}">📁 {{ g.name }} ({{ g.nature }}{% if g.parent_name %} - Under {{ g.parent_name }}{% endif %})</option>
+                    {% endfor %}
+                </select>
+                <small style="display:block; margin-top: 4px; color: #555; font-size: 11px;">
+                    All selected ledgers will immediately appear under this Department across the Trial Balance and Balance Sheet.
+                </small>
+            </div>
+
+            <!-- Section 2: Merge / Target Ledger Selection -->
+            <div id="section_merge" style="margin-bottom: 16px; display: none;">
+                <label class="field-label" style="display: block; margin-bottom: 4px; font-weight:bold; font-size:12px;">Select Target Ledger to merge into:</label>
+                <select id="target_ledger_select" class="tally-select" style="width: 100%; font-size: 12.5px; padding:3px 6px;">
+                    {% for l in ledgers %}
+                    <option value="{{ l.id }}">{{ l.name }} ({{ l.group_name }})</option>
+                    {% endfor %}
+                </select>
+                <small style="display:block; margin-top: 4px; color: #a93226; font-size: 11px;">
+                    ⚠️ All voucher transactions and balances will be consolidated into the target ledger. Source ledgers will be replaced.
+                </small>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                <button type="button" class="inline-btn" style="background: #e2e8f0; color: #334155; padding: 5px 15px;" onclick="closeReplaceModal()">Cancel (Esc)</button>
+                <button type="button" class="inline-btn" style="background: #245882; color: #fff; padding: 5px 20px; font-weight: bold;" id="btnExecuteReplace" onclick="submitReplaceTransfer()">Execute (Enter)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.ledger-row {
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.04s ease;
+}
+.ledger-row:hover {
+    background-color: #fef08a !important;
+}
+.ledger-row.selected {
+    background-color: #fcb92c !important;
+    color: #000000 !important;
+    font-weight: 600;
+}
+.ledger-row.selected td {
+    color: #000000 !important;
+}
+.ledger-row.selected .ledger-name-text {
+    color: #000000 !important;
+}
+.ledger-row.selected .group-tag {
+    background: rgba(0, 0, 0, 0.12) !important;
+    color: #000000 !important;
+}
+.ledger-row.focused-row {
+    outline: 2px solid #004b87;
+    outline-offset: -2px;
+}
+</style>
+
+<script>
+let focusedIndex = 0;
+let anchorIndex = 0;
+
+function getVisibleRows() {
+    return Array.from(document.querySelectorAll('#ledgersBody tr.ledger-row'))
+                .filter(r => r.style.display !== 'none');
+}
+
+function updateSelectionCount() {
+    const count = getSelectedLedgerIds().length;
+    const badge = document.getElementById('selectedCountBadge');
+    if (badge) badge.innerText = `${count}`;
+}
+
+function getSelectedLedgerIds() {
+    const selected = document.querySelectorAll('.ledger-row.selected');
+    if (selected.length === 0) {
+        // Fallback to active focused row if none marked
+        const visible = getVisibleRows();
+        if (visible.length > 0 && focusedIndex < visible.length) {
+            return [parseInt(visible[focusedIndex].getAttribute('data-id'))];
+        }
+    }
+    return Array.from(selected).map(r => parseInt(r.getAttribute('data-id')));
+}
+
+function getSelectedLedgerNames() {
+    const selected = document.querySelectorAll('.ledger-row.selected');
+    if (selected.length === 0) {
+        const visible = getVisibleRows();
+        if (visible.length > 0 && focusedIndex < visible.length) {
+            return [visible[focusedIndex].getAttribute('data-name')];
+        }
+    }
+    return Array.from(selected).map(r => r.getAttribute('data-name'));
+}
+
+function selectRange(startIdx, endIdx) {
+    const visible = getVisibleRows();
+    if (!visible.length) return;
+
+    const min = Math.min(startIdx, endIdx);
+    const max = Math.max(startIdx, endIdx);
+
+    visible.forEach((row, idx) => {
+        if (idx >= min && idx <= max) {
+            row.classList.add('selected');
+        } else {
+            row.classList.remove('selected');
+        }
+        row.classList.remove('focused-row');
+    });
+
+    if (visible[endIdx]) {
+        visible[endIdx].classList.add('focused-row');
+        visible[endIdx].focus();
+        visible[endIdx].scrollIntoView({block: 'nearest'});
+    }
+    updateSelectionCount();
+}
+
+function selectSingleRow(idx) {
+    anchorIndex = idx;
+    focusedIndex = idx;
+    selectRange(idx, idx);
+}
+
+function handleRowClick(e, row) {
+    const visible = getVisibleRows();
+    const idx = visible.indexOf(row);
+    if (idx === -1) return;
+
+    if (e.shiftKey) {
+        // Shift + Click Range Selection
+        focusedIndex = idx;
+        selectRange(anchorIndex, focusedIndex);
+    } else if (e.ctrlKey || e.metaKey) {
+        // Ctrl + Click Toggle Selection
+        row.classList.toggle('selected');
+        visible.forEach(r => r.classList.remove('focused-row'));
+        row.classList.add('focused-row');
+        focusedIndex = idx;
+        anchorIndex = idx;
+        updateSelectionCount();
+    } else {
+        // Plain Click Single Selection
+        selectSingleRow(idx);
+    }
+}
+
+function openLedgerAlter(id) {
+    window.location.href = `/masters/ledgers/alter/${id}`;
+}
+
+function filterLedgers() {
+    const input = document.getElementById('ledgerSearchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#ledgersBody tr.ledger-row');
+    let matched = 0;
+    rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        if (text.includes(input)) {
+            r.style.display = '';
+            matched++;
+        } else {
+            r.style.display = 'none';
+        }
+    });
+    document.getElementById('matchCount').innerText = `Showing ${matched} of ${rows.length} ledgers`;
+
+    const visible = getVisibleRows();
+    if (visible.length > 0) {
+        selectSingleRow(0);
+    } else {
+        updateSelectionCount();
+    }
+}
+
+// Strict Keyboard Navigation: Shift + ArrowUp/ArrowDown, Space, Enter
+document.addEventListener('keydown', function(e) {
+    // If replace modal is open, let modal handle Enter/Esc
+    if (document.getElementById('replaceModal').style.display === 'flex') {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            closeReplaceModal();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            submitReplaceTransfer();
+        }
+        return;
+    }
+
+    // Ctrl + Y -> Open Replace / Transfer Modal
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault();
+        openReplaceModal();
+        return;
+    }
+
+    // If searching in input box and user presses Down/Enter, transfer focus to table rows
+    if (e.target.id === 'ledgerSearchInput') {
+        if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            e.preventDefault();
+            e.target.blur();
+            const visible = getVisibleRows();
+            if (visible.length > 0) {
+                selectSingleRow(0);
+            }
+        }
+        return;
+    }
+
+    const visible = getVisibleRows();
+    if (!visible.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (e.shiftKey) {
+            // Shift + ArrowDown -> Expand or contract selection range downwards
+            if (focusedIndex < visible.length - 1) {
+                focusedIndex++;
+                selectRange(anchorIndex, focusedIndex);
+            }
+        } else {
+            // ArrowDown alone -> Move single selection downwards
+            if (focusedIndex < visible.length - 1) {
+                focusedIndex++;
+                anchorIndex = focusedIndex;
+                selectRange(focusedIndex, focusedIndex);
+            }
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (e.shiftKey) {
+            // Shift + ArrowUp -> Expand or contract selection range upwards
+            if (focusedIndex > 0) {
+                focusedIndex--;
+                selectRange(anchorIndex, focusedIndex);
+            }
+        } else {
+            // ArrowUp alone -> Move single selection upwards
+            if (focusedIndex > 0) {
+                focusedIndex--;
+                anchorIndex = focusedIndex;
+                selectRange(focusedIndex, focusedIndex);
+            }
+        }
+    } else if (e.key === ' ') {
+        // Space -> Toggle selection of active row (Tally convention)
+        e.preventDefault();
+        if (visible[focusedIndex]) {
+            visible[focusedIndex].classList.toggle('selected');
+            updateSelectionCount();
+        }
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (visible[focusedIndex]) {
+            const lid = visible[focusedIndex].getAttribute('data-id');
+            window.location.href = `/reports/ledger-statement/${lid}`;
+        }
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        window.location.href = '/';
+    }
+});
+
+// Modal Operations
+function openReplaceModal() {
+    const ids = getSelectedLedgerIds();
+    if (ids.length === 0) {
+        alert("Please select one or more ledgers first.");
+        return;
+    }
+    const names = getSelectedLedgerNames();
+    document.getElementById('modalSelCount').innerText = ids.length;
+    document.getElementById('modalSelectedNames').innerText = names.join(', ');
+    document.getElementById('replaceModal').style.display = 'flex';
+    document.getElementById('btnExecuteReplace').focus();
+}
+
+function closeReplaceModal() {
+    document.getElementById('replaceModal').style.display = 'none';
+}
+
+function toggleOperationMode() {
+    const mode = document.querySelector('input[name="replace_mode"]:checked').value;
+    if (mode === 'department') {
+        document.getElementById('section_department').style.display = 'block';
+        document.getElementById('section_merge').style.display = 'none';
+    } else {
+        document.getElementById('section_department').style.display = 'none';
+        document.getElementById('section_merge').style.display = 'block';
+    }
+}
+
+function submitReplaceTransfer() {
+    const ids = getSelectedLedgerIds();
+    if (ids.length === 0) {
+        alert("No ledgers selected.");
+        closeReplaceModal();
+        return;
+    }
+
+    const mode = document.querySelector('input[name="replace_mode"]:checked').value;
+    let targetId = 0;
+
+    if (mode === 'department') {
+        targetId = parseInt(document.getElementById('target_department_select').value);
+    } else {
+        targetId = parseInt(document.getElementById('target_ledger_select').value);
+        if (ids.includes(targetId)) {
+            alert("Target ledger cannot be one of the selected source ledgers.");
+            return;
+        }
+    }
+
+    const payload = {
+        ledger_ids: ids,
+        mode: mode,
+        target_id: targetId
+    };
+
+    fetch('/api/ledgers/replace-transfer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        closeReplaceModal();
+        if (data.success) {
+            const banner = document.getElementById('statusAlert');
+            banner.style.display = 'block';
+            banner.innerText = '✓ ' + data.message;
+            setTimeout(() => { window.location.reload(); }, 1200);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(err => {
+        closeReplaceModal();
+        alert('Network error: ' + err);
+    });
+}
+
+// Auto-focus on first visible row on load
+document.addEventListener('DOMContentLoaded', function() {
+    const visible = getVisibleRows();
+    if (visible.length > 0) {
+        selectSingleRow(0);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-wrapper">
+    <div class="report-header">
+        <div>
+            <h2 class="report-title">Price Lists ({{ current_level }})</h2>
+            <div class="report-sub">Maintain Wholesale, Retail, and Dealer Price Tiers</div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label style="font-size: 13px; font-weight: bold; color: #092f3e;">Price Level:</label>
+            <select class="tally-select" style="width: 140px;" onchange="window.location.href='/masters/price-lists?level=' + this.value">
+                <option value="Wholesale" {% if current_level == 'Wholesale' %}selected{% endif %}>Wholesale</option>
+                <option value="Retail" {% if current_level == 'Retail' %}selected{% endif %}>Retail</option>
+                <option value="Dealer" {% if current_level == 'Dealer' %}selected{% endif %}>Dealer</option>
+            </select>
+        </div>
+    </div>
+
+    <form method="POST" action="/masters/price-lists">
+        <input type="hidden" name="price_level" value="{{ current_level }}">
+        <div class="grid-container" style="margin-top: 15px;">
+            <table class="tally-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Item Name</th>
+                        <th style="width: 15%; text-align: right;">Standard Rate (₹)</th>
+                        <th style="width: 18%; text-align: right;">Tier Rate (₹)</th>
+                        <th style="width: 16%; text-align: right;">Min Qty Slab</th>
+                        <th style="width: 16%; text-align: right;">Discount %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <input type="hidden" name="stock_item_id_{{ loop.index }}" value="{{ item.stock_item_id }}">
+                            <strong>{{ item.item_name }}</strong>
+                            <span style="font-size: 11px; color: #64748b;">({{ item.unit_symbol or 'Nos' }})</span>
+                        </td>
+                        <td style="text-align: right; color: #475569;">
+                            ₹{{ "%.2f"|format(item.standard_rate or 0) }}
+                        </td>
+                        <td style="text-align: right;">
+                            <input type="number" step="0.01" min="0" name="rate_{{ loop.index }}"
+                                   value="{{ item.level_rate if item.level_rate is not none else item.standard_rate }}"
+                                   class="tally-fld-input" style="width: 110px; text-align: right; font-weight: bold;">
+                        </td>
+                        <td style="text-align: right;">
+                            <input type="number" step="1" min="0" name="min_qty_{{ loop.index }}"
+                                   value="{{ item.min_qty if item.min_qty is not none else 0 }}"
+                                   class="tally-fld-input" style="width: 80px; text-align: right;">
+                        </td>
+                        <td style="text-align: right;">
+                            <input type="number" step="0.1" min="0" max="100" name="discount_{{ loop.index }}"
+                                   value="{{ item.discount_percent if item.discount_percent is not none else 0.0 }}"
+                                   class="tally-fld-input" style="width: 80px; text-align: right;">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <input type="hidden" name="total_items" value="{{ items|length }}">
+        <div class="voucher-bottom-actions" style="margin-top: 20px;">
+            <button type="submit" class="tally-btn-save">Accept Price List (Enter)</button>
+            <a href="/" class="tally-btn-cancel">Quit (Esc)</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Statutory GST Reports</div>
+        <div class="report-subtitle">{{ company.name }} | GSTIN: {{ company.gstin or 'Unregistered' }}</div>
+    </div>
+
+    <!-- Tabs for GSTR-1 and GSTR-3B -->
+    <div class="vtype-switcher" style="margin-bottom: 20px;">
+        <button class="vtab {% if active_tab == 'gstr1' %}active{% endif %}" onclick="showTab('gstr1')">GSTR-1 (Outward Supplies)</button>
+        <button class="vtab {% if active_tab == 'gstr3b' %}active{% endif %}" onclick="showTab('gstr3b')">GSTR-3B (Summary Return)</button>
+    </div>
+
+    <!-- GSTR-1 Tab Content -->
+    <div id="tab_gstr1" style="display: {% if active_tab == 'gstr1' %}block{% else %}none{% endif %};">
+        <div class="menu-section-header" style="margin-bottom: 10px;">TABLE 4: B2B INVOICES (REGISTERED PARTIES)</div>
+        <table class="tally-report-table">
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Date</th>
+                    <th>Customer Name</th>
+                    <th>Customer GSTIN</th>
+                    <th style="text-align: right;">Taxable Value (₹)</th>
+                    <th style="text-align: right;">Tax Amount (₹)</th>
+                    <th style="text-align: right;">Total (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if gstr1.b2b_invoices %}
+                    {% for inv in gstr1.b2b_invoices %}
+                    <tr>
+                        <td><code>{{ inv.voucher_number }}</code></td>
+                        <td>{{ inv.voucher_date }}</td>
+                        <td><strong>{{ inv.party_name }}</strong></td>
+                        <td><code>{{ inv.party_gstin }}</code></td>
+                        <td style="text-align: right;">₹{{ "%.2f"|format(inv.subtotal) }}</td>
+                        <td style="text-align: right;">₹{{ "%.2f"|format(inv.tax_amount) }}</td>
+                        <td style="text-align: right; font-weight: bold;">₹{{ "%.2f"|format(inv.total_amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="4"><strong>Total B2B Outward Supplies</strong></td>
+                        <td style="text-align: right;"><strong>₹{{ "%.2f"|format(gstr1.total_b2b_taxable) }}</strong></td>
+                        <td style="text-align: right;"><strong>₹{{ "%.2f"|format(gstr1.total_b2b_tax) }}</strong></td>
+                        <td style="text-align: right;"><strong>₹{{ "%.2f"|format(gstr1.total_b2b_taxable + gstr1.total_b2b_tax) }}</strong></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" style="text-align: center; color: #888; padding: 15px;">No B2B invoices in this period.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="menu-section-header" style="margin-top: 20px; margin-bottom: 10px;">TABLE 12: HSN-WISE SUMMARY OF OUTWARD SUPPLIES</div>
+        <table class="tally-report-table">
+            <thead>
+                <tr>
+                    <th>HSN/SAC</th>
+                    <th>Description</th>
+                    <th>UOM</th>
+                    <th style="text-align: right;">Total Qty</th>
+                    <th style="text-align: right;">Total Value (₹)</th>
+                    <th style="text-align: right;">Central Tax (₹)</th>
+                    <th style="text-align: right;">State Tax (₹)</th>
+                    <th style="text-align: right;">Integrated Tax (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in gstr1.hsn_summary %}
+                <tr>
+                    <td><code>{{ h.hsn_sac }}</code></td>
+                    <td>{{ h.item_name }}</td>
+                    <td>{{ h.uom }}</td>
+                    <td style="text-align: right;">{{ h.total_qty }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(h.total_taxable) }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(h.total_cgst) }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(h.total_sgst) }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(h.total_igst) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- GSTR-3B Tab Content -->
+    <div id="tab_gstr3b" style="display: {% if active_tab == 'gstr3b' %}block{% else %}none{% endif %};">
+        <div class="menu-section-header" style="margin-bottom: 10px;">TABLE 3.1: DETAILS OF OUTWARD SUPPLIES & TAX LIABILITY</div>
+        <table class="tally-report-table">
+            <thead>
+                <tr>
+                    <th>Nature of Supplies</th>
+                    <th style="text-align: right;">Total Taxable (₹)</th>
+                    <th style="text-align: right;">IGST (₹)</th>
+                    <th style="text-align: right;">CGST (₹)</th>
+                    <th style="text-align: right;">SGST (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>(a) Outward taxable supplies (other than zero rated, nil, exempt)</td>
+                    <td style="text-align: right; font-weight: bold;">₹{{ "%.2f"|format(gstr3b.outward.taxable_value) }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(gstr3b.outward.igst) }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(gstr3b.outward.cgst) }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(gstr3b.outward.sgst) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="menu-section-header" style="margin-top: 20px; margin-bottom: 10px;">TABLE 4: ELIGIBLE INPUT TAX CREDIT (ITC)</div>
+        <table class="tally-report-table">
+            <thead>
+                <tr>
+                    <th>Details</th>
+                    <th style="text-align: right;">Total Taxable (₹)</th>
+                    <th style="text-align: right;">IGST (₹)</th>
+                    <th style="text-align: right;">CGST (₹)</th>
+                    <th style="text-align: right;">SGST (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>(A) (5) All other ITC (Purchase Invoices)</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(gstr3b.itc.taxable_value) }}</td>
+                    <td style="text-align: right; color: #1e8449;">₹{{ "%.2f"|format(gstr3b.itc.igst) }}</td>
+                    <td style="text-align: right; color: #1e8449;">₹{{ "%.2f"|format(gstr3b.itc.cgst) }}</td>
+                    <td style="text-align: right; color: #1e8449;">₹{{ "%.2f"|format(gstr3b.itc.sgst) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="summary-section" style="width: 380px; margin-top: 20px;">
+            <div class="summary-row"><span>Net IGST Payable:</span><strong>₹{{ "%.2f"|format(gstr3b.net_payable.igst) }}</strong></div>
+            <div class="summary-row"><span>Net CGST Payable:</span><strong>₹{{ "%.2f"|format(gstr3b.net_payable.cgst) }}</strong></div>
+            <div class="summary-row"><span>Net SGST Payable:</span><strong>₹{{ "%.2f"|format(gstr3b.net_payable.sgst) }}</strong></div>
+            <div class="summary-row total-highlight"><span>Total Net Tax Payable:</span><strong style="color: #c0392b;">₹{{ "%.2f"|format(gstr3b.net_payable.total) }}</strong></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tab) {
+    document.getElementById('tab_gstr1').style.display = (tab === 'gstr1') ? 'block' : 'none';
+    document.getElementById('tab_gstr3b').style.display = (tab === 'gstr3b') ? 'block' : 'none';
+}
+</script>
+{% endblock %}
+

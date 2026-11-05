@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="gateway-screen-layout">
+    <!-- Left Panel: Current Period & Company Information -->
+    <div class="gateway-left-panel">
+        <div class="period-date-header">
+            <span>Current Period</span>
+            <span>Current Date</span>
+        </div>
+        <div class="period-date-values">
+            <span>{{ company.fy_start_date if company else '1-Apr-26' }} to {{ company.fy_end_date if company else '31-Mar-27' }}</span>
+            <span id="currentDateDisplay">{{ today_display }}</span>
+        </div>
+
+        <div class="gateway-divider-line"></div>
+
+        <div class="company-status-grid">
+            <span>Name of Company</span>
+            <span>Date of Last Entry</span>
+        </div>
+        <div class="company-status-values">
+            <strong style="font-size: 14px; color: #092f3e;">{{ company.name if company else '' }}</strong>
+            <span style="color: #4b6b82;">
+                {% if voucher_count and voucher_count > 0 %}
+                    {{ voucher_count }} Vouchers Entered
+                {% else %}
+                    No Vouchers Entered
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="gateway-divider-line" style="margin-top: 15px;"></div>
+
+        <!-- Additional Master Status Summary -->
+        <div class="gateway-status-box">
+            <div class="gateway-status-heading">CURRENT STATUS / MASTERS</div>
+            <table class="gateway-mini-table">
+                <tr>
+                    <td>GSTIN / UIN:</td>
+                    <td><code>{{ company.gstin or 'Unregistered' }}</code></td>
+                </tr>
+                <tr>
+                    <td>State:</td>
+                    <td>{{ company.state }} ({{ company.state_code }})</td>
+                </tr>
+                <tr>
+                    <td>Active Vouchers:</td>
+                    <td><strong>{{ voucher_count }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Ledgers:</td>
+                    <td><strong>{{ ledger_count }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Stock Items:</td>
+                    <td><strong>{{ stock_count }}</strong></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Panel: Gateway of Tally Floating Menu Window -->
+    <div class="gateway-right-panel">
+        <div class="gateway-menu-window" id="gatewayMainMenu">
+            <div class="gateway-menu-title">
+                Gateway of Tally
+            </div>
+
+            <div class="gateway-section-heading">MASTERS</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item selected" onclick="openCreateModal()"><span class="hotkey">C</span>reate</li>
+                <li class="gateway-menu-item" onclick="openAlterModal()"><span class="hotkey">A</span>lter</li>
+                <li class="gateway-menu-item" onclick="navTo('/masters/chart-of-accounts')">Chart of <span class="hotkey">A</span>ccounts</li>
+            </ul>
+
+            <div class="gateway-section-heading">TRANSACTIONS</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item" onclick="navTo('/vouchers/create?type=Sales')"><span class="hotkey">V</span>ouchers</li>
+                <li class="gateway-menu-item" onclick="navTo('/daybook')"><span class="hotkey">D</span>ay Book</li>
+            </ul>
+
+            <div class="gateway-section-heading">UTILITIES</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item" onclick="navTo('/reports/cash-bank-book')">Ban<span class="hotkey">k</span>ing</li>
+            </ul>
+
+            <div class="gateway-section-heading">REPORTS</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item" onclick="navTo('/reports/balance-sheet')"><span class="hotkey">B</span>alance Sheet</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/profit-loss')"><span class="hotkey">P</span>rofit & Loss A/c</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/stock-summary')"><span class="hotkey">S</span>tock Summary</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/ratio-analysis')"><span class="hotkey">R</span>atio Analysis</li>
+                <li class="gateway-menu-item" onclick="openDisplayMoreReports()"><span class="hotkey">D</span>isplay More Reports</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/ratio-analysis')">Dash<span class="hotkey">b</span>oard</li>
+            </ul>
+
+            <div style="border-top: 1px solid #cbd5e1; margin-top: 8px;"></div>
+            <ul class="gateway-menu-items" style="padding-bottom: 6px;">
+                <li class="gateway-menu-item" onclick="triggerQuitPrompt()"><span class="hotkey">Q</span>uit</li>
+            </ul>
+        </div>
+
+        <!-- Display More Reports Submenu -->
+        <div class="gateway-menu-window" id="displayMoreMenu" style="display:none;">
+            <div class="gateway-menu-title" style="display:flex; justify-content:space-between; align-items:center; padding: 4px 10px;">
+                <span>Display More Reports</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeDisplayMoreReports()">Back (Esc)</span>
+            </div>
+
+            <div class="gateway-section-heading">ACCOUNTING</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item selected" onclick="navTo('/reports/trial-balance')"><span class="hotkey">T</span>rial Balance</li>
+                <li class="gateway-menu-item" onclick="navTo('/daybook')"><span class="hotkey">D</span>ay Book</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/cash-flow')"><span class="hotkey">C</span>ash Flow</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/funds-flow')"><span class="hotkey">F</span>unds Flow</li>
+                <li class="gateway-menu-item" onclick="navTo('/ledgers')"><span class="hotkey">A</span>ccount Books</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/outstanding-receivables')"><span class="hotkey">S</span>tatements of Accounts</li>
+            </ul>
+
+            <div class="gateway-section-heading">INVENTORY</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item" onclick="navTo('/reports/stock-summary')"><span class="hotkey">I</span>nventory Books</li>
+                <li class="gateway-menu-item" onclick="navTo('/reports/godown-summary')">Stat<span class="hotkey">e</span>ments of Inventory</li>
+            </ul>
+
+            <div class="gateway-section-heading">STATUTORY</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item" onclick="navTo('/reports/gst')">Statut<span class="hotkey">o</span>ry Reports (GST)</li>
+                <li class="gateway-menu-item" onclick="navTo('/statutory/tds')"><span class="hotkey">T</span>DS Form 26Q</li>
+            </ul>
+
+            <div class="gateway-section-heading">EXCEPTION</div>
+            <ul class="gateway-menu-items">
+                <li class="gateway-menu-item" onclick="navTo('/audit/trail')"><span class="hotkey">E</span>xception Reports</li>
+                <li class="gateway-menu-item" onclick="navTo('/audit/trail')">Analysis &amp; <span class="hotkey">V</span>erification</li>
+            </ul>
+
+            <div style="border-top: 1px solid #cbd5e1; margin-top: 8px;"></div>
+            <ul class="gateway-menu-items" style="padding-bottom: 6px;">
+                <li class="gateway-menu-item" onclick="closeDisplayMoreReports()"><span class="hotkey">Q</span>uit</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentMenuFocusIndex = 0;
+
+function navTo(url) {
+    window.location.href = url;
+}
+
+function openDisplayMoreReports() {
+    document.getElementById('gatewayMainMenu').style.display = 'none';
+    document.getElementById('displayMoreMenu').style.display = 'block';
+    currentMenuFocusIndex = 0;
+    updateMenuHighlight();
+}
+
+function closeDisplayMoreReports() {
+    document.getElementById('displayMoreMenu').style.display = 'none';
+    document.getElementById('gatewayMainMenu').style.display = 'block';
+    currentMenuFocusIndex = 0;
+    updateMenuHighlight();
+}
+
+function getVisibleMenuItems() {
+    const activeMenu = (document.getElementById('displayMoreMenu').style.display === 'block') 
+        ? document.getElementById('displayMoreMenu') 
+        : document.getElementById('gatewayMainMenu');
+    return activeMenu.querySelectorAll('.gateway-menu-item');
+}
+
+function updateMenuHighlight() {
+    const items = getVisibleMenuItems();
+    items.forEach((it, idx) => {
+        if (idx === currentMenuFocusIndex) {
+            it.classList.add('selected');
+        } else {
+            it.classList.remove('selected');
+        }
+    });
+}
+
+// Keyboard arrow navigation on Gateway
+document.addEventListener('keydown', function(e) {
+    // If any popup modal is open, let modal handle keys and ignore Gateway keys!
+    const openModals = document.querySelectorAll('.tally-modal-overlay, #quitDialog');
+    for (let m of openModals) {
+        if (m && m.style.display && m.style.display !== 'none') return;
+    }
+
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const items = getVisibleMenuItems();
+    if (!items || items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentMenuFocusIndex = (currentMenuFocusIndex + 1) % items.length;
+        updateMenuHighlight();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentMenuFocusIndex = (currentMenuFocusIndex - 1 + items.length) % items.length;
+        updateMenuHighlight();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        items[currentMenuFocusIndex].click();
+    }
+});
+</script>
+{% endblock %}

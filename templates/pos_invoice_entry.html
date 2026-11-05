@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="max-width: 1000px; margin: 0 auto;">
+    <div class="tally-card-header">
+        <span>Point of Sale (POS) Invoicing - Retail Counter</span>
+        <div style="display:flex; gap:10px;">
+            <a href="/daybook" class="tally-btn" style="padding: 4px 10px; text-decoration: none;">Day Book</a>
+        </div>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <form method="POST" action="/pos/invoice/create" id="posForm">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Billing Date</label>
+                    <input type="date" name="pos_date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Customer Ledger</label>
+                    <select name="party_ledger_id" class="form-control" required>
+                        {% for l in customer_ledgers %}
+                        <option value="{{ l.id }}" {% if 'Cash' in l.name or 'Counter' in l.name or 'Retail' in l.name %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cash Ledger</label>
+                    <select name="cash_ledger_id" class="form-control" required>
+                        {% for l in cash_ledgers %}
+                        <option value="{{ l.id }}">{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <h4 style="color:var(--tally-yellow); margin-bottom: 10px;">Cart Items</h4>
+            <table class="tally-table" style="margin-bottom: 15px;">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th style="width: 120px; text-align: right;">Qty</th>
+                        <th style="width: 140px; text-align: right;">Rate (₹)</th>
+                        <th style="width: 100px; text-align: right;">GST %</th>
+                        <th style="width: 150px; text-align: right;">Total (₹)</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    <tr>
+                        <td>
+                            <select name="item_id[]" class="form-control item-select" required onchange="onItemSelect(this)">
+                                <option value="">-- Select Item / Scan Barcode --</option>
+                                {% for it in stock_items %}
+                                <option value="{{ it.id }}" data-rate="{{ it.opening_rate or 0 }}" data-gst="{{ it.gst_rate }}">{{ it.name }} (Stock: {{ it.closing_qty }})</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" step="1" name="quantity[]" class="form-control item-qty" value="1" min="1" required style="text-align: right;" onchange="recalculatePos()"></td>
+                        <td><input type="number" step="0.01" name="rate[]" class="form-control item-rate" value="0.00" required style="text-align: right;" onchange="recalculatePos()"></td>
+                        <td><input type="number" step="0.01" name="gst_rate[]" class="form-control item-gst" value="18.0" readonly style="text-align: right;"></td>
+                        <td style="text-align: right; font-weight: 700; padding-top: 14px;" class="item-total">0.00</td>
+                        <td><button type="button" class="tally-btn" style="color:#ff6b6b; padding:2px 8px;" onclick="removeCartRow(this)">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-bottom: 25px;">
+                <button type="button" class="tally-btn" onclick="addCartRow()">+ Add Item Row</button>
+            </div>
+
+            <!-- Settlement & Tender Details -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--tally-border); border-radius: 4px; padding: 15px;">
+                    <h5 style="color:var(--tally-cyan); margin-top:0; margin-bottom:12px;">Multi-Mode Payment Tender</h5>
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size:11px;">Cash Tendered (₹)</label>
+                        <input type="number" step="0.01" name="cash_tendered" id="cashTendered" class="form-control" value="0.00" onkeyup="recalculatePos()" onchange="recalculatePos()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size:11px;">Card Amount (₹)</label>
+                        <input type="number" step="0.01" name="card_amount" id="cardAmount" class="form-control" value="0.00" onkeyup="recalculatePos()" onchange="recalculatePos()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size:11px;">UPI / QR Amount (₹)</label>
+                        <input type="number" step="0.01" name="upi_amount" id="upiAmount" class="form-control" value="0.00" onkeyup="recalculatePos()" onchange="recalculatePos()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Card / UPI Bank Account</label>
+                        <select name="bank_ledger_id" class="form-control">
+                            {% for b in bank_ledgers %}
+                            <option value="{{ b.id }}">{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--tally-border); border-radius: 4px; padding: 15px; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                            <span>Subtotal:</span>
+                            <strong id="dispSubtotal">₹0.00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                            <span>GST Tax:</span>
+                            <strong id="dispTax">₹0.00</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size: 20px; font-weight: 700; color: var(--tally-yellow); border-top: 1px solid var(--tally-border); padding-top: 10px; margin-bottom: 12px;">
+                            <span>Grand Total:</span>
+                            <span id="dispGrand">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(46, 204, 113, 0.15); border: 1px solid #2ecc71; border-radius: 4px; padding: 10px; text-align: center;">
+                        <div style="font-size: 11px; color: var(--tally-muted); text-transform: uppercase;">Change Due to Customer</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #2ecc71;" id="dispChange">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                <a href="/daybook" class="tally-btn" style="text-decoration:none;">Cancel</a>
+                <button type="submit" class="tally-btn tally-btn-primary" style="font-size: 14px; padding: 8px 24px;">Print Thermal Receipt (Enter)</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function onItemSelect(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const rate = opt.getAttribute('data-rate') || 0;
+    const gst = opt.getAttribute('data-gst') || 18.0;
+    const row = sel.closest('tr');
+    row.querySelector('.item-rate').value = parseFloat(rate).toFixed(2);
+    row.querySelector('.item-gst').value = parseFloat(gst).toFixed(1);
+    recalculatePos();
+}
+
+function recalculatePos() {
+    let subtotal = 0;
+    let totalTax = 0;
+
+    document.querySelectorAll('#cartBody tr').forEach(row => {
+        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+        const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+        const gstRate = parseFloat(row.querySelector('.item-gst').value) || 0;
+
+        const taxable = qty * rate;
+        const tax = taxable * (gstRate / 100.0);
+        const lineTotal = taxable + tax;
+
+        subtotal += taxable;
+        totalTax += tax;
+
+        row.querySelector('.item-total').innerText = lineTotal.toFixed(2);
+    });
+
+    const grand = subtotal + totalTax;
+    const cash = parseFloat(document.getElementById('cashTendered').value) || 0;
+    const card = parseFloat(document.getElementById('cardAmount').value) || 0;
+    const upi = parseFloat(document.getElementById('upiAmount').value) || 0;
+
+    const nonCash = card + upi;
+    const cashDue = Math.max(0, grand - nonCash);
+    const change = (cash > cashDue) ? (cash - cashDue) : 0;
+
+    document.getElementById('dispSubtotal').innerText = '₹' + subtotal.toFixed(2);
+    document.getElementById('dispTax').innerText = '₹' + totalTax.toFixed(2);
+    document.getElementById('dispGrand').innerText = '₹' + grand.toFixed(2);
+    document.getElementById('dispChange').innerText = '₹' + change.toFixed(2);
+}
+
+function addCartRow() {
+    const tbody = document.getElementById('cartBody');
+    const firstRow = tbody.querySelector('tr');
+    const clone = firstRow.cloneNode(true);
+    clone.querySelector('.item-select').selectedIndex = 0;
+    clone.querySelector('.item-qty').value = "1";
+    clone.querySelector('.item-rate').value = "0.00";
+    clone.querySelector('.item-total').innerText = "0.00";
+    tbody.appendChild(clone);
+}
+
+function removeCartRow(btn) {
+    const tbody = document.getElementById('cartBody');
+    if (tbody.querySelectorAll('tr').length > 1) {
+        btn.closest('tr').remove();
+        recalculatePos();
+    }
+}
+</script>
+{% endblock %}
+

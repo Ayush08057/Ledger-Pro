@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or "Gateway of Tally" }} - Ledger Pro</title>
+    <link rel="stylesheet" href="/static/css/tally.css?v=2.8">
+    <style>
+        /* Strict TallyPrime Selection Highlight for Modals & Lists */
+        .tally-modal-option {
+            display: block !important;
+            padding: 6px 24px !important;
+            font-size: 13px !important;
+            color: #1a3a50 !important;
+            cursor: pointer !important;
+            text-decoration: none !important;
+            transition: none !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            outline: none !important;
+        }
+        .tally-modal-option:hover,
+        .tally-modal-option.selected {
+            background-color: #fcb92c !important;
+            background: #fcb92c !important;
+            color: #000000 !important;
+            font-weight: 700 !important;
+            outline: none !important;
+        }
+        .tally-modal-list {
+            scroll-behavior: smooth !important;
+        }
+    </style>
+</head>
+<body class="tally-body" onkeydown="handleTallyKeyboard(event)">
+
+    <!-- ================= TOP NAVIGATION BAR (Tally Header) ================= -->
+    <header class="tally-topbar">
+        <div class="brand">
+            <span class="tally-logo-text">Ledger<span style="font-weight: 300;">Pro</span></span>
+        </div>
+
+        <div class="top-menu-left">
+            <a href="/company/select" class="top-link"><span class="key-underline">K</span>: Company</a>
+            <a href="/data/backup" class="top-link"><span class="key-underline">Y</span>: Data</a>
+            <a href="/data/exchange" class="top-link"><span class="key-underline">Z</span>: Exchange</a>
+        </div>
+
+        <!-- Center Universal Search & Go To Tab -->
+        <div class="top-search-goto-wrapper">
+            <div style="position: relative;">
+                <span class="top-search-icon">🔍</span>
+                <input type="text" id="topSearchInput" class="top-search-box"
+                       placeholder="Find details entered in masters and transactions. (Alt+F)"
+                       onclick="openGotoModal()" onfocus="openGotoModal()">
+            </div>
+            <div class="top-goto-tab" onclick="openGotoModal()">
+                <span class="key-underline">G</span>: Go To
+            </div>
+        </div>
+
+        <div class="top-menu-right">
+            <a href="/data/exchange" class="top-link"><span class="key-underline">O</span>: Import</a>
+            <a href="/data/exchange" class="top-link"><span class="key-underline">E</span>: Export</a>
+            <a href="javascript:void(0)" onclick="openShareModal()" class="top-link"><span class="key-underline">M</span>: Share</a>
+            <a href="javascript:window.print()" class="top-link"><span class="key-underline">P</span>: Print</a>
+            <a href="javascript:void(0)" onclick="openHelpModal()" class="top-link"><span class="key-underline">F1</span>: Help</a>
+            <div class="top-win-controls">
+                <span>−</span>
+                <span>□</span>
+                <span onclick="triggerQuitPrompt()" style="cursor: pointer;">✕</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= SUB-HEADER BANNER ================= -->
+    <div class="tally-subheader">
+        <div class="tally-screen-title" id="tallyScreenTitle">{{ title or "Gateway of Tally" }}</div>
+        <div class="tally-company-center">{{ company.name if company else "" }}</div>
+        <div class="tally-subheader-right" style="display:flex; align-items:center; gap:8px;">
+            <div id="tallySubheaderDateText" style="text-align:right; font-size:11.5px; font-weight:600; letter-spacing:0.3px; font-family: monospace, sans-serif;">
+                <span id="tallyHeaderDateFormatted">{{ today_tally }}</span>
+                <span id="tallyHeaderDayFormatted" style="margin-left:4px;">{{ today_day }}</span>
+            </div>
+            <div class="tally-sub-close" onclick="history.back()" title="Back / Close" style="margin-left:6px;">✕</div>
+        </div>
+    </div>
+
+    <!-- ================= MAIN WORKSPACE AREA ================= -->
+    <div class="tally-layout">
+        <!-- Content Viewport -->
+        <main class="tally-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Right Side Button Bar -->
+        <aside class="tally-btnbar" id="tallyBtnBar">
+            <a href="javascript:void(0)" onclick="openPeriodModal()" class="btn-cell"><span class="fkey">F2</span><span class="lbl">Date</span></a>
+            <a href="/company/select" class="btn-cell"><span class="fkey">F3</span><span class="lbl">Company</span></a>
+            <a href="/vouchers/create?type=Contra" class="btn-cell"><span class="fkey">F4</span><span class="lbl">Contra</span></a>
+            <a href="/vouchers/create?type=Payment" class="btn-cell"><span class="fkey">F5</span><span class="lbl">Payment</span></a>
+            <a href="/vouchers/create?type=Receipt" class="btn-cell"><span class="fkey">F6</span><span class="lbl">Receipt</span></a>
+            <a href="/vouchers/create?type=Journal" class="btn-cell"><span class="fkey">F7</span><span class="lbl">Journal</span></a>
+            <a href="/vouchers/create?type=Sales" class="btn-cell"><span class="fkey">F8</span><span class="lbl">Sales</span></a>
+            <a href="/vouchers/create?type=Purchase" class="btn-cell"><span class="fkey">F9</span><span class="lbl">Purchase</span></a>
+            <a href="javascript:void(0)" onclick="openOtherVouchersModal()" class="btn-cell"><span class="fkey">F10</span><span class="lbl">Other Vch</span></a>
+            <a href="javascript:void(0)" onclick="openChangeModeModal()" class="btn-cell"><span class="fkey">Ctrl+H</span><span class="lbl">Change Mode</span></a>
+            <a href="/ledgers" class="btn-cell" style="border-left: 3px solid #245882;"><span class="fkey">L</span><span class="lbl">Ledgers</span></a>
+            <a href="/daybook" class="btn-cell"><span class="fkey">D</span><span class="lbl">Day Book</span></a>
+            <a href="/reports/trial-balance" class="btn-cell"><span class="fkey">T</span><span class="lbl">Trial Bal</span></a>
+            <a href="/reports/balance-sheet" class="btn-cell"><span class="fkey">B</span><span class="lbl">Bal Sheet</span></a>
+            <a href="/reports/profit-loss" class="btn-cell"><span class="fkey">P</span><span class="lbl">P & L A/c</span></a>
+            <a href="/reports/stock-summary" class="btn-cell"><span class="fkey">S</span><span class="lbl">Stock Sum</span></a>
+            <a href="/reports/ratio-analysis" class="btn-cell"><span class="fkey">R</span><span class="lbl">Ratio Analysis</span></a>
+            <a href="/inventory/manufacturing" class="btn-cell"><span class="fkey">M</span><span class="lbl">Mfg & BOM</span></a>
+            <a href="/pos/invoice" class="btn-cell"><span class="fkey">POS</span><span class="lbl">Retail POS</span></a>
+            <a href="javascript:void(0)" onclick="openFeaturesModal()" class="btn-cell" style="background:#eaf1f6; font-weight:bold;"><span class="fkey">F11</span><span class="lbl">Features</span></a>
+            <a href="javascript:void(0)" onclick="triggerF12Action()" class="btn-cell" style="background:#eaf1f6; font-weight:bold; border-top:1px solid #b3cddf;" id="btnbar_f12"><span class="fkey">F12</span><span class="lbl">Configure</span></a>
+        </aside>
+    </div>
+
+    <!-- ================= BOTTOM STATUS BAR ================= -->
+    <footer class="tally-bottom-bar">
+        <div class="bottom-actions-left">
+            <span class="bottom-action-item" onclick="triggerQuitPrompt()"><strong>Q</strong>: Quit</span>
+            <span class="bottom-action-item" onclick="triggerAcceptAction()"><strong>A</strong>: Accept</span>
+            <span class="bottom-action-item" onclick="triggerDeleteAction()"><strong>D</strong>: Delete</span>
+            <span class="bottom-action-item" onclick="triggerCancelAction()"><strong>X</strong>: Cancel Vch</span>
+            <span class="bottom-action-item" onclick="openGotoModal()"><strong>G</strong>: Go To</span>
+            <span class="bottom-action-item" onclick="openFeaturesModal()"><strong>F11</strong>: Features</span>
+        </div>
+        <div>
+            <span style="color:#245882; font-weight:600; cursor:pointer;" onclick="triggerF12Action()">F12: Configure</span>
+        </div>
+    </footer>
+
+    <!-- ================= QUIT CONFIRMATION DIALOG ================= -->
+    <div id="quitDialog" class="quit-confirm-dialog" style="display:none;">
+        <div class="q-title">Quit ?</div>
+        <div class="q-options">
+            <span onclick="confirmQuit()" class="selected">Yes</span>
+            <span onclick="closeQuitPrompt()">No</span>
+        </div>
+    </div>
+
+    <!-- ================= MASTER CREATION MODAL (C) ================= -->
+    <div id="createMasterModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box">
+            <div class="tally-modal-title">Master Creation</div>
+            <div class="tally-modal-header-blue">
+                <span>List of Masters</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeCreateModal()">Back (Esc)</span>
+            </div>
+            <div class="tally-modal-list" id="createOptionsList">
+                <div class="tally-modal-category">Accounting Masters</div>
+                <a href="/masters/groups/create" class="tally-modal-option selected">Group</a>
+                <a href="/masters/ledgers/create" class="tally-modal-option">Ledger</a>
+                <a href="/masters/cost-centres" class="tally-modal-option">Cost Centre</a>
+                <a href="/masters/currencies" class="tally-modal-option">Currency</a>
+                <a href="/masters/voucher-types/create" class="tally-modal-option">Voucher Type</a>
+
+                <div class="tally-modal-category">Inventory Masters</div>
+                <a href="/masters/stock-groups/create" class="tally-modal-option">Stock Group</a>
+                <a href="/masters/stock-categories/create" class="tally-modal-option">Stock Category</a>
+                <a href="/masters/stock-items/create" class="tally-modal-option">Stock Item</a>
+                <a href="/masters/units/create" class="tally-modal-option">Unit</a>
+                <a href="/masters/godowns/create" class="tally-modal-option">Godown</a>
+
+                <div class="tally-modal-category">Statutory Masters</div>
+                <a href="/statutory/gst-details" class="tally-modal-option">GST Registration</a>
+                <a href="/statutory/gst-classification" class="tally-modal-option">GST Classification</a>
+
+                <div class="tally-modal-category">Statutory Details</div>
+                <a href="/statutory/gst-details" class="tally-modal-option">Company GST Details</a>
+                <a href="/company/alter" class="tally-modal-option">PAN/CIN Details</a>
+
+                <div class="tally-modal-category">Payroll Masters</div>
+                <a href="/payroll/employees/create" class="tally-modal-option">Employee</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MASTER ALTERATION MODAL (A) ================= -->
+    <div id="alterMasterModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box">
+            <div class="tally-modal-title">Master Alteration</div>
+            <div class="tally-modal-header-blue">
+                <span>List of Masters</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeAlterModal()">Back (Esc)</span>
+            </div>
+            <div class="tally-modal-list" id="alterOptionsList">
+                <div class="tally-modal-category">Accounting Masters</div>
+                <a href="/masters/alter/groups" class="tally-modal-option selected">Group</a>
+                <a href="/masters/alter/ledgers" class="tally-modal-option">Ledger (Alter / Replace)</a>
+                <a href="/masters/cost-centres" class="tally-modal-option">Cost Centre</a>
+                <a href="/masters/currencies" class="tally-modal-option">Currency</a>
+                <a href="/masters/alter/voucher-types" class="tally-modal-option">Voucher Type</a>
+
+                <div class="tally-modal-category">Inventory Masters</div>
+                <a href="/masters/stock-groups/create" class="tally-modal-option">Stock Group</a>
+                <a href="/masters/stock-categories/create" class="tally-modal-option">Stock Category</a>
+                <a href="/masters/alter/stock-items" class="tally-modal-option">Stock Item</a>
+                <a href="/masters/alter/units" class="tally-modal-option">Unit</a>
+                <a href="/masters/alter/godowns" class="tally-modal-option">Godown</a>
+
+                <div class="tally-modal-category">Statutory Masters</div>
+                <a href="/statutory/gst-classification" class="tally-modal-option">GST Classification</a>
+
+                <div class="tally-modal-category">Statutory Details</div>
+                <a href="/company/alter" class="tally-modal-option">Company Profile &amp; GSTIN</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CHANGE VOUCHER MODE MODAL (Ctrl+H) ================= -->
+    <div id="changeModeModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box" style="width: 340px;">
+            <div class="tally-modal-title">Change Voucher Mode</div>
+            <div class="tally-modal-header-blue">
+                <span>List of Modes/Usages</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeChangeModeModal()">✕</span>
+            </div>
+            <div class="tally-modal-list">
+                <a href="javascript:void(0)" onclick="setVoucherMode('single')" class="tally-modal-option">Single Entry</a>
+                <a href="javascript:void(0)" onclick="setVoucherMode('double')" class="tally-modal-option">Double Entry</a>
+                <a href="javascript:void(0)" onclick="setVoucherMode('item_invoice')" class="tally-modal-option">As Invoice (Item Invoice)</a>
+                <a href="/pos/invoice" class="tally-modal-option">POS Invoice (Retail Counter)</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= UNIVERSAL GO TO SPOTLIGHT MODAL (Alt+G) ================= -->
+    <div id="gotoModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box" style="width: 520px;">
+            <div class="tally-modal-title">Go To (Spotlight Navigation)</div>
+            <input type="text" id="gotoSearchInput" class="tally-modal-search" placeholder="Type report or voucher name (e.g. Day Book, Balance Sheet, Ledger)..." onkeyup="filterGotoItems()">
+            <div class="tally-modal-header-blue">
+                <span>Reports &amp; Masters</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeGotoModal()">Esc</span>
+            </div>
+            <div class="tally-modal-list" id="gotoList">
+                <div class="tally-modal-category">FINANCIAL REPORTS</div>
+                <a href="/reports/balance-sheet" class="tally-modal-option">📄 Balance Sheet (B)</a>
+                <a href="/reports/profit-loss" class="tally-modal-option">📄 Profit &amp; Loss A/c (P)</a>
+                <a href="/reports/trial-balance" class="tally-modal-option">📄 Trial Balance (T)</a>
+                <a href="/daybook" class="tally-modal-option">📄 Day Book (D)</a>
+                <a href="/reports/cash-flow" class="tally-modal-option">📄 Cash Flow Statement (Monthly)</a>
+                <a href="/reports/funds-flow" class="tally-modal-option">📄 Funds Flow Statement</a>
+                <a href="/reports/stock-summary" class="tally-modal-option">📄 Stock Summary (S)</a>
+                <a href="/reports/godown-summary" class="tally-modal-option">📄 Godown / Warehouse Summary (W)</a>
+                <a href="/reports/ratio-analysis" class="tally-modal-option">📄 Ratio Analysis (R)</a>
+                <a href="/reports/cash-bank-book" class="tally-modal-option">📄 Cash &amp; Bank Book (K)</a>
+                <a href="/reports/outstanding-receivables" class="tally-modal-option">📄 Bills Receivable (Debtors)</a>
+                <a href="/reports/outstanding-payables" class="tally-modal-option">📄 Bills Payable (Creditors)</a>
+                <a href="/banking/reconciliation" class="tally-modal-option">🏦 Bank Reconciliation Statement (BRS)</a>
+                <a href="/reports/cost-centres" class="tally-modal-option">🎯 Cost Centre Breakup Report</a>
+                <a href="/reports/gst" class="tally-modal-option">📄 Statutory GST Reports (GSTR-1 / 3B)</a>
+                <a href="/statutory/tds" class="tally-modal-option">🏛️ Form 26Q TDS Return &amp; Summary</a>
+                <a href="/budgets" class="tally-modal-option">📊 Budgets &amp; Variance Analysis</a>
+
+                <div class="tally-modal-category">TRANSACTIONS &amp; VOUCHERS</div>
+                <a href="/vouchers/create?type=Sales" class="tally-modal-option">⚡ Sales Voucher (F8)</a>
+                <a href="/vouchers/create?type=Purchase" class="tally-modal-option">⚡ Purchase Voucher (F9)</a>
+                <a href="/vouchers/create?type=Payment" class="tally-modal-option">⚡ Payment Voucher (F5)</a>
+                <a href="/vouchers/create?type=Receipt" class="tally-modal-option">⚡ Receipt Voucher (F6)</a>
+                <a href="/vouchers/create?type=Contra" class="tally-modal-option">⚡ Contra Voucher (F4)</a>
+                <a href="/vouchers/create?type=Journal" class="tally-modal-option">⚡ Journal Voucher (F7)</a>
+                <a href="/inventory/manufacturing" class="tally-modal-option">🏭 Manufacturing Journal &amp; BOM</a>
+                <a href="/pos/invoice" class="tally-modal-option">🛒 POS Retail Invoicing</a>
+                <a href="/orders/sales" class="tally-modal-option">📦 Sales Orders Register</a>
+                <a href="/payroll/employees" class="tally-modal-option">👥 Payroll &amp; Payslip Generator</a>
+
+                <div class="tally-modal-category">MASTERS &amp; SYSTEM</div>
+                <a href="/ledgers" class="tally-modal-option">📁 Ledgers List &amp; Replace (Ctrl+Y)</a>
+                <a href="/masters/ledgers/create" class="tally-modal-option">📁 Create Ledger (Alt+C)</a>
+                <a href="/masters/chart-of-accounts" class="tally-modal-option">📁 Chart of Accounts</a>
+                <a href="/masters/stock-items/create" class="tally-modal-option">📁 Create Stock Item</a>
+                <a href="/masters/currencies" class="tally-modal-option">💱 Currencies &amp; Forex Rates</a>
+                <a href="/audit/trail" class="tally-modal-option">📜 MCA Audit Trail &amp; Edit Log</a>
+                <a href="/data/backup" class="tally-modal-option">💾 Backup &amp; Restore Database (Alt+Y)</a>
+                <a href="/data/exchange" class="tally-modal-option">🔄 Tally XML Data Exchange</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PERIOD MODAL (F2) ================= -->
+    <div id="periodModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box" style="width: 320px;">
+            <div class="tally-modal-title">Change Period (F2)</div>
+            <div style="padding: 15px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label class="form-label">From Date:</label>
+                    <input type="date" id="p_from" class="form-control" value="{{ company.fy_start_date if company else '2026-04-01' }}">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label">To Date:</label>
+                    <input type="date" id="p_to" class="form-control" value="{{ company.fy_end_date if company else '2027-03-31' }}">
+                </div>
+                <div style="display:flex; justify-content: flex-end; gap: 8px;">
+                    <button class="tally-btn" onclick="closePeriodModal()">Cancel (Esc)</button>
+                    <button class="tally-btn tally-btn-primary" onclick="applyPeriod()">Accept (Enter)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= F11 COMPANY FEATURES ALTERATION MODAL ================= -->
+    <div id="companyFeaturesModal" class="tally-modal-overlay" style="display:none; z-index: 9999;">
+        <div class="tally-modal-box" style="width: 860px; max-width: 95vw; background: #fff; border: 2px solid #245882; box-shadow: 0 8px 30px rgba(0,0,0,0.35); max-height: 92vh; display: flex; flex-direction: column;">
+            <div style="background: #eaf1f6; padding: 7px 16px; border-bottom: 1px solid #b3cddf; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; font-size: 13.5px; color: #092f3e;">Company Features Alteration</span>
+                <span style="cursor: pointer; font-size: 14px; font-weight: bold; color: #64748b;" onclick="closeFeaturesModal()">✕</span>
+            </div>
+            
+            <div style="padding: 10px 16px; font-size: 12px; color: #1e293b; overflow-y: auto; flex: 1;">
+                <div style="font-weight: bold; color: #092f3e; margin-bottom: 8px; font-size: 13px;">
+                    Company: {{ company.name if company else 'Demo Traders Pvt Ltd' }}
+                </div>
+
+                <!-- Top Master Toggles -->
+                <div style="display: flex; gap: 32px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">
+                    <div class="tally-toggle-row" id="row_feat_show_more" data-key="show_more" tabindex="0" onclick="toggleFeatureRow(this)">
+                        <span class="toggle-label" style="font-weight: 600;">Show more features</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="feat_val_show_more">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row" id="row_feat_show_all" data-key="show_all" tabindex="0" onclick="toggleFeatureRow(this)">
+                        <span class="toggle-label" style="font-weight: 600;">Show all features</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="feat_val_show_all">Yes</span>
+                    </div>
+                </div>
+
+                <!-- Two Column Feature Layout matching TallyPrime -->
+                <div class="tally-feature-grid">
+                    <!-- Column 1: Accounting & Inventory -->
+                    <div>
+                        <div class="tally-feature-section" id="sec_accounting">
+                            <div class="tally-feature-section-title">Accounting</div>
+                            <div class="tally-toggle-row f11-tier-core" id="row_feat_maintain_accounts" data-key="maintain_accounts" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Maintain Accounts</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_maintain_accounts">Yes</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-core" id="row_feat_enable_bill_wise" data-key="enable_bill_wise" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Bill-wise entry</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_bill_wise">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_cost_centres" data-key="enable_cost_centres" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Cost Centres</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_cost_centres">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_interest" data-key="enable_interest" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Interest Calculation</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_interest">No</span>
+                            </div>
+                        </div>
+
+                        <div class="tally-feature-section" id="sec_inventory">
+                            <div class="tally-feature-section-title">Inventory</div>
+                            <div class="tally-toggle-row f11-tier-core" id="row_feat_maintain_inventory" data-key="maintain_inventory" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Maintain Inventory</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_maintain_inventory">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-core" id="row_feat_integrate_accounts" data-key="integrate_accounts" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Integrate Accounts with Inventory</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_integrate_accounts">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_price_levels" data-key="enable_price_levels" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable multiple Price Levels</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_price_levels">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_batches" data-key="enable_batches" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Batches</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_batches">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_maintain_expiry" data-key="maintain_expiry" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Maintain Expiry Date for Batches</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_maintain_expiry">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_job_order" data-key="enable_job_order" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Job Order Processing</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_job_order">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_cost_tracking" data-key="enable_cost_tracking" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Cost Tracking</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_cost_tracking">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_job_costing" data-key="enable_job_costing" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Job Costing</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_job_costing">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_use_discount_column" data-key="use_discount_column" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Use Discount column in invoices</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_use_discount_column">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_use_actual_billed_qty" data-key="use_actual_billed_qty" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Use separate Actual and Billed Quantity columns in invoices</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_use_actual_billed_qty">No</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Taxation, Online Access, Payroll, Others -->
+                    <div>
+                        <div class="tally-feature-section" id="sec_taxation">
+                            <div class="tally-feature-section-title">Taxation</div>
+                            <div class="tally-toggle-row f11-tier-core" id="row_feat_enable_gst" data-key="enable_gst" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Goods and Services Tax (GST)</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_gst">Yes</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-core" id="row_feat_set_alter_gst_rate" data-key="set_alter_gst_rate" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Set/Alter Company GST Rate and Other Details</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_set_alter_gst_rate">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_tds" data-key="enable_tds" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Tax Deducted at Source (TDS)</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_tds">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_tcs" data-key="enable_tcs" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Tax Collected at Source (TCS)</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_tcs">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_vat" data-key="enable_vat" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Value Added Tax (VAT)</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_vat">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_excise" data-key="enable_excise" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Excise</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_excise">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_service_tax" data-key="enable_service_tax" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Service Tax</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_service_tax">No</span>
+                            </div>
+                        </div>
+
+                        <div class="tally-feature-section" id="sec_online_access">
+                            <div class="tally-feature-section-title">Online Access</div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_browser_access" data-key="enable_browser_access" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Browser Access for Reports</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_browser_access">Yes</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_tally_net" data-key="enable_tally_net" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Tally.NET Services for Remote Access &amp; Synchronisation</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_tally_net">No</span>
+                            </div>
+                        </div>
+
+                        <div class="tally-feature-section" id="sec_payroll">
+                            <div class="tally-feature-section-title">Payroll</div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_maintain_payroll" data-key="maintain_payroll" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Maintain Payroll</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_maintain_payroll">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_payroll_statutory" data-key="enable_payroll_statutory" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Payroll Statutory</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_payroll_statutory">No</span>
+                            </div>
+                        </div>
+
+                        <div class="tally-feature-section" id="sec_others">
+                            <div class="tally-feature-section-title">Others</div>
+                            <div class="tally-toggle-row f11-tier-more" id="row_feat_enable_payment_request" data-key="enable_payment_request" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable Payment Request to share payment link/QR code</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_payment_request">Yes</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_enable_multiple_addresses" data-key="enable_multiple_addresses" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Enable multiple addresses</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_enable_multiple_addresses">No</span>
+                            </div>
+                            <div class="tally-toggle-row f11-tier-all" id="row_feat_mark_modified_vouchers" data-key="mark_modified_vouchers" tabindex="0" onclick="toggleFeatureRow(this)">
+                                <span class="toggle-label">Mark modified vouchers</span>
+                                <span class="toggle-colon">:</span>
+                                <span class="toggle-val" id="feat_val_mark_modified_vouchers">No</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 14px; border-top: 1px solid #cbd5e1; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #64748b;">
+                    <div><span>Press <strong>Y</strong>/<strong>N</strong> or <strong>Space</strong> to toggle | <strong>Enter</strong> to advance</span></div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" onclick="closeFeaturesModal()" class="inline-btn" style="background:#e2e8f0; color:#334155; padding: 4px 14px;">Cancel (Esc)</button>
+                        <button type="button" onclick="saveFeaturesModal()" class="inline-btn" style="background:#245882; color:#fff; padding: 4px 18px; font-weight:bold;">Accept (Ctrl+A)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FULL F12 CONFIGURATION MODAL (DEBIT/CREDIT & ACCOUNTING FEATURES) ================= -->
+    <div id="generalConfigModal" class="tally-modal-overlay" style="display:none; z-index: 9999;" onclick="if(event.target===this) closeGeneralConfigModal()">
+        <div class="tally-modal-box" style="width: 760px; max-width: 95vw; background:#ffffff; border: 1.5px solid #94a3b8; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 92vh; display: flex; flex-direction: column; border-radius: 2px;">
+            <div style="padding: 12px 20px 8px 20px; font-weight: 700; font-size: 13.5px; color: #1e293b;">
+                Configuration
+            </div>
+            <div style="border-top: 1px solid #cbd5e1; margin: 0 20px;"></div>
+
+            <!-- Top Master Toggle -->
+            <div style="padding: 6px 20px 6px 20px;">
+                <div class="tally-toggle-row" id="row_gcfg_show_more" data-key="show_more" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                    <span class="toggle-label" style="font-weight: 600; color: #1e293b;">Show more configurations</span>
+                    <span class="toggle-colon">:</span>
+                    <span class="toggle-val" id="gcfg_val_show_more">Yes</span>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #cbd5e1; margin: 0 20px 8px 20px;"></div>
+
+            <div style="padding: 0 20px 14px 20px; font-size: 12px; color: #1e293b; overflow-y: auto; flex: 1;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 0;">
+                    <!-- Column 1: General Details -->
+                    <div style="border-right: 1px solid #cbd5e1; padding-right: 18px;">
+                        <div style="font-weight: 700; font-size: 12px; color: #092f3e; margin-bottom: 6px;">General Details</div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_use_dr_cr" data-key="use_dr_cr" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Use Cr/Dr instead of To/By during voucher entry</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_use_dr_cr">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_provide_supplier_ref" data-key="provide_supplier_ref" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Provide Supplier Inv/Ref No. and Date</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_provide_supplier_ref">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_warn_negative_cash" data-key="warn_negative_cash" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Warn on negative Cash Balance</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_warn_negative_cash">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_preallocate_bills" data-key="preallocate_bills" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Preallocate bills for Payment/Receipt/Journal Vouchers</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_preallocate_bills">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_show_list_of_bills" data-key="show_list_of_bills" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show list of Bills for selection</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_list_of_bills">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row tally-toggle-sub gcfg-tier-more" id="row_gcfg_show_final_balances_bills" data-key="show_final_balances_bills" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Final Balances for each Bill</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_final_balances_bills">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_skip_date_field" data-key="skip_date_field" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Skip the Date field during voucher creation</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_skip_date_field">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_show_inventory_details" data-key="show_inventory_details" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Inventory details</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_inventory_details">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_show_current_balance" data-key="show_current_balance" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Current Balance of Ledgers</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_current_balance">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row tally-toggle-sub gcfg-tier-more" id="row_gcfg_show_balances_on_voucher_date" data-key="show_balances_on_voucher_date" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Balances as on Voucher date</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_balances_on_voucher_date">No</span>
+                        </div>
+                        <div class="tally-toggle-row tally-toggle-sub gcfg-tier-more" id="row_gcfg_show_final_ledger_balance" data-key="show_final_ledger_balance" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show final Ledger Balance</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_final_ledger_balance">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_show_bill_wise_details" data-key="show_bill_wise_details" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Bill-wise Details</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_bill_wise_details">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row tally-toggle-sub gcfg-tier-more" id="row_gcfg_show_bill_wise_multiple_lines" data-key="show_bill_wise_multiple_lines" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Bill-wise details in multiple lines</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_bill_wise_multiple_lines">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_warn_voucher_no_16" data-key="warn_voucher_no_16" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Warn when Voucher No. exceeds 16 characters</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_warn_voucher_no_16">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_enable_stripe_view" data-key="enable_stripe_view" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Enable Stripe View</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_enable_stripe_view">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_working_capital" data-key="working_capital" style="display:none;" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Working Capital figures in Reports?</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_working_capital">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_zero_balance" data-key="zero_balance" style="display:none;" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Zero Balance Accounts in Balance Sheet?</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_zero_balance">Yes</span>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Bank Details & Payment Gateway Details -->
+                    <div style="padding-left: 18px;">
+                        <div style="font-weight: 700; font-size: 12px; color: #092f3e; margin-bottom: 6px;">Bank Details</div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_bank_default_allocations" data-key="bank_default_allocations" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Use default Bank Allocations</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_default_allocations">No</span>
+                        </div>
+                        <div class="tally-toggle-row tally-toggle-sub gcfg-tier-core" id="row_gcfg_bank_auto_cheque_num" data-key="bank_auto_cheque_num" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Use Auto Cheque Numbering</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_auto_cheque_num">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row tally-toggle-sub gcfg-tier-more" id="row_gcfg_bank_select_cheque_range" data-key="bank_select_cheque_range" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Select Cheque Range</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_select_cheque_range">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_bank_show_allocation_details" data-key="bank_show_allocation_details" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Bank Allocation details</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_show_allocation_details">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_bank_remove_recon_link" data-key="bank_remove_recon_link" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Remove Bank Date/Recon Link while altering Reconciled Vouchers</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_remove_recon_link">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_bank_print_cheque" data-key="bank_print_cheque" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Print Cheque after saving Voucher</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_print_cheque">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_bank_show_cheque_before_print" data-key="bank_show_cheque_before_print" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Cheque details before printing</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_bank_show_cheque_before_print">Yes</span>
+                        </div>
+
+                        <div style="margin-top: 12px; font-weight: 700; font-size: 12px; color: #092f3e; margin-bottom: 6px;">Payment Gateway Details</div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_pg_default_allocations" data-key="pg_default_allocations" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Use default Transaction Allocations</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_pg_default_allocations">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_pg_show_allocation_details" data-key="pg_show_allocation_details" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Transaction Allocation details</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_pg_show_allocation_details">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-more" id="row_gcfg_pg_remove_date_recon" data-key="pg_remove_date_recon" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Remove Transaction Date while altering Reconciled voucher</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_pg_remove_date_recon">No</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_show_currency" data-key="show_currency" style="display:none;" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Show Currency Symbol (₹)?</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_show_currency">Yes</span>
+                        </div>
+                        <div class="tally-toggle-row gcfg-tier-core" id="row_gcfg_sound_accept" data-key="sound_accept" style="display:none;" tabindex="0" onclick="toggleGeneralConfigRow(this)">
+                            <span class="toggle-label">Enable Sound on Acceptance?</span>
+                            <span class="toggle-colon">:</span>
+                            <span class="toggle-val" id="gcfg_val_sound_accept">Yes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= F10 OTHER VOUCHERS MODAL ================= -->
+    <div id="otherVouchersModal" class="tally-modal-overlay" style="display:none; z-index:9999;">
+        <div class="tally-modal-box" style="width: 460px; max-width: 95vw; background:#fff; border:2px solid #245882; box-shadow: 0 8px 30px rgba(0,0,0,0.35);">
+            <div style="background:#eaf1f6; padding:7px 16px; border-bottom:1px solid #b3cddf; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold; font-size:13.5px; color:#092f3e;">Change Voucher Type (F10: Other Vouchers)</span>
+                <span style="cursor:pointer; font-size:14px; font-weight:bold; color:#64748b;" onclick="closeOtherVouchersModal()">✕</span>
+            </div>
+            <div style="padding: 10px 14px; max-height: 60vh; overflow-y:auto;" id="otherVouchersList">
+                <div style="font-weight: bold; color: #092f3e; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 6px; font-size: 12px;">Accounting Vouchers</div>
+                <a href="/vouchers/create?type=Contra" class="tally-modal-option"><span class="opt-label">Contra</span><span class="opt-shortcut">F4</span></a>
+                <a href="/vouchers/create?type=Payment" class="tally-modal-option"><span class="opt-label">Payment</span><span class="opt-shortcut">F5</span></a>
+                <a href="/vouchers/create?type=Receipt" class="tally-modal-option"><span class="opt-label">Receipt</span><span class="opt-shortcut">F6</span></a>
+                <a href="/vouchers/create?type=Journal" class="tally-modal-option"><span class="opt-label">Journal</span><span class="opt-shortcut">F7</span></a>
+                <a href="/vouchers/create?type=Sales" class="tally-modal-option"><span class="opt-label">Sales</span><span class="opt-shortcut">F8</span></a>
+                <a href="/vouchers/create?type=Purchase" class="tally-modal-option"><span class="opt-label">Purchase</span><span class="opt-shortcut">F9</span></a>
+                <div style="font-weight: bold; color: #092f3e; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">Debit / Credit Notes</div>
+                <a href="/vouchers/create?type=Credit%20Note" class="tally-modal-option"><span class="opt-label">Credit Note</span><span class="opt-shortcut">Alt+F6</span></a>
+                <a href="/vouchers/create?type=Debit%20Note" class="tally-modal-option"><span class="opt-label">Debit Note</span><span class="opt-shortcut">Alt+F5</span></a>
+                <div style="font-weight: bold; color: #092f3e; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">Inventory Vouchers</div>
+                <a href="/inventory/stock-journal" class="tally-modal-option"><span class="opt-label">Stock Journal</span><span class="opt-shortcut">Alt+F7</span></a>
+                <a href="/inventory/physical-stock" class="tally-modal-option"><span class="opt-label">Physical Stock</span><span class="opt-shortcut">Ctrl+F7</span></a>
+                <a href="/vouchers/create?type=Sales&mode=Delivery%20Note" class="tally-modal-option"><span class="opt-label">Delivery Note</span><span class="opt-shortcut">Alt+F8</span></a>
+                <a href="/vouchers/create?type=Purchase&mode=Receipt%20Note" class="tally-modal-option"><span class="opt-label">Receipt Note</span><span class="opt-shortcut">Alt+F9</span></a>
+            </div>
+            <div style="margin-top: 10px; border-top: 1px solid #cbd5e1; padding: 6px 14px; text-align: right;">
+                <button type="button" onclick="closeOtherVouchersModal()" class="inline-btn" style="background:#e2e8f0; color:#334155; padding: 3px 14px;">Back (Esc)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SHARE MODAL (M) ================= -->
+    <div id="shareModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box" style="width: 440px;">
+            <div class="tally-modal-title">Share &amp; Export (M)</div>
+            <div class="tally-modal-header-blue">
+                <span>Select Sharing Option</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeShareModal()">Esc</span>
+            </div>
+            <div class="tally-modal-list">
+                <div class="modal-list-item" onclick="window.print(); closeShareModal();">🖨️ <strong>Print / Save as PDF</strong> <span class="hotkey-pill">P</span></div>
+                <div class="modal-list-item" onclick="window.location.href='/data/exchange';">🔄 <strong>Export Tally XML (Alt+E)</strong> <span class="hotkey-pill">E</span></div>
+                <div class="modal-list-item" onclick="exportCurrentTableToCSV(); closeShareModal();">📊 <strong>Export Data to CSV / Excel</strong> <span class="hotkey-pill">CSV</span></div>
+                <div class="modal-list-item" onclick="promptEmailShare(); closeShareModal();">✉️ <strong>Email Document / Report</strong> <span class="hotkey-pill">Email</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HELP & KEYBOARD REFERENCE MODAL (F1) ================= -->
+    <div id="helpModal" class="tally-modal-overlay" style="display:none;">
+        <div class="tally-modal-box" style="width: 600px; max-height: 85vh;">
+            <div class="tally-modal-title">Help &amp; Shortcut Cheat Sheet (F1)</div>
+            <div class="tally-modal-header-blue">
+                <span>TallyPrime Navigation &amp; Hotkeys</span>
+                <span style="font-size:11px; cursor:pointer;" onclick="closeHelpModal()">Esc</span>
+            </div>
+            <div style="padding: 15px; font-size: 13px; color: #1a3a50; overflow-y: auto; max-height: 65vh;">
+                <h4 style="margin: 0 0 8px 0; color: #092f3e; border-bottom: 2px solid #5d9bb8; padding-bottom: 4px;">Universal Keys</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px;">
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Enter</strong></td><td>Move to Next Field / Confirm Selection / Open Row</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Shift + Tab</strong></td><td>Move to Previous Field</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Arrow Up / Down</strong></td><td>Navigate Gateway Menu, Modals, and Tables</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Esc</strong></td><td>Close Dialog / Go Back / Quit Application</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Ctrl + A</strong></td><td>Accept / Save Completed Master or Voucher</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Alt + G / Alt + F</strong></td><td>Go To / Universal Search Spotlight</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 26px;"><td><strong>Ctrl + H</strong></td><td>Change Mode (Single / Double / Item Invoice)</td></tr>
+                    <tr style="height: 26px;"><td><strong>F12</strong></td><td>Screen-specific Configuration</td></tr>
+                </table>
+
+                <h4 style="margin: 8px 0 8px 0; color: #092f3e; border-bottom: 2px solid #5d9bb8; padding-bottom: 4px;">Function Keys (Vouchers)</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px;">
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 24px;"><td><strong>F2</strong>: Change Period / Date</td><td><strong>F7</strong>: Journal Voucher</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 24px;"><td><strong>F3</strong>: Select / Change Company</td><td><strong>F8</strong>: Sales Voucher</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 24px;"><td><strong>F4</strong>: Contra Voucher</td><td><strong>F9</strong>: Purchase Voucher</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 24px;"><td><strong>F5</strong>: Payment Voucher</td><td><strong>Alt+F5</strong>: Debit Note (Purchase Return)</td></tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 24px;"><td><strong>F6</strong>: Receipt Voucher</td><td><strong>Alt+F6</strong>: Credit Note (Sales Return)</td></tr>
+                    <tr style="height: 24px;"><td><strong>Ctrl+F7</strong>: Physical Stock Verification</td><td><strong>F10</strong>: Other Vouchers Modal</td></tr>
+                </table>
+
+                <h4 style="margin: 8px 0 8px 0; color: #092f3e; border-bottom: 2px solid #5d9bb8; padding-bottom: 4px;">Gateway Hotkeys</h4>
+                <div style="font-size: 12px; line-height: 1.8;">
+                    <strong>C</strong>: Create Master | <strong>A</strong>: Alter Master | <strong>V</strong>: Vouchers | <strong>D</strong>: Day Book | <strong>B</strong>: Balance Sheet | <strong>P</strong>: Profit &amp; Loss | <strong>S</strong>: Stock Summary | <strong>R</strong>: Ratio Analysis | <strong>T</strong>: Trial Balance | <strong>K</strong>: Banking / Cash Book | <strong>M</strong>: Manufacturing | <strong>Q</strong>: Quit
+                </div>
+            </div>
+            <div style="padding: 10px 15px; background: #eaf1f6; text-align: right;">
+                <button type="button" class="inline-btn" style="background: #245882; color: #fff; padding: 4px 15px;" onclick="closeHelpModal()">Close (Esc)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Modal Helpers
+    function setVoucherMode(mode) {
+        const url = new URL(window.location.href);
+        if (url.pathname.includes('/vouchers/create')) {
+            url.searchParams.set('mode', mode);
+            window.location.href = url.toString();
+        } else {
+            window.location.href = `/vouchers/create?type=Payment&mode=${mode}`;
+        }
+    }
+
+    function openGotoModal() {
+        const modal = document.getElementById('gotoModal');
+        modal.style.display = 'flex';
+        const inp = document.getElementById('gotoSearchInput');
+        inp.value = '';
+        filterGotoItems();
+        const list = document.getElementById('gotoList');
+        if (list) {
+            list.scrollTop = 0;
+            const allOpts = list.querySelectorAll('.tally-modal-option');
+            allOpts.forEach(el => el.classList.remove('selected'));
+            if (allOpts.length > 0) {
+                allOpts[0].classList.add('selected');
+                allOpts[0].scrollIntoView({block: 'nearest'});
+            }
+        }
+        inp.focus();
+    }
+    function closeGotoModal() {
+        document.getElementById('gotoModal').style.display = 'none';
+    }
+
+    let activeModalFocusIndex = 0;
+
+    function getActiveOpenModalInfo() {
+        const modals = [
+            { id: 'createMasterModal', listId: 'createOptionsList' },
+            { id: 'alterMasterModal', listId: 'alterOptionsList' },
+            { id: 'gotoModal', listId: 'gotoList' }
+        ];
+        for (const m of modals) {
+            const el = document.getElementById(m.id);
+            if (el && (el.style.display === 'flex' || el.style.display === 'block')) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    function getModalVisibleOptions(listId) {
+        const list = document.getElementById(listId);
+        if (!list) return [];
+        return Array.from(list.querySelectorAll('.tally-modal-option')).filter(el => {
+            return el.style.display !== 'none';
+        });
+    }
+
+    function updateModalHighlight(listId) {
+        const opts = getModalVisibleOptions(listId);
+        if (!opts.length) return;
+        if (activeModalFocusIndex >= opts.length) activeModalFocusIndex = 0;
+        if (activeModalFocusIndex < 0) activeModalFocusIndex = opts.length - 1;
+
+        opts.forEach((el, idx) => {
+            if (idx === activeModalFocusIndex) {
+                el.classList.add('selected');
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                el.classList.remove('selected');
+            }
+        });
+    }
+
+    function openGotoModal() {
+        const modal = document.getElementById('gotoModal');
+        modal.style.display = 'flex';
+        const inp = document.getElementById('gotoSearchInput');
+        inp.value = '';
+        filterGotoItems();
+        activeModalFocusIndex = 0;
+        updateModalHighlight('gotoList');
+        inp.focus();
+    }
+    function closeGotoModal() {
+        document.getElementById('gotoModal').style.display = 'none';
+    }
+
+    function openCreateModal() {
+        const modal = document.getElementById('createMasterModal');
+        modal.style.display = 'flex';
+        activeModalFocusIndex = 0;
+        updateModalHighlight('createOptionsList');
+    }
+    function closeCreateModal() {
+        document.getElementById('createMasterModal').style.display = 'none';
+    }
+
+    function openAlterModal() {
+        const modal = document.getElementById('alterMasterModal');
+        modal.style.display = 'flex';
+        activeModalFocusIndex = 0;
+        updateModalHighlight('alterOptionsList');
+    }
+    function closeAlterModal() {
+        document.getElementById('alterMasterModal').style.display = 'none';
+    }
+
+    function openChangeModeModal() {
+        document.getElementById('changeModeModal').style.display = 'flex';
+    }
+    function closeChangeModeModal() {
+        document.getElementById('changeModeModal').style.display = 'none';
+    }
+
+    function openPeriodModal() {
+        document.getElementById('periodModal').style.display = 'flex';
+    }
+    function closePeriodModal() {
+        document.getElementById('periodModal').style.display = 'none';
+    }
+    function applyPeriod() {
+        const fromDate = document.getElementById('p_from').value;
+        const toDate = document.getElementById('p_to').value;
+        closePeriodModal();
+        const url = new URL(window.location.href);
+        url.searchParams.set('start_date', fromDate);
+        url.searchParams.set('end_date', toDate);
+        window.location.href = url.toString();
+    }
+
+    function triggerQuitPrompt() {
+        const vModal = document.getElementById('f12VoucherConfigModal');
+        if (vModal && vModal.style.display !== 'none') {
+            if (typeof closeF12VoucherModal === 'function') {
+                closeF12VoucherModal();
+                return;
+            }
+        }
+        const gModal = document.getElementById('generalConfigModal');
+        if (gModal && gModal.style.display !== 'none') {
+            if (typeof closeGeneralConfigModal === 'function') {
+                closeGeneralConfigModal();
+                return;
+            }
+        }
+        const f11Modal = document.getElementById('companyFeaturesModal');
+        if (f11Modal && f11Modal.style.display !== 'none') {
+            if (typeof closeFeaturesModal === 'function') {
+                closeFeaturesModal();
+                return;
+            }
+        }
+        document.getElementById('quitDialog').style.display = 'block';
+    }
+    function closeQuitPrompt() {
+        document.getElementById('quitDialog').style.display = 'none';
+    }
+    function confirmQuit() {
+        window.location.href = '/company/select';
+    }
+
+    function filterModalList(inputId, listId) {
+        const q = document.getElementById(inputId).value.toLowerCase().trim();
+        const list = document.getElementById(listId);
+        if (!list) return;
+        const options = list.querySelectorAll('.tally-modal-option');
+
+        options.forEach(el => {
+            const matches = !q || el.innerText.toLowerCase().includes(q);
+            el.style.display = matches ? 'block' : 'none';
+        });
+
+        list.querySelectorAll('.tally-modal-category').forEach(cat => {
+            let sibling = cat.nextElementSibling;
+            let hasVisible = false;
+            while (sibling && !sibling.classList.contains('tally-modal-category')) {
+                if (sibling.classList.contains('tally-modal-option') && sibling.style.display !== 'none') {
+                    hasVisible = true;
+                    break;
+                }
+                sibling = sibling.nextElementSibling;
+            }
+            cat.style.display = hasVisible ? 'block' : 'none';
+        });
+
+        activeModalFocusIndex = 0;
+        updateModalHighlight(listId);
+    }
+
+    function filterGotoItems() {
+        filterModalList('gotoSearchInput', 'gotoList');
+    }
+
+    // Capture-phase keydown handler guarantees modal arrow navigation works regardless of focus!
+    document.addEventListener('keydown', function(e) {
+        if (typeof handleF11ModalKeyboard === 'function' && handleF11ModalKeyboard(e)) return;
+        if (typeof handleGeneralConfigModalKeyboard === 'function' && handleGeneralConfigModalKeyboard(e)) return;
+
+        const activeModal = getActiveOpenModalInfo();
+        if (!activeModal) return;
+
+        const opts = getModalVisibleOptions(activeModal.listId);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (opts.length > 0) {
+                activeModalFocusIndex = (activeModalFocusIndex + 1) % opts.length;
+                updateModalHighlight(activeModal.listId);
+            }
+            return false;
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (opts.length > 0) {
+                activeModalFocusIndex = (activeModalFocusIndex - 1 + opts.length) % opts.length;
+                updateModalHighlight(activeModal.listId);
+            }
+            return false;
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (opts.length > 0 && activeModalFocusIndex >= 0 && activeModalFocusIndex < opts.length) {
+                const target = opts[activeModalFocusIndex];
+                const href = target.getAttribute('href');
+                if (href && href !== 'javascript:void(0)' && !href.startsWith('#')) {
+                    window.location.href = href;
+                } else {
+                    target.click();
+                }
+            }
+            return false;
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            const modalEl = document.getElementById(activeModal.id);
+            if (modalEl) modalEl.style.display = 'none';
+            return false;
+        }
+    }, true);
+
+    function handleActiveModalArrowNavigation(e, modalId, listId, inputId) {
+        // Handled globally by capture-phase listener above
+        return false;
+    }
+
+    function triggerAcceptAction() {
+        const vModal = document.getElementById('f12VoucherConfigModal');
+        if (vModal && vModal.style.display !== 'none') {
+            if (typeof saveF12VoucherConfig === 'function') {
+                saveF12VoucherConfig();
+                return;
+            }
+        }
+        const gModal = document.getElementById('generalConfigModal');
+        if (gModal && gModal.style.display !== 'none') {
+            if (typeof saveGeneralConfigModal === 'function') {
+                saveGeneralConfigModal();
+                return;
+            }
+        }
+        const f11Modal = document.getElementById('companyFeaturesModal');
+        if (f11Modal && f11Modal.style.display !== 'none') {
+            if (typeof saveFeaturesModal === 'function') {
+                saveFeaturesModal();
+                return;
+            }
+        }
+        const form = document.querySelector('form');
+        if (form) {
+            if (typeof showAcceptModal === 'function') {
+                showAcceptModal();
+            } else {
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            }
+        }
+    }
+
+    function triggerDeleteAction() {
+        const delBtn = document.querySelector('.btn-delete, .tally-btn-delete, [onclick*="promptDeleteVoucher"]');
+        if (delBtn) {
+            delBtn.click();
+        } else {
+            alert("No active record selected to delete.");
+        }
+    }
+
+    function triggerCancelAction() {
+        const cancelBtn = document.querySelector('.btn-cancel-vch, [onclick*="promptCancelVoucher"]');
+        if (cancelBtn) {
+            cancelBtn.click();
+        } else {
+            alert("No active voucher selected to cancel.");
+        }
+    }
+
+    function openShareModal() {
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+    function closeShareModal() {
+        document.getElementById('shareModal').style.display = 'none';
+    }
+
+    function openHelpModal() {
+        document.getElementById('helpModal').style.display = 'flex';
+    }
+    function closeHelpModal() {
+        document.getElementById('helpModal').style.display = 'none';
+    }
+
+    function exportCurrentTableToCSV() {
+        const table = document.querySelector('.tally-table, .tally-report-table, table');
+        if (!table) {
+            alert("No data table found on this screen to export.");
+            return;
+        }
+        let csv = [];
+        for (let row of table.rows) {
+            let rowData = [];
+            for (let cell of row.cells) {
+                let txt = cell.innerText.replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
+                rowData.push(`"${txt.trim()}"`);
+            }
+            csv.push(rowData.join(','));
+        }
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', (document.title.replace(/[^a-zA-Z0-9]/g, '_') || 'Tally_Report') + '.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function promptEmailShare() {
+        const email = prompt("Enter recipient email address:", "accounts@client.com");
+        if (email) {
+            alert(`Report prepared and queued for email delivery to: ${email}`);
+        }
+    }
+
+    function triggerF12Action() {
+        if (typeof openF12VoucherModal === 'function') {
+            openF12VoucherModal();
+        } else if (typeof openF12Modal === 'function') {
+            openF12Modal();
+        } else {
+            openGeneralConfigModal();
+        }
+    }
+
+    // --- F11 COMPANY FEATURES INTERACTIVE CONTROLLER ---
+    function setFeatureValue(row, val) {
+        if (!row) return;
+        const key = row.dataset.key;
+        const valSpan = row.querySelector('.toggle-val');
+        if (valSpan) valSpan.textContent = val;
+
+        // Master switches
+        if (key === 'show_more') {
+            if (val === 'No') {
+                const showAllRow = document.getElementById('row_feat_show_all');
+                if (showAllRow) {
+                    const sp = showAllRow.querySelector('.toggle-val');
+                    if (sp) sp.textContent = 'No';
+                }
+            }
+            updateFeatureTiersVisibility();
+        } else if (key === 'show_all') {
+            if (val === 'Yes') {
+                const showMoreRow = document.getElementById('row_feat_show_more');
+                if (showMoreRow) {
+                    const sp = showMoreRow.querySelector('.toggle-val');
+                    if (sp) sp.textContent = 'Yes';
+                }
+            }
+            updateFeatureTiersVisibility();
+        }
+
+        updateFeatureDependencies();
+    }
+
+    function toggleFeatureRow(row) {
+        if (!row || row.classList.contains('disabled')) return;
+        const valSpan = row.querySelector('.toggle-val');
+        const current = valSpan ? valSpan.textContent.trim() : 'No';
+        const next = current === 'Yes' ? 'No' : 'Yes';
+        setFeatureValue(row, next);
+        row.focus();
+    }
+
+    function updateFeatureTiersVisibility() {
+        const moreSpan = document.getElementById('feat_val_show_more');
+        const allSpan = document.getElementById('feat_val_show_all');
+        const showMore = moreSpan ? (moreSpan.textContent.trim() === 'Yes') : true;
+        const showAll = allSpan ? (allSpan.textContent.trim() === 'Yes') : true;
+
+        const moreRows = document.querySelectorAll('#companyFeaturesModal .f11-tier-more');
+        const allRows = document.querySelectorAll('#companyFeaturesModal .f11-tier-all');
+
+        moreRows.forEach(r => {
+            r.style.display = showMore ? 'flex' : 'none';
+        });
+        allRows.forEach(r => {
+            r.style.display = showAll ? 'flex' : 'none';
+        });
+
+        // Hide entire sections if all contained rows are hidden
+        const sections = document.querySelectorAll('#companyFeaturesModal .tally-feature-section');
+        sections.forEach(sec => {
+            const rows = Array.from(sec.querySelectorAll('.tally-toggle-row'));
+            const hasVisible = rows.some(r => r.style.display !== 'none');
+            sec.style.display = hasVisible ? 'block' : 'none';
+        });
+    }
+
+    function updateFeatureDependencies() {
+        const getVal = (key) => {
+            const el = document.getElementById('feat_val_' + key);
+            return el ? el.textContent.trim() : 'No';
+        };
+
+        const setDisabled = (key, disabled) => {
+            const row = document.getElementById('row_feat_' + key);
+            if (!row) return;
+            if (disabled) {
+                row.classList.add('disabled');
+                const valSpan = row.querySelector('.toggle-val');
+                if (valSpan) valSpan.textContent = 'No';
+            } else {
+                row.classList.remove('disabled');
+            }
+        };
+
+        const inv = getVal('maintain_inventory') === 'Yes';
+        setDisabled('integrate_accounts', !inv);
+        setDisabled('enable_price_levels', !inv);
+        setDisabled('enable_batches', !inv);
+        setDisabled('maintain_expiry', !inv || getVal('enable_batches') !== 'Yes');
+        setDisabled('enable_job_order', !inv);
+        setDisabled('enable_cost_tracking', !inv);
+        setDisabled('enable_job_costing', !inv);
+        setDisabled('use_discount_column', !inv);
+        setDisabled('use_actual_billed_qty', !inv);
+
+        const gst = getVal('enable_gst') === 'Yes';
+        setDisabled('set_alter_gst_rate', !gst);
+
+        const payroll = getVal('maintain_payroll') === 'Yes';
+        setDisabled('enable_payroll_statutory', !payroll);
+    }
+
+    function openFeaturesModal() {
+        fetch('/api/company/features')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.features) {
+                    for (let [k, v] of Object.entries(data.features)) {
+                        const valSpan = document.getElementById('feat_val_' + k);
+                        if (valSpan) valSpan.textContent = v;
+                    }
+                }
+                updateFeatureTiersVisibility();
+                updateFeatureDependencies();
+            })
+            .catch(() => {
+                updateFeatureTiersVisibility();
+                updateFeatureDependencies();
+            });
+
+        const modal = document.getElementById('companyFeaturesModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                const first = document.getElementById('row_feat_show_more');
+                if (first) first.focus();
+            }, 60);
+        }
+    }
+
+    function closeFeaturesModal() {
+        const modal = document.getElementById('companyFeaturesModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function saveFeaturesModal() {
+        const feats = {};
+        const rows = document.querySelectorAll('#companyFeaturesModal .tally-toggle-row');
+        rows.forEach(r => {
+            const key = r.dataset.key;
+            const valSpan = r.querySelector('.toggle-val');
+            if (key && valSpan) {
+                feats[key] = valSpan.textContent.trim();
+            }
+        });
+
+        fetch('/api/company/features', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(feats)
+        })
+        .then(r => r.json())
+        .then(d => {
+            closeFeaturesModal();
+        })
+        .catch(err => {
+            closeFeaturesModal();
+        });
+    }
+
+    function handleF11ModalKeyboard(e) {
+        const modal = document.getElementById('companyFeaturesModal');
+        if (!modal || modal.style.display === 'none') return false;
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            closeFeaturesModal();
+            return true;
+        }
+
+        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveFeaturesModal();
+            return true;
+        }
+
+        const visibleRows = Array.from(modal.querySelectorAll('.tally-toggle-row')).filter(r => {
+            return r.offsetParent !== null && !r.classList.contains('disabled');
+        });
+        if (!visibleRows.length) return false;
+
+        const activeEl = document.activeElement;
+        let currentIndex = visibleRows.indexOf(activeEl);
+        if (currentIndex === -1) {
+            const parentRow = activeEl ? activeEl.closest('.tally-toggle-row') : null;
+            currentIndex = parentRow ? visibleRows.indexOf(parentRow) : 0;
+        }
+        if (currentIndex < 0) currentIndex = 0;
+        const currentRow = visibleRows[currentIndex];
+
+        if (e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            e.stopPropagation();
+            setFeatureValue(currentRow, 'Yes');
+            const nextIdx = Math.min(visibleRows.length - 1, currentIndex + 1);
+            visibleRows[nextIdx].focus();
+            return true;
+        }
+
+        if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            e.stopPropagation();
+            setFeatureValue(currentRow, 'No');
+            const nextIdx = Math.min(visibleRows.length - 1, currentIndex + 1);
+            visibleRows[nextIdx].focus();
+            return true;
+        }
+
+        if (e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFeatureRow(currentRow);
+            return true;
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (currentIndex === visibleRows.length - 1) {
+                saveFeaturesModal();
+            } else {
+                visibleRows[currentIndex + 1].focus();
+            }
+            return true;
+        }
+
+        if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            const nextIdx = (currentIndex + 1) % visibleRows.length;
+            visibleRows[nextIdx].focus();
+            return true;
+        }
+
+        if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            const prevIdx = (currentIndex - 1 + visibleRows.length) % visibleRows.length;
+            visibleRows[prevIdx].focus();
+            return true;
+        }
+
+        return true;
+    }
+
+    // --- GENERAL F12 MODAL CONTROLLER (DEBIT/CREDIT & ACCOUNTING CONFIGURATION) ---
+    function setGeneralConfigValue(row, val) {
+        if (!row) return;
+        const key = row.dataset.key;
+        const valSpan = row.querySelector('.toggle-val');
+        if (valSpan) valSpan.textContent = val;
+
+        if (key === 'show_more') {
+            updateGeneralConfigVisibility();
+        }
+    }
+
+    function toggleGeneralConfigRow(row) {
+        if (!row || row.classList.contains('disabled')) return;
+        const valSpan = row.querySelector('.toggle-val');
+        const cur = valSpan ? valSpan.textContent.trim() : 'No';
+        const next = (cur === 'Yes') ? 'No' : 'Yes';
+        setGeneralConfigValue(row, next);
+        row.focus();
+    }
+
+    function updateGeneralConfigVisibility() {
+        const moreSpan = document.getElementById('gcfg_val_show_more');
+        const showMore = moreSpan ? (moreSpan.textContent.trim() === 'Yes') : true;
+
+        const moreRows = document.querySelectorAll('#generalConfigModal .gcfg-tier-more');
+        moreRows.forEach(r => {
+            r.style.display = showMore ? 'flex' : 'none';
+        });
+    }
+
+    function openGeneralConfigModal() {
+        fetch('/api/voucher/config')
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.config) {
+                    for (let [k, v] of Object.entries(d.config)) {
+                        const row = document.getElementById('row_gcfg_' + k);
+                        if (row) {
+                            const valSpan = row.querySelector('.toggle-val');
+                            if (valSpan) valSpan.textContent = v;
+                        }
+                    }
+                }
+                updateGeneralConfigVisibility();
+            })
+            .catch(() => {
+                updateGeneralConfigVisibility();
+            });
+
+        const modal = document.getElementById('generalConfigModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                const first = document.getElementById('row_gcfg_use_dr_cr') || document.getElementById('row_gcfg_show_more') || modal.querySelector('.tally-toggle-row');
+                if (first) first.focus();
+            }, 60);
+        }
+    }
+
+    function closeGeneralConfigModal() {
+        const modal = document.getElementById('generalConfigModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function saveGeneralConfigModal() {
+        const cfg = {};
+        const rows = document.querySelectorAll('#generalConfigModal .tally-toggle-row');
+        rows.forEach(r => {
+            const key = r.dataset.key;
+            const valSpan = r.querySelector('.toggle-val');
+            if (key && valSpan) {
+                cfg[key] = valSpan.textContent.trim();
+            }
+        });
+
+        fetch('/api/voucher/config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(cfg)
+        })
+        .then(r => r.json())
+        .then(() => {
+            closeGeneralConfigModal();
+        })
+        .catch(() => closeGeneralConfigModal());
+    }
+
+    function handleGeneralConfigModalKeyboard(e) {
+        const modal = document.getElementById('generalConfigModal');
+        if (!modal || modal.style.display === 'none') return false;
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            closeGeneralConfigModal();
+            return true;
+        }
+
+        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveGeneralConfigModal();
+            return true;
+        }
+
+        const visibleRows = Array.from(modal.querySelectorAll('.tally-toggle-row')).filter(r => {
+            return r.offsetParent !== null && !r.classList.contains('disabled');
+        });
+        if (!visibleRows.length) return false;
+
+        let idx = visibleRows.indexOf(document.activeElement);
+        if (idx === -1) {
+            const parent = document.activeElement ? document.activeElement.closest('.tally-toggle-row') : null;
+            idx = parent ? visibleRows.indexOf(parent) : 0;
+        }
+        if (idx < 0) idx = 0;
+        const currentRow = visibleRows[idx];
+
+        if (e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            e.stopPropagation();
+            setGeneralConfigValue(currentRow, 'Yes');
+            const next = Math.min(visibleRows.length - 1, idx + 1);
+            visibleRows[next].focus();
+            return true;
+        }
+
+        if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            e.stopPropagation();
+            setGeneralConfigValue(currentRow, 'No');
+            const next = Math.min(visibleRows.length - 1, idx + 1);
+            visibleRows[next].focus();
+            return true;
+        }
+
+        if (e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleGeneralConfigRow(currentRow);
+            return true;
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (idx === visibleRows.length - 1) {
+                saveGeneralConfigModal();
+            } else {
+                visibleRows[idx + 1].focus();
+            }
+            return true;
+        }
+
+        if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            visibleRows[(idx + 1) % visibleRows.length].focus();
+            return true;
+        }
+
+        if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            visibleRows[(idx - 1 + visibleRows.length) % visibleRows.length].focus();
+            return true;
+        }
+
+        return true;
+    }
+
+    // --- F10 OTHER VOUCHERS MODAL CONTROLLER ---
+    function openOtherVouchersModal() {
+        const modal = document.getElementById('otherVouchersModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                const first = modal.querySelector('.tally-modal-option');
+                if (first) first.focus();
+            }, 50);
+        }
+    }
+
+    function closeOtherVouchersModal() {
+        const modal = document.getElementById('otherVouchersModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function triggerF12Action() {
+        if (typeof openF12VoucherModal === 'function') {
+            openF12VoucherModal();
+        } else if (typeof openF12Modal === 'function') {
+            openF12Modal();
+        } else {
+            openGeneralConfigModal();
+        }
+    }
+
+    // Authentic Tally Keyboard Navigation Handler
+    function handleTallyKeyboard(e) {
+        // Intercept active modal arrow navigation & auto-scrolling
+        if (handleActiveModalArrowNavigation(e, 'createMasterModal', 'createOptionsList', 'createFilter')) return;
+        if (handleActiveModalArrowNavigation(e, 'alterMasterModal', 'alterOptionsList', 'alterFilter')) return;
+        if (handleActiveModalArrowNavigation(e, 'gotoModal', 'gotoList', 'gotoSearchInput')) return;
+
+        if (e.key === 'F11') {
+            e.preventDefault();
+            openFeaturesModal();
+            return;
+        }
+
+        if (e.key === 'F12') {
+            e.preventDefault();
+            triggerF12Action();
+            return;
+        }
+
+        // Alt + F or Alt + G -> Go To / Search
+        if (e.altKey && (e.key === 'f' || e.key === 'F' || e.key === 'g' || e.key === 'G')) {
+            e.preventDefault();
+            openGotoModal();
+            return;
+        }
+
+        // Ctrl + H -> Change Voucher Mode
+        if (e.ctrlKey && (e.key === 'h' || e.key === 'H')) {
+            e.preventDefault();
+            openChangeModeModal();
+            return;
+        }
+
+        // Alt + Y -> Data Backup
+        if (e.altKey && (e.key === 'y' || e.key === 'Y')) {
+            e.preventDefault();
+            window.location.href = '/data/backup';
+            return;
+        }
+
+        // Check if user is typing in form inputs
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+            if (e.key === 'Escape') {
+                e.target.blur();
+                e.preventDefault();
+                closeGotoModal();
+                closeCreateModal();
+                closeAlterModal();
+                closeChangeModeModal();
+                closePeriodModal();
+                closeGeneralConfigModal();
+                closeShareModal();
+                closeHelpModal();
+                closeQuitPrompt();
+                return;
+            }
+            if (e.key === 'Enter') {
+                // If not a multiline textarea or submit button, advance to next input
+                if (e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit' && !e.target.classList.contains('tally-modal-search')) {
+                    const form = e.target.closest('form');
+                    if (form) {
+                        e.preventDefault();
+                        const fields = Array.from(form.querySelectorAll(
+                            'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]), button[type="submit"], .tally-btn-save'
+                        )).filter(el => el.offsetParent !== null);
+                        const idx = fields.indexOf(e.target);
+                        if (idx > -1 && idx < fields.length - 1) {
+                            fields[idx + 1].focus();
+                            if (typeof fields[idx + 1].select === 'function') fields[idx + 1].select();
+                        } else {
+                            if (typeof showAcceptModal === 'function') {
+                                showAcceptModal();
+                            } else {
+                                form.requestSubmit ? form.requestSubmit() : form.submit();
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+            return;
+        }
+
+        const k = e.key.toUpperCase();
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            const openModals = [
+                'gotoModal', 'createMasterModal', 'alterMasterModal',
+                'changeModeModal', 'periodModal', 'generalConfigModal',
+                'shareModal', 'helpModal', 'companyFeaturesModal', 'otherVouchersModal'
+            ];
+            let closedAny = false;
+            openModals.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.style.display === 'flex') {
+                    el.style.display = 'none';
+                    closedAny = true;
+                }
+            });
+            if (closedAny) return;
+
+            const qd = document.getElementById('quitDialog');
+            if (qd.style.display === 'block') {
+                qd.style.display = 'none';
+                return;
+            }
+
+            if (window.location.pathname === '/' || window.location.pathname === '') {
+                triggerQuitPrompt();
+            } else {
+                window.location.href = '/';
+            }
+            return;
+        }
+
+        if (e.key === 'F1') { e.preventDefault(); openHelpModal(); }
+        else if (e.key === 'F2') { e.preventDefault(); openPeriodModal(); }
+        else if (e.key === 'F3') { e.preventDefault(); window.location.href = '/company/select'; }
+        else if (e.key === 'F4') { e.preventDefault(); window.location.href = '/vouchers/create?type=Contra'; }
+        else if (e.key === 'F5') { e.preventDefault(); window.location.href = '/vouchers/create?type=Payment'; }
+        else if (e.key === 'F6') { e.preventDefault(); window.location.href = '/vouchers/create?type=Receipt'; }
+        else if (e.key === 'F7') { e.preventDefault(); window.location.href = '/vouchers/create?type=Journal'; }
+        else if (e.key === 'F8') { e.preventDefault(); window.location.href = '/vouchers/create?type=Sales'; }
+        else if (e.key === 'F9') { e.preventDefault(); window.location.href = '/vouchers/create?type=Purchase'; }
+        else if (e.key === 'F10') { e.preventDefault(); openOtherVouchersModal(); }
+        else if (k === 'C' && (window.location.pathname === '/' || window.location.pathname === '')) { openCreateModal(); }
+        else if (k === 'A' && (window.location.pathname === '/' || window.location.pathname === '')) { openAlterModal(); }
+        else if (k === 'V') { window.location.href = '/vouchers/create?type=Sales'; }
+        else if (k === 'D') { window.location.href = '/daybook'; }
+        else if (k === 'B') { window.location.href = '/reports/balance-sheet'; }
+        else if (k === 'P') { window.location.href = '/reports/profit-loss'; }
+        else if (k === 'S') { window.location.href = '/reports/stock-summary'; }
+        else if (k === 'R') { window.location.href = '/reports/ratio-analysis'; }
+        else if (k === 'L') { window.location.href = '/ledgers'; }
+        else if (k === 'T') { window.location.href = '/reports/trial-balance'; }
+        else if (k === 'K') { window.location.href = '/reports/cash-bank-book'; }
+        else if (k === 'M') { window.location.href = '/inventory/manufacturing'; }
+        else if (k === 'Y') { window.location.href = '/payroll/employees'; }
+        else if (k === 'Q') { triggerQuitPrompt(); }
+    }
+
+    // Auto-focus first visible input field on any screen
+    document.addEventListener('DOMContentLoaded', function() {
+        const autoFld = document.querySelector('form input:not([type="hidden"]):not([disabled]):not([readonly]), form select:not([disabled])');
+        if (autoFld) {
+            autoFld.focus();
+            if (typeof autoFld.select === 'function') autoFld.select();
+        }
+
+        // Mouse hover sync with keyboard selection in modals
+        document.addEventListener('mouseover', function(e) {
+            if (e.target.classList.contains('tally-modal-option')) {
+                const activeModal = getActiveOpenModalInfo();
+                if (!activeModal) return;
+                const opts = getModalVisibleOptions(activeModal.listId);
+                const idx = opts.indexOf(e.target);
+                if (idx !== -1) {
+                    activeModalFocusIndex = idx;
+                    opts.forEach((el, i) => {
+                        if (i === activeModalFocusIndex) {
+                            el.classList.add('selected');
+                        } else {
+                            el.classList.remove('selected');
+                        }
+                    });
+                }
+            }
+        });
+
+        // --- LIVE TALLY DATE & DAY FORMATTER ENGINE ---
+        const TALLY_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const TALLY_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        window.formatToTallyDate = function(isoStr) {
+            if (!isoStr) return null;
+            const parts = isoStr.split('-');
+            if (parts.length === 3) {
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10) - 1;
+                const d = parseInt(parts[2], 10);
+                const dt = new Date(y, m, d);
+                const dayName = TALLY_DAYS[dt.getDay()];
+                const monthName = TALLY_MONTHS[m];
+                const yrShort = String(y).slice(-2);
+                return {
+                    tallyDate: `${d}-${monthName}-${yrShort}`,
+                    dayName: dayName,
+                    fullDate: `${dayName}, ${d}-${monthName}-${y}`,
+                    headerFormatted: `${d}-${monthName}-${yrShort} ${dayName}`
+                };
+            }
+            return null;
+        };
+
+        window.updateLiveDateDisplays = function(isoDate) {
+            const formatted = window.formatToTallyDate(isoDate);
+            if (!formatted) return;
+
+            const hdrDate = document.getElementById('tallyHeaderDateFormatted');
+            const hdrDay = document.getElementById('tallyHeaderDayFormatted');
+            if (hdrDate) hdrDate.textContent = formatted.tallyDate;
+            if (hdrDay) hdrDay.textContent = formatted.dayName;
+
+            const vDay = document.getElementById('voucherDayDisplay');
+            if (vDay) vDay.textContent = formatted.dayName;
+
+            const gwDate = document.getElementById('currentDateDisplay');
+            if (gwDate) gwDate.textContent = formatted.fullDate;
+        };
+
+        const now = new Date();
+        const curY = now.getFullYear();
+        const curM = String(now.getMonth() + 1).padStart(2, '0');
+        const curD = String(now.getDate()).padStart(2, '0');
+        const todayIso = `${curY}-${curM}-${curD}`;
+
+        document.querySelectorAll('input[type="date"]').forEach(inp => {
+            if (!inp.value || inp.value === '2026-11-03') {
+                inp.value = todayIso;
+            }
+            inp.addEventListener('input', function() {
+                window.updateLiveDateDisplays(this.value);
+            });
+            inp.addEventListener('change', function() {
+                window.updateLiveDateDisplays(this.value);
+            });
+        });
+
+        const vDateInp = document.getElementById('voucher_date');
+        if (vDateInp && vDateInp.value) {
+            window.updateLiveDateDisplays(vDateInp.value);
+        } else {
+            window.updateLiveDateDisplays(todayIso);
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-master-screen-split">
+    <!-- Left Half: Authentic Group Form (Matching Frame 0 of Video) -->
+    <div class="tally-master-pane">
+        <form method="POST" action="{{ form_action }}" id="masterForm" onsubmit="event.preventDefault(); showAcceptModal();">
+            <div class="tally-field-row">
+                <span class="tally-lbl">Name</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="name" class="tally-fld-input" required autofocus value="{{ grp.name if grp else '' }}">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl">(alias)</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="alias" class="tally-fld-input" value="{{ grp.alias if grp and grp.alias else '' }}">
+            </div>
+
+            <div style="height: 25px;"></div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl">Under</span>
+                <span class="tally-colon">:</span>
+                <select name="parent_group_id" class="tally-fld-select" required>
+                    <option value="">♦ Primary</option>
+                    {% for g in groups %}
+                    <option value="{{ g.id }}" {% if grp and grp.parent_group_id == g.id %}selected{% elif not grp and g.name == 'Capital Account' %}selected{% endif %}>
+                        ♦ {{ g.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="height: 35px;"></div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 320px;">Group behaves like a sub-ledger</span>
+                <span class="tally-colon">:</span>
+                <select name="is_sub_ledger" class="tally-fld-select-sm">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 320px;">Nett Debit/Credit Balances for Reporting</span>
+                <span class="tally-colon">:</span>
+                <select name="net_reporting" class="tally-fld-select-sm">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 320px;">Used for calculation (for example: taxes, discounts)<br><small style="color:#64748b; font-weight:normal;">(for sales invoice entries)</small></span>
+                <span class="tally-colon">:</span>
+                <select name="used_for_calc" class="tally-fld-select-sm">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+
+            <div class="tally-field-row" style="margin-top: 10px;">
+                <span class="tally-lbl" style="width: 320px;">Method to allocate when used in purchase invoice</span>
+                <span class="tally-colon">:</span>
+                <select name="purchase_allocation" class="tally-fld-select">
+                    <option value="not_applicable">♦ Not Applicable</option>
+                    <option value="qty">♦ Appropriate by Qty</option>
+                    <option value="value">♦ Appropriate by Value</option>
+                </select>
+            </div>
+
+            <!-- Hidden field for nature to maintain accounting math balance -->
+            <input type="hidden" name="nature" value="{{ grp.nature if grp else 'Asset' }}">
+            <input type="hidden" name="affects_gross_profit" value="{{ grp.affects_gross_profit if grp else '0' }}">
+
+            <div style="margin-top: 25px; display: flex; gap: 10px;">
+                <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+                {% if grp and grp.is_builtin == 0 %}
+                <button type="button" class="tally-btn-cancel" style="background: #fee2e2; color: #dc2626; border-color: #fca5a5;" onclick="promptDeleteGroup({{ grp.id }}, '{{ grp.name }}')">Delete (Alt+D)</button>
+                {% endif %}
+                <a href="/masters/chart-of-accounts" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Half: Dimmed Gateway Screen (Matching Real Tally Background) -->
+    <div class="tally-dimmed-pane">
+        <div style="font-size: 13px; color: #55728a; text-align: center; margin-top: 40px; font-weight: 600;">
+            Gateway of Tally (Press Esc to Cancel)
+        </div>
+    </div>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Yes or No</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="document.getElementById('masterForm').submit();"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal();"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+function promptDeleteGroup(id, name) {
+    if (confirm(`Are you sure you want to permanently DELETE group "${name}"?\n(Only allowed if no ledgers or subgroups exist)`)) {
+        fetch(`/api/masters/groups/${id}/delete`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/masters/chart-of-accounts';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('Network error: ' + err));
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+        const delBtn = document.querySelector('[onclick*="promptDeleteGroup"]');
+        if (delBtn) {
+            e.preventDefault();
+            delBtn.click();
+            return;
+        }
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('masterForm').submit();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+{% endblock %}

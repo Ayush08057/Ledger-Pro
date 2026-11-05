@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card">
+    <div class="tally-card-header">
+        <span>Budgets &amp; Scenarios</span>
+        <div style="display:flex; gap:10px;">
+            <a href="/budgets/create" class="tally-btn tally-btn-primary" style="padding:4px 12px; font-size:12px; text-decoration:none;">+ Create New Budget</a>
+        </div>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <table class="tally-table">
+            <thead>
+                <tr>
+                    <th>Budget Name</th>
+                    <th style="width: 140px;">From Date</th>
+                    <th style="width: 140px;">To Date</th>
+                    <th style="text-align: right; width: 140px;">Allocated Accounts</th>
+                    <th style="text-align: right; width: 180px;">Total Budget (₹)</th>
+                    <th style="width: 140px; text-align: center;">Variance Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if budgets %}
+                    {% for b in budgets %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--tally-yellow);">{{ b.name }}</td>
+                        <td>{{ b.from_date }}</td>
+                        <td>{{ b.to_date }}</td>
+                        <td style="text-align: right;">{{ b.allocated_ledgers_count }}</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--tally-cyan);">₹{{ "{:,.2f}".format(b.total_allocated_budget) }}</td>
+                        <td style="text-align: center;">
+                            <a href="/budgets/{{ b.id }}/variance" class="tally-btn" style="padding: 2px 10px; font-size:11px; text-decoration:none;">View Variance</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 30px; color: var(--tally-muted);">
+                            No financial budgets created yet. Click <strong>+ Create New Budget</strong> to set expense spending limits and analyze variances.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

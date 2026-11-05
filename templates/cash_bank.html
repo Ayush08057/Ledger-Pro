@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Cash & Bank Book Summary</div>
+        <div class="report-subtitle">{{ company.name }} | Liquidity & Bank Accounts</div>
+    </div>
+
+    <div class="quick-stats" style="margin-bottom: 20px;">
+        <div class="stat-item">
+            <span class="stat-lbl">Cash in Hand</span>
+            <span class="stat-val" style="color: #1e8449;">₹{{ "%.2f"|format(summary.total_cash) }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-lbl">Bank Accounts</span>
+            <span class="stat-val" style="color: #2980b9;">₹{{ "%.2f"|format(summary.total_bank) }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-lbl">Total Liquid Funds</span>
+            <span class="stat-val" style="color: #0f3d4c;">₹{{ "%.2f"|format(summary.total_liquid_funds) }}</span>
+        </div>
+    </div>
+
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 40%;">Account Name</th>
+                <th style="width: 20%;">Group</th>
+                <th style="width: 20%; text-align: right;">Opening Balance</th>
+                <th style="width: 20%; text-align: right;">Closing Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in summary.accounts %}
+            <tr>
+                <td>
+                    <a href="/reports/ledger-statement/{{ a.id }}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                        {{ a.name }}
+                    </a>
+                </td>
+                <td><span class="group-tag">{{ a.group_name }}</span></td>
+                <td style="text-align: right;">₹{{ "%.2f"|format(a.opening_balance) }} {{ a.opening_balance_type }}</td>
+                <td style="text-align: right; font-weight: bold; color: #1e8449;">₹{{ "%.2f"|format(a.current_balance) }} {{ a.current_balance_type }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tax Invoice - {{ voucher.voucher_number }}</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #e6e9ea;
+            margin: 0;
+            padding: 20px;
+        }
+        .invoice-box {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #fff;
+            border: 2px solid #000;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .inv-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        .inv-title {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .inv-subtitle {
+            font-size: 11px;
+            color: #444;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid #000;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            font-size: 12px;
+            gap: 15px;
+        }
+        .box-panel {
+            line-height: 1.4;
+        }
+        .box-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 4px;
+        }
+        table.inv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+            margin-bottom: 8px;
+        }
+        table.inv-table th, table.inv-table td {
+            border: 1px solid #000;
+            padding: 5px 6px;
+        }
+        table.inv-table th {
+            background: #f0f0f0;
+            text-align: center;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .words-section {
+            border: 1px solid #000;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            background: #fafafa;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+            font-size: 11px;
+        }
+        .signatory {
+            text-align: right;
+            padding-top: 40px;
+            font-weight: bold;
+        }
+        .no-print {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .print-btn {
+            background: #0f3d4c;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .invoice-box { border: 2px solid #000; box-shadow: none; max-width: 100%; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">🖨️ Print Invoice (Ctrl+P)</button>
+        <button class="print-btn" onclick="window.location.href='/daybook'" style="background:#555; margin-left: 10px;">← Back to Day Book</button>
+    </div>
+
+    <div class="invoice-box">
+        <!-- Title Banner -->
+        <div class="inv-header">
+            <div class="inv-title">Tax Invoice</div>
+            <div class="inv-subtitle">(Issued under Section 31 of Central Goods and Services Tax Act, 2017)</div>
+        </div>
+
+        <!-- Supplier & Consignee Details -->
+        <div class="grid-2">
+            <div class="box-panel">
+                <div class="box-title">Seller / Consignor:</div>
+                <strong>{{ company.legal_name or company.name }}</strong><br>
+                {{ company.address or 'Registered Office Address' }}<br>
+                <strong>GSTIN/UIN:</strong> {{ company.gstin or 'Unregistered' }}<br>
+                <strong>State:</strong> {{ company.state }} (Code: {{ company.state_code }})<br>
+                <strong>Email:</strong> {{ company.email or '-' }} | <strong>Phone:</strong> {{ company.phone or '-' }}
+            </div>
+            <div class="box-panel">
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                    <tr><td><strong>Invoice No:</strong></td><td><strong>{{ voucher.voucher_number }}</strong></td></tr>
+                    <tr><td><strong>Invoice Date:</strong></td><td>{{ voucher.voucher_date }}</td></tr>
+                    <tr><td><strong>Place of Supply:</strong></td><td>{{ party.state_code or company.state_code }} - {{ company.state }}</td></tr>
+                    <tr><td><strong>Reverse Charge:</strong></td><td>No</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Buyer Details -->
+        <div class="grid-2">
+            <div class="box-panel">
+                <div class="box-title">Buyer (Bill to):</div>
+                <strong>{{ party.name }}</strong><br>
+                {{ party.address or 'Address on Record' }}<br>
+                <strong>GSTIN/UIN:</strong> {{ party.gstin or 'Unregistered' }}<br>
+                <strong>State Code:</strong> {{ party.state_code or company.state_code }}
+            </div>
+            <div class="box-panel">
+                <div class="box-title">Consignee (Ship to):</div>
+                <strong>{{ party.name }}</strong><br>
+                {{ party.address or 'Same as Bill to' }}<br>
+                <strong>State Code:</strong> {{ party.state_code or company.state_code }}
+            </div>
+        </div>
+
+        <!-- Item Line Items -->
+        <table class="inv-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">Sl</th>
+                    <th style="width: 40%;">Description of Goods</th>
+                    <th style="width: 10%;">HSN/SAC</th>
+                    <th style="width: 10%;">Qty</th>
+                    <th style="width: 12%;">Rate (₹)</th>
+                    <th style="width: 8%;">per</th>
+                    <th style="width: 15%;">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for it in items %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <td><strong>{{ it.item_name }}</strong><br><small>{{ it.description }}</small></td>
+                    <td class="text-center">{{ it.hsn_sac or '-' }}</td>
+                    <td class="text-right">{{ it.quantity }} {{ it.unit_symbol }}</td>
+                    <td class="text-right">{{ "%.2f"|format(it.rate) }}</td>
+                    <td class="text-center">{{ it.unit_symbol }}</td>
+                    <td class="text-right">{{ "%.2f"|format(it.taxable_amount) }}</td>
+                </tr>
+                {% endfor %}
+                <tr style="font-weight: bold; background: #fafafa;">
+                    <td colspan="6" class="text-right">Taxable Subtotal</td>
+                    <td class="text-right">₹{{ "%.2f"|format(voucher.subtotal) }}</td>
+                </tr>
+                <tr style="font-weight: bold; background: #fafafa;">
+                    <td colspan="6" class="text-right">Total GST (Output Tax)</td>
+                    <td class="text-right">₹{{ "%.2f"|format(voucher.tax_amount) }}</td>
+                </tr>
+                {% if voucher.round_off != 0 %}
+                <tr style="font-size: 11px;">
+                    <td colspan="6" class="text-right">Round Off</td>
+                    <td class="text-right">₹{{ "%.2f"|format(voucher.round_off) }}</td>
+                </tr>
+                {% endif %}
+                <tr style="font-size: 14px; font-weight: bold; background: #f0f0f0;">
+                    <td colspan="6" class="text-right">Total Invoice Value (in figures)</td>
+                    <td class="text-right">₹{{ "%.2f"|format(voucher.total_amount) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Amount Chargeable in Words -->
+        <div class="words-section">
+            Amount Chargeable (in words): <br>
+            <span style="font-size: 13px; color: #111;">{{ amount_in_words }}</span>
+        </div>
+
+        <!-- HSN/SAC Tax Summary Table (Statutory Requirement) -->
+        <div style="font-size: 11px; font-weight: bold; margin-bottom: 3px;">Tax Summary (HSN/SAC Breakdown):</div>
+        <table class="inv-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">HSN/SAC</th>
+                    <th rowspan="2">Taxable Value (₹)</th>
+                    <th colspan="2">Central Tax</th>
+                    <th colspan="2">State Tax</th>
+                    <th colspan="2">Integrated Tax</th>
+                    <th rowspan="2">Total Tax Amount (₹)</th>
+                </tr>
+                <tr>
+                    <th>Rate %</th><th>Amount (₹)</th>
+                    <th>Rate %</th><th>Amount (₹)</th>
+                    <th>Rate %</th><th>Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in hsn_summary %}
+                <tr>
+                    <td class="text-center">{{ h.hsn_sac }}</td>
+                    <td class="text-right">{{ "%.2f"|format(h.taxable_amount) }}</td>
+                    <td class="text-center">{{ h.cgst_rate }}%</td>
+                    <td class="text-right">{{ "%.2f"|format(h.cgst_amount) }}</td>
+                    <td class="text-center">{{ h.sgst_rate }}%</td>
+                    <td class="text-right">{{ "%.2f"|format(h.sgst_amount) }}</td>
+                    <td class="text-center">{{ h.igst_rate }}%</td>
+                    <td class="text-right">{{ "%.2f"|format(h.igst_amount) }}</td>
+                    <td class="text-right font-bold">{{ "%.2f"|format(h.total_tax) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Footer / Declaration / Signatory -->
+        <div class="footer-grid">
+            <div>
+                <strong>Declaration:</strong><br>
+                We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
+            </div>
+            <div class="signatory">
+                for <strong>{{ company.legal_name or company.name }}</strong><br><br>
+                Authorized Signatory
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+

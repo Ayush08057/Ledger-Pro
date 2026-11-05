@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="max-width: 950px; margin: 0 auto;">
+    <div class="tally-card-header">
+        <span>Manufacturing Journal (Stock Production & Assembly)</span>
+        <span style="font-size:12px; color:var(--tally-muted);">Alt+F7 Mode</span>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <form method="POST" action="/inventory/manufacturing/create" id="mfgForm">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Voucher Date</label>
+                    <input type="date" name="voucher_date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Finished Good Item</label>
+                    <select name="finished_item_id" id="finishedItemSelect" class="form-control" required onchange="onFinishedItemChanged()">
+                        <option value="">-- Select Product to Produce --</option>
+                        {% for it in stock_items %}
+                        <option value="{{ it.id }}" data-unit="{{ it.unit_symbol }}">{{ it.name }} (Bal: {{ it.closing_qty }} {{ it.unit_symbol }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Destination Godown</label>
+                    <select name="destination_godown_id" class="form-control" required>
+                        {% for g in godowns %}
+                        <option value="{{ g.id }}">{{ g.name }} ({{ g.location or 'Main' }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Quantity to Produce</label>
+                    <input type="number" step="0.01" name="produced_qty" id="producedQty" class="form-control" value="1.0" min="0.01" required onchange="recalcAll()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Manufacturing Cost (Wages / Power ₹)</label>
+                    <input type="number" step="0.01" name="additional_cost" id="additionalCost" class="form-control" value="0.00" onchange="recalcAll()">
+                </div>
+            </div>
+
+            <h4 style="color:var(--tally-yellow); margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid var(--tally-border); padding-bottom: 5px;">
+                Raw Material Components (Consumption)
+            </h4>
+
+            <table class="tally-table" id="componentsTable" style="margin-bottom: 15px;">
+                <thead>
+                    <tr>
+                        <th>Raw Material Stock Item</th>
+                        <th style="width: 220px;">Source Godown</th>
+                        <th style="width: 120px; text-align: right;">Quantity</th>
+                        <th style="width: 130px; text-align: right;">Rate (₹)</th>
+                        <th style="width: 140px; text-align: right;">Amount (₹)</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="componentsBody">
+                    <tr>
+                        <td>
+                            <select name="component_item_id[]" class="form-control comp-item" required onchange="updateItemRate(this)">
+                                <option value="">-- Select Raw Item --</option>
+                                {% for it in stock_items %}
+                                <option value="{{ it.id }}" data-rate="{{ it.opening_rate or 0 }}">{{ it.name }} (Bal: {{ it.closing_qty }})</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="component_godown_id[]" class="form-control" required>
+                                {% for g in godowns %}
+                                <option value="{{ g.id }}">{{ g.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.01" name="component_qty[]" class="form-control comp-qty" value="1" min="0.01" required style="text-align: right;" onchange="recalcRow(this)"></td>
+                        <td><input type="number" step="0.01" name="component_rate[]" class="form-control comp-rate" value="0.00" required style="text-align: right;" onchange="recalcRow(this)"></td>
+                        <td style="text-align: right; font-weight:600; padding-top: 14px;" class="comp-amount">0.00</td>
+                        <td><button type="button" class="tally-btn" style="color:#ff6b6b; padding:2px 8px;" onclick="removeRow(this)">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-bottom: 20px;">
+                <button type="button" class="tally-btn" onclick="addRow()">+ Add Raw Material Row</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <div style="display:flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Total Raw Materials Cost:</span>
+                    <strong id="dispRawCost">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Additional Overheads / Wages:</span>
+                    <strong id="dispAddlCost">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content: space-between; font-size: 16px; color: var(--tally-yellow); border-top: 1px solid var(--tally-border); padding-top: 8px;">
+                    <span>Total Cost of Manufacture:</span>
+                    <strong id="dispTotalCost">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content: space-between; font-size: 14px; color: var(--tally-cyan); margin-top: 5px;">
+                    <span>Effective Cost Per Unit:</span>
+                    <strong id="dispEffRate">₹0.00</strong>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label">Narration</label>
+                <textarea name="narration" class="form-control" rows="2" placeholder="Batch assembly notes..."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                <a href="/inventory/manufacturing" class="tally-btn" style="text-decoration:none;">Cancel</a>
+                <button type="submit" class="tally-btn tally-btn-primary">Post Manufacturing Journal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function updateItemRate(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const rate = opt.getAttribute('data-rate') || 0;
+    const row = sel.closest('tr');
+    row.querySelector('.comp-rate').value = parseFloat(rate).toFixed(2);
+    recalcRow(sel);
+}
+
+function recalcRow(el) {
+    const row = el.closest('tr');
+    const qty = parseFloat(row.querySelector('.comp-qty').value) || 0;
+    const rate = parseFloat(row.querySelector('.comp-rate').value) || 0;
+    const amt = qty * rate;
+    row.querySelector('.comp-amount').innerText = amt.toFixed(2);
+    recalcAll();
+}
+
+function recalcAll() {
+    let totalRaw = 0;
+    document.querySelectorAll('#componentsBody tr').forEach(row => {
+        const qty = parseFloat(row.querySelector('.comp-qty').value) || 0;
+        const rate = parseFloat(row.querySelector('.comp-rate').value) || 0;
+        totalRaw += (qty * rate);
+    });
+
+    const addl = parseFloat(document.getElementById('additionalCost').value) || 0;
+    const prodQty = parseFloat(document.getElementById('producedQty').value) || 1;
+    const totalCost = totalRaw + addl;
+    const effRate = prodQty > 0 ? (totalCost / prodQty) : 0;
+
+    document.getElementById('dispRawCost').innerText = '₹' + totalRaw.toFixed(2);
+    document.getElementById('dispAddlCost').innerText = '₹' + addl.toFixed(2);
+    document.getElementById('dispTotalCost').innerText = '₹' + totalCost.toFixed(2);
+    document.getElementById('dispEffRate').innerText = '₹' + effRate.toFixed(2);
+}
+
+function addRow() {
+    const tbody = document.getElementById('componentsBody');
+    const firstRow = tbody.querySelector('tr');
+    const clone = firstRow.cloneNode(true);
+    clone.querySelector('.comp-item').selectedIndex = 0;
+    clone.querySelector('.comp-qty').value = "1";
+    clone.querySelector('.comp-rate').value = "0.00";
+    clone.querySelector('.comp-amount').innerText = "0.00";
+    tbody.appendChild(clone);
+}
+
+function removeRow(btn) {
+    const tbody = document.getElementById('componentsBody');
+    if (tbody.querySelectorAll('tr').length > 1) {
+        btn.closest('tr').remove();
+        recalcAll();
+    }
+}
+
+function onFinishedItemChanged() {
+    const itemSelect = document.getElementById('finishedItemSelect');
+    const itemId = itemSelect.value;
+    if (!itemId) return;
+
+    // Fetch BOM if available
+    fetch(`/api/bom/list/${itemId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.boms && data.boms.length > 0) {
+                const bom = data.boms[0];
+                const tbody = document.getElementById('componentsBody');
+                tbody.innerHTML = '';
+                bom.components.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <select name="component_item_id[]" class="form-control comp-item" required onchange="updateItemRate(this)">
+                                <option value="${c.stock_item_id}" selected>${c.item_name}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="component_godown_id[]" class="form-control" required>
+                                {% for g in godowns %}
+                                <option value="{{ g.id }}">{{ g.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.01" name="component_qty[]" class="form-control comp-qty" value="${c.quantity}" min="0.01" required style="text-align: right;" onchange="recalcRow(this)"></td>
+                        <td><input type="number" step="0.01" name="component_rate[]" class="form-control comp-rate" value="${(c.opening_rate || 0).toFixed(2)}" required style="text-align: right;" onchange="recalcRow(this)"></td>
+                        <td style="text-align: right; font-weight:600; padding-top: 14px;" class="comp-amount">${(c.quantity * (c.opening_rate || 0)).toFixed(2)}</td>
+                        <td><button type="button" class="tally-btn" style="color:#ff6b6b; padding:2px 8px;" onclick="removeRow(this)">✕</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                recalcAll();
+            }
+        });
+}
+</script>
+{% endblock %}
+

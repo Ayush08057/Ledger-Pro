@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="max-width: 650px; margin: 30px auto;">
+    <div class="tally-card-header">
+        <span>Alter Master &gt; {{ master_type_label }}</span>
+        <a href="/" class="tally-btn-cancel" style="padding: 2px 8px; font-size: 11px;">Back (Esc)</a>
+    </div>
+    <div style="padding: 10px 15px; background: #fff;">
+        <input type="text" id="alterSearch" class="tally-modal-search" placeholder="Search {{ master_type_label }}..." onkeyup="filterItems()">
+    </div>
+    <div class="tally-list-viewport" style="max-height: 450px; overflow-y: auto; background: #fff;" id="alterList">
+        {% for it in items %}
+        <a href="{{ it.url }}" class="tally-list-row alter-item" style="display: flex; justify-content: space-between; padding: 8px 15px; border-bottom: 1px solid #e1e8ed; text-decoration: none; color: #1c2833;">
+            <span class="item-name" style="font-weight: 500;">{{ it.name }}</span>
+            <span style="color: #5d6d7e; font-size: 12px;">{{ it.subtext }}</span>
+        </a>
+        {% else %}
+        <div style="padding: 20px; text-align: center; color: #7f8c8d;">No items found.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterItems() {
+    let q = document.getElementById('alterSearch').value.toLowerCase();
+    document.querySelectorAll('.alter-item').forEach(el => {
+        let txt = el.innerText.toLowerCase();
+        el.style.display = txt.includes(q) ? 'flex' : 'none';
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('alterSearch');
+    if (input) input.focus();
+});
+</script>
+{% endblock %}
+

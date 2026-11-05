@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="max-width: 800px; margin: 0 auto;">
+    <div class="tally-card-header">
+        <span>Process Monthly Payroll & Salary Voucher</span>
+        <a href="/payroll/employees" class="tally-btn" style="padding: 4px 10px; text-decoration: none;">Back</a>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <form method="POST" action="/payroll/process">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Employee</label>
+                    <select name="employee_id" id="empSelect" class="form-control" required onchange="recalculateSalary()">
+                        <option value="">-- Select Employee --</option>
+                        {% for e in employees %}
+                        <option value="{{ e.id }}"
+                                data-basic="{{ e.basic_salary }}"
+                                data-hra="{{ e.hra_allowance }}"
+                                data-conv="{{ e.conveyance_allowance }}"
+                                data-spec="{{ e.special_allowance }}"
+                                data-pf="{{ e.pf_number or '' }}">
+                            {{ e.emp_code }} - {{ e.name }} ({{ e.designation }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pay Month (YYYY-MM)</label>
+                    <input type="month" name="pay_month" class="form-control" value="{{ current_month }}" required>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Total Working Days</label>
+                    <input type="number" step="1" name="working_days" id="workingDays" class="form-control" value="30" min="1" required onchange="recalculateSalary()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Days Present / Worked</label>
+                    <input type="number" step="0.5" name="present_days" id="presentDays" class="form-control" value="30" min="0" required onchange="recalculateSalary()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TDS Withholding (₹)</label>
+                    <input type="number" step="0.01" name="tds_deduction" id="tdsDeduction" class="form-control" value="0.00" onchange="recalculateSalary()">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Salary Expense Ledger (Dr)</label>
+                    <select name="salary_expense_ledger_id" class="form-control" required>
+                        {% for l in expense_ledgers %}
+                        <option value="{{ l.id }}" {% if 'Salar' in l.name or 'Wage' in l.name %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Salary Payable Ledger (Cr Net)</label>
+                    <select name="salary_payable_ledger_id" class="form-control" required>
+                        {% for l in liability_ledgers %}
+                        <option value="{{ l.id }}" {% if 'Payable' in l.name or 'Creditors' in l.group_name %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--tally-border); border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                <div style="color:var(--tally-yellow); font-size:12px; font-weight:600; text-transform:uppercase; margin-bottom:10px;">Payroll Breakdown Preview</div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span>Gross Earned Salary (Dr Expense):</span>
+                    <strong id="dispGross">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:#ff6b6b;">
+                    <span>Statutory PF Employee (12%):</span>
+                    <strong id="dispPf">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:#ff6b6b;">
+                    <span>Professional Tax (PT):</span>
+                    <strong id="dispPt">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:#ff6b6b;">
+                    <span>Total Deductions:</span>
+                    <strong id="dispDeduct">₹0.00</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:15px; color:#2ecc71; border-top:1px solid var(--tally-border); padding-top:8px;">
+                    <span>Net Salary Payable:</span>
+                    <strong id="dispNet">₹0.00</strong>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                <a href="/payroll/employees" class="tally-btn" style="text-decoration:none;">Cancel</a>
+                <button type="submit" class="tally-btn tally-btn-primary">Post Salary Voucher & Generate Payslip</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function recalculateSalary() {
+    const sel = document.getElementById('empSelect');
+    if (!sel || sel.selectedIndex <= 0) return;
+
+    const opt = sel.options[sel.selectedIndex];
+    const basic = parseFloat(opt.getAttribute('data-basic')) || 0;
+    const hra = parseFloat(opt.getAttribute('data-hra')) || 0;
+    const conv = parseFloat(opt.getAttribute('data-conv')) || 0;
+    const spec = parseFloat(opt.getAttribute('data-spec')) || 0;
+    const hasPf = (opt.getAttribute('data-pf') || '').trim().length > 0;
+
+    const wDays = parseFloat(document.getElementById('workingDays').value) || 30;
+    const pDays = parseFloat(document.getElementById('presentDays').value) || 30;
+    const tds = parseFloat(document.getElementById('tdsDeduction').value) || 0;
+
+    const ratio = wDays > 0 ? (pDays / wDays) : 1;
+    const earnedBasic = Math.round(basic * ratio * 100) / 100;
+    const earnedHra = Math.round(hra * ratio * 100) / 100;
+    const earnedConv = Math.round(conv * ratio * 100) / 100;
+    const earnedSpec = Math.round(spec * ratio * 100) / 100;
+
+    const gross = Math.round((earnedBasic + earnedHra + earnedConv + earnedSpec) * 100) / 100;
+    const pf = hasPf ? Math.round(earnedBasic * 0.12 * 100) / 100 : 0;
+    const pt = gross >= 15000 ? 200.0 : 0.0;
+    const totDeduct = Math.round((pf + pt + tds) * 100) / 100;
+    const net = Math.round((gross - totDeduct) * 100) / 100;
+
+    document.getElementById('dispGross').innerText = '₹' + gross.toFixed(2);
+    document.getElementById('dispPf').innerText = '₹' + pf.toFixed(2);
+    document.getElementById('dispPt').innerText = '₹' + pt.toFixed(2);
+    document.getElementById('dispDeduct').innerText = '₹' + totDeduct.toFixed(2);
+    document.getElementById('dispNet').innerText = '₹' + net.toFixed(2);
+}
+</script>
+{% endblock %}
+

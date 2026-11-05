@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Trial Balance</div>
+        <div class="report-subtitle">{{ company.name }} | As on 03-Nov-2026</div>
+    </div>
+
+    <div class="status-banner {% if tb.is_balanced %}balanced{% else %}unbalanced{% endif %}">
+        {% if tb.is_balanced %}
+            ✓ Trial Balance is perfectly balanced (Total Debits = Total Credits).
+        {% else %}
+            ⚠ Mismatch detected! Difference: ₹{{ "%.2f"|format(tb.total_debit - tb.total_credit) }}
+        {% endif %}
+    </div>
+
+    <div class="report-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap;">
+        <input type="text" id="tbSearchInput" onkeyup="filterTB()" placeholder="🔍 Search ledger in Trial Balance..." class="tally-input" style="width: 280px; font-size: 13px;" autofocus>
+        <div style="display: flex; gap: 8px;">
+            <a href="/reports/balance-sheet" class="tally-btn-action">Balance Sheet (B)</a>
+            <a href="/reports/profit-loss" class="tally-btn-action" style="background: #20687d;">P&amp;L A/c (P)</a>
+            <button type="button" class="tally-btn-action" onclick="window.print()">Print (P)</button>
+        </div>
+    </div>
+
+    <table class="tally-report-table" id="tbTable">
+        <thead>
+            <tr>
+                <th style="width: 45%;">Particulars (Ledger Name)</th>
+                <th style="width: 25%;">Group Name</th>
+                <th style="width: 15%; text-align: right;">Debit (₹)</th>
+                <th style="width: 15%; text-align: right;">Credit (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in tb.lines %}
+            <tr class="tb-row">
+                <td>
+                    <a href="/reports/ledger-statement/{{ line.ledger_id }}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                        📄 {{ line.ledger_name }}
+                    </a>
+                </td>
+                <td><span class="group-tag">{{ line.group_name }}</span></td>
+                <td style="text-align: right;">{% if line.debit > 0 %}₹{{ "%.2f"|format(line.debit) }}{% else %}-{% endif %}</td>
+                <td style="text-align: right;">{% if line.credit > 0 %}₹{{ "%.2f"|format(line.credit) }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td colspan="2"><strong>Total</strong></td>
+                <td style="text-align: right;"><strong>₹{{ "%.2f"|format(tb.total_debit) }}</strong></td>
+                <td style="text-align: right;"><strong>₹{{ "%.2f"|format(tb.total_credit) }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+function filterTB() {
+    let q = document.getElementById('tbSearchInput').value.toLowerCase();
+    document.querySelectorAll('.tb-row').forEach(row => {
+        let txt = row.innerText.toLowerCase();
+        row.style.display = txt.includes(q) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}
+

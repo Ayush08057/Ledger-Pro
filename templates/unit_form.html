@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-master-screen-split">
+    <!-- Left Half: Unit Form (Matching Frame 24 of Video) -->
+    <div class="tally-master-pane" style="max-width: 480px;">
+        <form method="POST" action="/masters/units/create" id="masterForm" onsubmit="event.preventDefault(); showAcceptModal();">
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 200px;">Type</span>
+                <span class="tally-colon">:</span>
+                <span style="font-weight: 600; padding: 4px 6px;">Simple</span>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 200px;">Symbol</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="symbol" class="tally-fld-input" required autofocus placeholder="e.g. PCS, NOS, KGS, BOX">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 200px;">Formal name</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="formal_name" class="tally-fld-input" required placeholder="e.g. Pieces, Numbers">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 200px;">Unit Quantity Code (UQC)</span>
+                <span class="tally-colon">:</span>
+                <select name="uqc" class="tally-fld-select">
+                    <option value="not_applicable">♦ Not Applicable</option>
+                    <option value="PCS-PIECES">♦ PCS-PIECES</option>
+                    <option value="NOS-NUMBERS">♦ NOS-NUMBERS</option>
+                    <option value="KGS-KILOGRAMS">♦ KGS-KILOGRAMS</option>
+                    <option value="BOX-BOX">♦ BOX-BOX</option>
+                    <option value="MTR-METRES">♦ MTR-METRES</option>
+                    <option value="LTR-LITRES">♦ LTR-LITRES</option>
+                </select>
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl" style="width: 200px;">Number of decimal places</span>
+                <span class="tally-colon">:</span>
+                <input type="number" name="decimal_places" value="0" min="0" max="4" class="tally-fld-input" style="width: 60px;">
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 10px;">
+                <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+                <a href="/reports/stock-summary" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Half: Dimmed Gateway -->
+    <div class="tally-dimmed-pane">
+        <div style="font-size: 13px; color: #55728a; text-align: center; margin-top: 40px; font-weight: 600;">
+            Gateway of Tally (Press Esc to Cancel)
+        </div>
+    </div>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Yes or No</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="document.getElementById('masterForm').submit();"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal();"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('masterForm').submit();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+{% endblock %}

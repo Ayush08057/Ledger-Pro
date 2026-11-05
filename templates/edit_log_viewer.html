@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="max-width: 950px; margin: 0 auto;">
+    <div class="tally-card-header">
+        <span>MCA Audit Trail &amp; Edit Log (Alt+Q)</span>
+        <a href="javascript:history.back()" class="tally-btn" style="padding: 4px 10px; text-decoration: none;">Back (Esc)</a>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <div style="background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span style="color: var(--tally-muted); font-size: 12px;">Entity Type:</span>
+                <strong style="color: var(--tally-yellow); margin-right: 15px;">{{ entity_type }}</strong>
+                <span style="color: var(--tally-muted); font-size: 12px;">Entity Reference ID:</span>
+                <strong style="color: #fff;">#{{ entity_id }}</strong>
+            </div>
+            <div style="font-size: 11px; color: #2ecc71;">
+                ✔ MCA Rule 3(1) Compliant Audit Trail
+            </div>
+        </div>
+
+        <h4 style="color: var(--tally-yellow); margin-bottom: 12px;">Version History &amp; Field Alterations</h4>
+
+        {% if history %}
+            {% for v in history %}
+            <div style="border: 1px solid var(--tally-border); border-radius: 4px; margin-bottom: 15px; overflow: hidden; background: rgba(0,0,0,0.15);">
+                <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--tally-border);">
+                    <div>
+                        <span style="background: var(--tally-yellow); color: #000; font-weight: 700; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 10px;">
+                            Version {{ v.version }}
+                        </span>
+                        <span style="font-weight: 600; color: {% if v.action == 'CREATE' %}#2ecc71{% elif v.action in ('ALTER', 'UPDATE') %}var(--tally-cyan){% else %}#ff6b6b{% endif %};">
+                            {{ v.action }}
+                        </span>
+                        <span style="color: var(--tally-muted); font-size: 12px; margin-left: 10px;">by {{ v.user_name }}</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--tally-muted); font-family: monospace;">
+                        {{ v.created_at }}
+                    </div>
+                </div>
+
+                <div style="padding: 12px 15px;">
+                    <div style="font-size: 13px; margin-bottom: 8px;">
+                        <strong style="color: var(--tally-muted);">Changes Summary:</strong>
+                        <span style="color: #fff;">{{ v.changes_summary }}</span>
+                    </div>
+
+                    {% if v.snapshot %}
+                    <details style="margin-top: 8px;">
+                        <summary style="cursor: pointer; color: var(--tally-cyan); font-size: 12px;">View Complete Snapshot Payload</summary>
+                        <pre style="background: #0f171e; padding: 10px; border-radius: 4px; font-size: 11px; color: #a0aec0; overflow-x: auto; margin-top: 6px;">{{ v.snapshot_json }}</pre>
+                    </details>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 30px; color: var(--tally-muted);">
+                No historical edit log versions recorded for this entity yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

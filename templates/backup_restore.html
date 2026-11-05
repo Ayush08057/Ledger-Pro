@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Data Backup &amp; Restore (Alt+Y)</div>
+        <div class="report-subtitle">{{ company.name }} | Point-in-Time Database Snapshots</div>
+    </div>
+
+    {% if message %}
+    <div class="status-banner balanced" style="margin-bottom: 16px;">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    <div class="bs-grid" style="margin-bottom: 24px;">
+        <!-- Take Backup -->
+        <div class="bs-column">
+            <div class="tally-box">
+                <div class="tally-box-header">CREATE NEW BACKUP</div>
+                <div class="tally-box-body">
+                    <p style="font-size: 13px; color: #555; margin-bottom: 14px;">
+                        Generates a complete, atomic snapshot of your entire database without interrupting users or stopping the server.
+                    </p>
+                    <form method="POST" action="/data/backup/create">
+                        <label class="field-label" style="display:block; margin-bottom: 4px;">Optional Note / Label:</label>
+                        <input type="text" name="note" class="tally-input" style="width: 100%; margin-bottom: 14px;" placeholder="e.g. Before_Year_End_Closing">
+                        <button type="submit" class="tally-btn-save">💾 Backup Now (Enter)</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restore Notice -->
+        <div class="bs-column">
+            <div class="tally-box">
+                <div class="tally-box-header">RESTORE INFORMATION</div>
+                <div class="tally-box-body">
+                    <p style="font-size: 13px; color: #555; line-height: 1.5;">
+                        Restoring a backup will revert the accounting database to the state recorded in that specific snapshot. All vouchers, ledgers, and transactions created after that snapshot will be replaced.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Backups Table -->
+    <div class="menu-section-header" style="margin-bottom: 10px;">AVAILABLE BACKUPS (E:\Tally Soft\backups\)</div>
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 45%;">Backup Filename</th>
+                <th style="width: 25%;">Created At</th>
+                <th style="width: 15%; text-align: right;">Size</th>
+                <th style="width: 15%; text-align: center;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if backups %}
+                {% for b in backups %}
+                <tr>
+                    <td><strong>{{ b.filename }}</strong></td>
+                    <td>{{ b.created_at }}</td>
+                    <td style="text-align: right;">{{ b.size_kb }} KB</td>
+                    <td style="text-align: center;">
+                        <form method="POST" action="/data/backup/restore" onsubmit="return confirm('Are you sure you want to restore this backup? Current unsaved state will be overwritten.');" style="display: inline;">
+                            <input type="hidden" name="filename" value="{{ b.filename }}">
+                            <button type="submit" class="inline-btn" style="color: #c0392b; cursor: pointer;">↺ Restore</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #888; padding: 20px;">No backups created yet. Click "Backup Now" above.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

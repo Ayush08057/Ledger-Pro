@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POS Receipt - {{ inv.pos_number }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .thermal-receipt {
+            width: 80mm;
+            background: #fff;
+            margin: 0 auto;
+            padding: 15px 12px;
+            border: 1px dashed #999;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            font-size: 12px;
+            color: #000;
+        }
+        .center {
+            text-align: center;
+        }
+        .bold {
+            font-weight: bold;
+        }
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 8px 0;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        .items-table th, .items-table td {
+            padding: 3px 0;
+        }
+        .items-table th {
+            border-bottom: 1px dashed #000;
+            text-align: left;
+        }
+        .right {
+            text-align: right;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        @media print {
+            body { background: none; padding: 0; }
+            .thermal-receipt { border: none; box-shadow: none; width: 80mm; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print" style="text-align: center; margin-bottom: 15px;">
+    <button onclick="window.print()" style="padding: 6px 20px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Print Receipt</button>
+    <a href="/pos/invoice" style="margin-left: 10px; color: #333; text-decoration: none; font-size: 13px;">New Sale</a>
+</div>
+
+<div class="thermal-receipt">
+    <div class="center bold" style="font-size: 14px;">{{ inv.company_name }}</div>
+    <div class="center" style="font-size: 10px;">{{ inv.company_address or 'Head Office' }}</div>
+    {% if inv.company_gstin %}<div class="center" style="font-size: 10px;">GSTIN: {{ inv.company_gstin }}</div>{% endif %}
+    {% if inv.company_phone %}<div class="center" style="font-size: 10px;">Tel: {{ inv.company_phone }}</div>{% endif %}
+
+    <div class="divider"></div>
+
+    <div class="summary-row">
+        <span>Receipt: {{ inv.pos_number }}</span>
+        <span>Date: {{ inv.pos_date }}</span>
+    </div>
+    <div class="summary-row">
+        <span>Customer: {{ inv.party_name }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="right">Qty</th>
+                <th class="right">Rate</th>
+                <th class="right">Amt</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for it in inv.items %}
+            <tr>
+                <td>{{ it.item_name }}</td>
+                <td class="right">{{ it.quantity }}</td>
+                <td class="right">{{ "{:,.2f}".format(it.rate) }}</td>
+                <td class="right">{{ "{:,.2f}".format(it.total_amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <div class="summary-row">
+        <span>Subtotal:</span>
+        <span>₹{{ "{:,.2f}".format(inv.subtotal) }}</span>
+    </div>
+    <div class="summary-row">
+        <span>Tax (GST):</span>
+        <span>₹{{ "{:,.2f}".format(inv.tax_amount) }}</span>
+    </div>
+    {% if inv.discount_amount > 0 %}
+    <div class="summary-row">
+        <span>Discount:</span>
+        <span>-₹{{ "{:,.2f}".format(inv.discount_amount) }}</span>
+    </div>
+    {% endif %}
+
+    <div class="divider"></div>
+
+    <div class="summary-row bold" style="font-size: 14px;">
+        <span>TOTAL:</span>
+        <span>₹{{ "{:,.2f}".format(inv.total_amount) }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    {% if inv.cash_tendered > 0 %}
+    <div class="summary-row">
+        <span>Cash Tendered:</span>
+        <span>₹{{ "{:,.2f}".format(inv.cash_tendered) }}</span>
+    </div>
+    <div class="summary-row bold">
+        <span>Change Returned:</span>
+        <span>₹{{ "{:,.2f}".format(inv.change_returned) }}</span>
+    </div>
+    {% endif %}
+
+    {% if inv.card_amount > 0 %}
+    <div class="summary-row">
+        <span>Paid by Card:</span>
+        <span>₹{{ "{:,.2f}".format(inv.card_amount) }}</span>
+    </div>
+    {% endif %}
+
+    {% if inv.upi_amount > 0 %}
+    <div class="summary-row">
+        <span>Paid by UPI:</span>
+        <span>₹{{ "{:,.2f}".format(inv.upi_amount) }}</span>
+    </div>
+    {% endif %}
+
+    <div class="divider"></div>
+    <div class="center" style="font-size: 10px; margin-top: 10px;">Thank You for Shopping with Us!</div>
+    <div class="center" style="font-size: 9px; color: #666;">Generated by TallySoft Offline POS</div>
+</div>
+
+</body>
+</html>
+

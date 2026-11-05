@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-master-screen-full">
+    <form method="POST" action="{{ form_action or '/masters/stock-items/create' }}" id="masterForm" onsubmit="event.preventDefault(); showAcceptModal();" style="display:flex; flex-direction:column; height:100%;">
+        <!-- Top Section: Name and Alias -->
+        <div style="padding: 12px 25px; border-bottom: 1px solid #b6cddc; background: #ffffff;">
+            <div class="tally-field-row">
+                <span class="tally-lbl">Name</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="name" class="tally-fld-input" required autofocus placeholder="e.g. Wireless Optical Mouse" value="{{ item.name if item else '' }}">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl">(alias)</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="alias" class="tally-fld-input">
+            </div>
+        </div>
+
+        <!-- Middle Section: Two Columns -->
+        <div style="flex: 1; display: flex; overflow-y: auto;">
+            <!-- Left Column: Under & Units -->
+            <div style="flex: 1; padding: 15px 25px; border-right: 1px solid #c8d9e6;">
+                <div class="tally-field-row">
+                    <span class="tally-lbl">Under</span>
+                    <span class="tally-colon">:</span>
+                    <select name="group_id" class="tally-fld-select">
+                        <option value="">♦ Primary</option>
+                    </select>
+                </div>
+                <div class="tally-field-row" style="margin-top: 10px;">
+                    <span class="tally-lbl">Units</span>
+                    <span class="tally-colon">:</span>
+                    <select name="unit_id" class="tally-fld-select" required>
+                        {% for u in units %}
+                        <option value="{{ u.id }}" {% if item and item.unit_id == u.id %}selected{% endif %}>
+                            ♦ {{ u.symbol }} ({{ u.formal_name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Right Column: Statutory & GST Details -->
+            <div style="flex: 1.2; padding: 15px 25px;">
+                <div class="tally-section-title">Statutory Details</div>
+
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">GST applicability</span>
+                    <span class="tally-colon">:</span>
+                    <select name="gst_applicable" class="tally-fld-select">
+                        <option value="applicable" selected>♦ Applicable</option>
+                        <option value="not_applicable">♦ Not Applicable</option>
+                    </select>
+                </div>
+
+                <div style="font-size: 11px; font-weight: bold; color: #4b6b82; margin: 12px 0 4px 0; text-transform: uppercase;">
+                    HSN/SAC &amp; Related Details
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">HSN/SAC Details</span>
+                    <span class="tally-colon">:</span>
+                    <select name="hsn_details_source" class="tally-fld-select">
+                        <option value="company">♦ As per Company/Stock Group</option>
+                        <option value="specify" selected>♦ Specify Details Here</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">HSN/SAC</span>
+                    <span class="tally-colon">:</span>
+                    <input type="text" name="hsn_sac" class="tally-fld-input" placeholder="e.g. 8471" value="{{ item.hsn_sac if item and item.hsn_sac else '' }}">
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">Description</span>
+                    <span class="tally-colon">:</span>
+                    <input type="text" name="description" class="tally-fld-input">
+                </div>
+
+                <div style="font-size: 11px; font-weight: bold; color: #4b6b82; margin: 12px 0 4px 0; text-transform: uppercase;">
+                    GST Rate &amp; Related Details
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">GST Rate Details</span>
+                    <span class="tally-colon">:</span>
+                    <select name="gst_rate_source" class="tally-fld-select">
+                        <option value="company">♦ As per Company/Stock Group</option>
+                        <option value="specify" selected>♦ Specify Details Here</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">Taxability Type</span>
+                    <span class="tally-colon">:</span>
+                    <select name="taxability_type" class="tally-fld-select">
+                        <option value="Taxable" selected>♦ Taxable</option>
+                        <option value="Exempt">♦ Exempt</option>
+                        <option value="Nil Rated">♦ Nil Rated</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 200px;">GST Rate</span>
+                    <span class="tally-colon">:</span>
+                    <select name="gst_rate" class="tally-fld-select">
+                        <option value="0" {% if item and item.gst_rate == 0 %}selected{% endif %}>0 %</option>
+                        <option value="5" {% if item and item.gst_rate == 5 %}selected{% endif %}>5 %</option>
+                        <option value="12" {% if item and item.gst_rate == 12 %}selected{% endif %}>12 %</option>
+                        <option value="18" {% if not item or item.gst_rate == 18 %}selected{% endif %}>18 %</option>
+                        <option value="28" {% if item and item.gst_rate == 28 %}selected{% endif %}>28 %</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar: Opening Balance (Quantity, Rate, per, Value) -->
+        <div class="tally-master-bottom-bar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="font-weight: 700; color: #092f3e;">Opening Balance :</span>
+                <span style="font-size: 11px; color:#475569;">Qty:</span>
+                <input type="number" step="any" min="0" name="opening_qty" id="op_qty" value="{{ item.opening_qty if item else '0' }}" class="tally-fld-input" style="width: 100px; text-align: right;" oninput="calcOpVal()">
+                <span style="font-size: 11px; color:#475569;">Rate:</span>
+                <input type="number" step="0.01" min="0" name="opening_rate" id="op_rate" value="{{ item.opening_rate if item else '0.00' }}" class="tally-fld-input" style="width: 100px; text-align: right;" oninput="calcOpVal()">
+                <span style="font-size: 11px; color:#475569;">Value (₹):</span>
+                <span id="op_val_disp" style="font-weight: bold; min-width: 80px; text-align: right;">₹{{ "%.2f"|format(item.opening_value) if item else "0.00" }}</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+                {% if item %}
+                <button type="button" class="tally-btn-cancel" style="background: #fee2e2; color: #dc2626; border-color: #fca5a5;" onclick="promptDeleteStockItem({{ item.id }}, '{{ item.name }}')">Delete (Alt+D)</button>
+                {% endif %}
+                <a href="/reports/stock-summary" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Yes or No</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="document.getElementById('masterForm').submit();"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal();"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function calcOpVal() {
+    let q = parseFloat(document.getElementById('op_qty').value) || 0;
+    let r = parseFloat(document.getElementById('op_rate').value) || 0;
+    document.getElementById('op_val_disp').innerText = '₹' + (q * r).toFixed(2);
+}
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+function openF12Modal() {
+    document.getElementById('f12StockModal').style.display = 'flex';
+}
+function closeF12Modal() {
+    document.getElementById('f12StockModal').style.display = 'none';
+}
+function promptDeleteStockItem(id, name) {
+    if (confirm(`Are you sure you want to permanently DELETE stock item "${name}"?\n(Only allowed if no transactions exist)`)) {
+        fetch(`/api/masters/stock-items/${id}/delete`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/reports/stock-summary';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('Network error: ' + err));
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+        const delBtn = document.querySelector('[onclick*="promptDeleteStockItem"]');
+        if (delBtn) {
+            e.preventDefault();
+            delBtn.click();
+            return;
+        }
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+        return;
+    }
+    if (e.key === 'F12') {
+        e.preventDefault();
+        openF12Modal();
+        return;
+    }
+    if (document.getElementById('f12StockModal') && document.getElementById('f12StockModal').style.display === 'flex' && e.key === 'Escape') {
+        e.preventDefault();
+        closeF12Modal();
+        return;
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('masterForm').submit();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+
+<!-- ================= F12: STOCK ITEM CONFIGURATION MODAL ================= -->
+<div id="f12StockModal" class="tally-modal-overlay" style="display:none;">
+    <div class="tally-modal-box" style="width: 480px;">
+        <div class="tally-modal-title">Configuration</div>
+        <div class="tally-modal-header-blue">
+            <span>Stock Item Configuration</span>
+            <span style="font-size:11px; cursor:pointer;" onclick="closeF12Modal()">Accept (Esc)</span>
+        </div>
+        <div style="padding: 15px; font-size: 13px; color: #1a3a50;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #e2e8f0; height: 32px;">
+                    <td>Provide Part Number?</td>
+                    <td style="text-align: right;"><select class="tally-select" style="width: 70px;"><option>No</option><option selected>Yes</option></select></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; height: 32px;">
+                    <td>Provide Description for Stock Items?</td>
+                    <td style="text-align: right;"><select class="tally-select" style="width: 70px;"><option selected>Yes</option><option>No</option></select></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; height: 32px;">
+                    <td>Provide Standard Buying and Selling Rates?</td>
+                    <td style="text-align: right;"><select class="tally-select" style="width: 70px;"><option selected>Yes</option><option>No</option></select></td>
+                </tr>
+                <tr style="height: 32px;">
+                    <td>Set Statutory Details (GST & HSN)?</td>
+                    <td style="text-align: right;"><select class="tally-select" style="width: 70px;"><option selected>Yes</option><option>No</option></select></td>
+                </tr>
+            </table>
+            <div style="margin-top: 15px; text-align: right;">
+                <button type="button" onclick="closeF12Modal()" class="inline-btn" style="background: #245882; color: #fff; padding: 4px 18px;">Accept (Ctrl+A)</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

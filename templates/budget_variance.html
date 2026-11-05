@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card">
+    <div class="tally-card-header">
+        <span>Budget vs. Actual Variance Report</span>
+        <a href="/budgets" class="tally-btn" style="padding: 4px 10px; text-decoration: none;">Back</a>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 4px; margin-bottom: 25px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h4 style="margin:0 0 5px 0; color:var(--tally-yellow);">{{ report.budget.name }}</h4>
+                <div style="font-size: 12px; color: var(--tally-muted);">Period: {{ report.budget.from_date }} to {{ report.budget.to_date }}</div>
+            </div>
+            <div style="display:flex; gap: 20px; text-align: right;">
+                <div>
+                    <div style="font-size: 11px; color: var(--tally-muted);">TOTAL BUDGET</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #fff;">₹{{ "{:,.2f}".format(report.total_budget) }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--tally-muted);">ACTUAL SPENT</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--tally-cyan);">₹{{ "{:,.2f}".format(report.total_actual) }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: var(--tally-muted);">VARIANCE</div>
+                    <div style="font-size: 18px; font-weight: 700; color: {% if report.net_variance >= 0 %}#2ecc71{% else %}#ff6b6b{% endif %};">
+                        ₹{{ "{:,.2f}".format(report.net_variance) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table class="tally-table">
+            <thead>
+                <tr>
+                    <th>Ledger Name</th>
+                    <th>Account Group</th>
+                    <th style="text-align: right; width: 140px;">Budget (₹)</th>
+                    <th style="text-align: right; width: 140px;">Actual (₹)</th>
+                    <th style="text-align: right; width: 140px;">Variance (₹)</th>
+                    <th style="text-align: right; width: 100px;">% Spent</th>
+                    <th style="width: 140px; text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if report.lines %}
+                    {% for l in report.lines %}
+                    <tr>
+                        <td><strong>{{ l.ledger_name }}</strong></td>
+                        <td>{{ l.group_name }}</td>
+                        <td style="text-align: right;">₹{{ "{:,.2f}".format(l.allocated_amount) }}</td>
+                        <td style="text-align: right; font-weight: 600;">₹{{ "{:,.2f}".format(l.actual_amount) }}</td>
+                        <td style="text-align: right; font-weight: 700; color: {% if l.variance >= 0 %}#2ecc71{% else %}#ff6b6b{% endif %};">
+                            ₹{{ "{:,.2f}".format(l.variance) }}
+                        </td>
+                        <td style="text-align: right;">{{ l.percentage_used }}%</td>
+                        <td style="text-align: center;">
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 3px; font-weight: 600; background: {% if not l.is_over_budget %}rgba(46, 204, 113, 0.2); color: #2ecc71;{% else %}rgba(255, 107, 107, 0.2); color: #ff6b6b;{% endif %}">
+                                {{ l.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

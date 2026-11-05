@@ -1,0 +1,1250 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="voucher-workspace" style="display:flex; flex-direction:column; height:calc(100vh - 75px); background:#fff;">
+    <!-- Top Ribbon matching authentic TallyPrime Accounting Voucher Creation -->
+    <div
+        style="background:#eaf1f6; border-bottom:1px solid #b3cddf; padding:5px 14px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span id="voucherTypeBadge"
+                style="background:#245882; color:#fff; font-weight:700; font-size:12.5px; padding:2px 8px; border-radius:2px;">{{
+                voucher_type }}</span>
+            <span style="font-weight:700; font-size:13px; color:#092f3e;">No. <span id="voucherNoDisplay">{{
+                    next_voucher_no }}</span></span>
+            <span
+                style="font-size:11px; background:#cbd5e1; color:#1e293b; padding:1px 6px; border-radius:2px; margin-left:6px;">
+                Mode: {{ 'Item Invoice' if mode == 'item_invoice' else ('Single Entry' if mode == 'single' else 'Double
+                Entry (Accounting Voucher Dr/Cr)') }}
+            </span>
+        </div>
+        <div style="font-weight:600; color:#092f3e; font-size:13px;">
+            {{ company.name if company else 'Demo Traders Pvt Ltd' }}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#1e293b;">
+            <span>Date:</span>
+            <input type="date" id="voucher_date" value="{{ today }}" class="tally-input-date"
+                style="font-weight:bold; padding:1px 4px;">
+            <span id="voucherDayDisplay" style="font-size:11.5px; font-weight:700; color:#245882; min-width:70px;">{{
+                today_day }}</span>
+        </div>
+    </div>
+
+    <!-- Voucher Navigation Tabs -->
+    <div class="vtype-switcher"
+        style="background:#f1f5f9; border-bottom:1px solid #cbd5e1; padding:3px 10px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+        <a href="/vouchers/create?type=Contra&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Contra' %}active{% endif %}">F4: Contra</a>
+        <a href="/vouchers/create?type=Payment&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Payment' %}active{% endif %}">F5: Payment</a>
+        <a href="/vouchers/create?type=Receipt&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Receipt' %}active{% endif %}">F6: Receipt</a>
+        <a href="/vouchers/create?type=Journal&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Journal' %}active{% endif %}">F7: Journal</a>
+        <a href="/vouchers/create?type=Sales&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Sales' %}active{% endif %}">F8: Sales</a>
+        <a href="/vouchers/create?type=Purchase&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Purchase' %}active{% endif %}">F9: Purchase</a>
+        <a href="/vouchers/create?type=Debit%20Note&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Debit Note' %}active{% endif %}">Alt+F5: Debit Note</a>
+        <a href="/vouchers/create?type=Credit%20Note&mode={{ mode }}"
+            class="vtab {% if voucher_type == 'Credit Note' %}active{% endif %}">Alt+F6: Credit Note</a>
+        <button type="button" onclick="openOtherVouchersModal()" class="inline-btn"
+            style="background: #245882; color: #fff; border: 1px solid #1a3e5c; padding:2px 8px; font-size:11.5px;">F10:
+            Other Vouchers</button>
+        <button type="button" onclick="openChangeModeModal()" class="inline-btn"
+            style="margin-left: auto; background: #245882; color: #fff; border: 1px solid #1a3e5c; padding:2px 8px; font-size:11.5px;">Ctrl+H:
+            Change Mode</button>
+        <button type="button" onclick="openF12VoucherModal()" class="inline-btn"
+            style="background: #eaf1f6; color: #092f3e; border: 1px solid #b3cddf; font-weight: bold; padding:2px 8px; font-size:11.5px;">F12:
+            Configure</button>
+    </div>
+
+    {% if voucher_type in ['Credit Note', 'Debit Note'] %}
+    <!-- Original Invoice Details Banner for Return Vouchers -->
+    <div
+        style="background: #eaf1f6; padding: 6px 14px; border-bottom: 1px solid #b3cddf; display: flex; gap: 20px; align-items: center; font-size: 12.5px;">
+        <div style="font-weight: bold; color: #092f3e;">Original Invoice Details:</div>
+        <div>
+            <label>Original Invoice No:</label>
+            <input type="text" id="original_invoice_no" class="tally-input" style="width: 140px; padding: 2px 6px;"
+                placeholder="e.g. SALES-0001">
+        </div>
+        <div>
+            <label>Original Invoice Date:</label>
+            <input type="date" id="original_invoice_date" class="tally-input-date" value="{{ today }}">
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Workspace Area -->
+    <div style="flex:1; display:flex; overflow:hidden;">
+        {% if mode == 'item_invoice' %}
+        <!-- ================= ITEM INVOICE MODE ================= -->
+        <div style="flex:1; overflow-y:auto; padding:12px 18px;">
+            <div class="party-section" style="margin-bottom:12px;">
+                <label class="field-label" style="font-weight:bold; color:#092f3e;">Party A/c Name:</label>
+                <select id="party_ledger_id" class="tally-select" required onchange="updatePartyInfo()"
+                    style="width:340px; font-weight:600;">
+                    <option value="">-- Select Party / Cash / Bank --</option>
+                    {% for l in ledgers %}
+                    <option value="{{ l.id }}" data-state="{{ l.state_code }}" data-bal="{{ l.current_balance }}"
+                        data-type="{{ l.current_balance_type }}">
+                        {{ l.name }} ({{ l.group_name }}) - ₹{{ l.current_balance }} {{ l.current_balance_type }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <span id="party_balance_badge" class="balance-tag"
+                    style="margin-left:8px; font-size:11.5px; color:#475569;"></span>
+                <a href="/masters/ledgers/create" class="inline-btn" style="margin-left:10px;">+ Create New (Alt+C)</a>
+            </div>
+
+            <table class="tally-table" id="itemsTable" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Name of Item</th>
+                        <th style="width: 12%;">Quantity</th>
+                        <th style="width: 15%;">Rate (₹)</th>
+                        <th style="width: 10%;">GST %</th>
+                        <th style="width: 18%;">Amount (₹)</th>
+                        <th style="width: 10%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    <tr class="item-row">
+                        <td>
+                            <select class="item-select tally-select" required onchange="calculateTotals()">
+                                <option value="">-- Select Stock Item --</option>
+                                {% for s in stock_items %}
+                                <option value="{{ s.id }}" data-rate="{{ s.opening_rate }}" data-gst="{{ s.gst_rate }}"
+                                    data-unit="{{ s.unit_symbol }}" data-qty="{{ s.closing_qty }}">
+                                    {{ s.name }} (Stock: {{ s.closing_qty }} {{ s.unit_symbol }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" step="any" min="0.01" class="item-qty tally-input" value="1" required
+                                oninput="calculateTotals()"></td>
+                        <td><input type="number" step="0.01" min="0" class="item-rate tally-input" value="0.0" required
+                                oninput="calculateTotals()"></td>
+                        <td><input type="number" step="0.01" class="item-gst tally-input" value="18.0" readonly></td>
+                        <td><span class="item-amount">0.00</span></td>
+                        <td><button type="button" class="del-row-btn" onclick="removeRow(this)">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="add-row-btn" onclick="addItemRow()" style="margin-top:6px;">+ Add Item
+                Line</button>
+
+            <div class="summary-section" style="margin-top:12px;">
+                <div class="summary-row"><span>Subtotal (Taxable):</span><strong id="subtotal_display">₹0.00</strong>
+                </div>
+                <div class="summary-row"><span>Total GST:</span><strong id="tax_display">₹0.00</strong></div>
+                <div class="summary-row"><span>Round Off:</span><strong id="roundoff_display">₹0.00</strong></div>
+                <div class="summary-row total-highlight"><span>Total Amount:</span><strong
+                        id="total_display">₹0.00</strong></div>
+            </div>
+
+            <div class="narration-box" style="margin-top:15px;">
+                <label class="field-label">Narration:</label>
+                <input type="text" id="narration" class="tally-input" placeholder="Being transaction recorded...">
+            </div>
+
+            <div class="voucher-actions" style="margin-top:15px; display:flex; gap:10px;">
+                <button type="button" class="tally-btn-save" onclick="showAcceptModal()">Accept (Ctrl+A /
+                    Enter)</button>
+                <a href="/" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </div>
+
+        {% elif mode == 'single' %}
+        <!-- ================= SINGLE ENTRY MODE ================= -->
+        <div style="flex:1; overflow-y:auto; padding:12px 18px;">
+            <div class="party-section"
+                style="background:#eaf2f8; padding:10px 14px; border:1px solid #b8d5e5; border-radius:4px; margin-bottom:12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <label class="field-label"
+                        style="min-width: 80px; font-weight: bold; color: #092f3e;">Account:</label>
+                    <select id="single_account_id" class="tally-select" required onchange="updateSingleAccountInfo()"
+                        style="max-width: 400px; font-weight: 600;">
+                        <option value="">-- Select Cash / Bank Account --</option>
+                        {% for l in cash_bank_ledgers %}
+                        <option value="{{ l.id }}" data-bal="{{ l.current_balance }}"
+                            data-type="{{ l.current_balance_type }}">
+                            {{ l.name }} ({{ l.group_name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <span id="single_acct_bal" class="balance-tag" style="font-size:11.5px; color:#475569;"></span>
+                </div>
+            </div>
+
+            <table class="tally-table" id="singleParticularsTable" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 60%;">Particulars</th>
+                        <th style="width: 30%;">Amount (₹)</th>
+                        <th style="width: 10%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="singleParticularsBody">
+                    <tr class="single-row">
+                        <td>
+                            <select class="single-ledger tally-select" required onchange="updateSingleRowBalance(this)"
+                                style="width:100%;">
+                                <option value="">-- Select Ledger --</option>
+                                {% for l in ledgers %}
+                                <option value="{{ l.id }}" data-bal="{{ l.current_balance }}"
+                                    data-type="{{ l.current_balance_type }}">
+                                    {{ l.name }} ({{ l.group_name }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <span class="row-cur-bal" style="font-size:11px; color:#5d6d7e;"></span>
+                        </td>
+                        <td><input type="number" step="0.01" min="0.01" class="single-amount tally-input"
+                                placeholder="0.00" required oninput="calculateSingleTotals()"></td>
+                        <td><button type="button" class="del-row-btn" onclick="removeSingleRow(this)">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="add-row-btn" onclick="addSingleRow()" style="margin-top:6px;">+ Add Particulars
+                Line</button>
+
+            <div class="summary-section" style="margin-top:12px;">
+                <div class="summary-row total-highlight"><span>Total Amount:</span><strong
+                        id="single_total_display">₹0.00</strong></div>
+            </div>
+
+            <div class="narration-box" style="margin-top:15px;">
+                <label class="field-label">Narration:</label>
+                <input type="text" id="narration" class="tally-input" placeholder="Being transaction recorded...">
+            </div>
+
+            <div class="voucher-actions" style="margin-top:15px; display:flex; gap:10px;">
+                <button type="button" class="tally-btn-save" onclick="showAcceptModal()">Accept (Ctrl+A /
+                    Enter)</button>
+                <a href="/" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- ================= AUTHENTIC ACCOUNTING VOUCHER CREATION (Dr/Cr) ================= -->
+        <!-- Matches Screenshots 2 & 5 with Right Flyout List of Ledger Accounts -->
+        <div class="voucher-main-pane"
+            style="flex:1; overflow-y:auto; padding:12px 18px; display:flex; flex-direction:column;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;" id="acctTable">
+                <thead>
+                    <tr style="border-bottom: 2px solid #94a3b8; height:28px; background:#f8fafc;">
+                        <th style="width: 8%; text-align: left; padding: 4px 6px;">
+                            <span id="colHeaderDrCr">Dr / Cr</span>
+                        </th>
+                        <th style="width: 56%; text-align: left; padding: 4px 6px;">Particulars</th>
+                        <th style="width: 18%; text-align: right; padding: 4px 6px;">Debit</th>
+                        <th style="width: 18%; text-align: right; padding: 4px 6px;">Credit</th>
+                    </tr>
+                </thead>
+                <tbody id="acctBody">
+                    <!-- Row 1: Pre-seeded Dr (or By) -->
+                    <tr class="acct-row" data-row-idx="0">
+                        <td style="vertical-align: top; padding: 4px 6px;">
+                            <span class="drcr-tag" onclick="toggleRowDrCr(this)"
+                                style="font-weight:700; color:#092f3e; cursor:pointer;"
+                                title="Click or press Space to toggle">Dr</span>
+                            <input type="hidden" class="acct-drcr-val" value="Dr">
+                        </td>
+                        <td style="vertical-align: top; padding: 4px 6px;">
+                            <input type="text" class="acct-particulars-input tally-input"
+                                placeholder="Type or select ledger..." autocomplete="off"
+                                onfocus="handleParticularsFocus(this)" oninput="handleParticularsInput(this)"
+                                onkeydown="handleParticularsKeydown(event, this)"
+                                style="width: 100%; font-weight:600; padding:3px 6px;">
+                            <input type="hidden" class="acct-ledger-id" value="">
+                            <div class="acct-cur-bal-text"
+                                style="display:none; font-size:11px; color:#475569; margin-top:2px;">
+                                Cur Bal: <span class="cur-bal-val">0.00</span>
+                            </div>
+                        </td>
+                        <td style="vertical-align: top; padding: 4px 6px; text-align: right;">
+                            <input type="number" step="0.01" min="0" class="acct-dr-input tally-input" value=""
+                                placeholder="0.00" onfocus="this.select(); this.classList.add('acct-active-field')"
+                                onblur="this.classList.remove('acct-active-field')"
+                                onkeydown="handleAmountKeydown(event, this, 'Dr')" oninput="calculateAcctTotals()"
+                                style="width: 100%; text-align: right; font-family: monospace; font-weight:600; padding:3px 6px;">
+                        </td>
+                        <td style="vertical-align: top; padding: 4px 6px; text-align: right;">
+                            <input type="number" step="0.01" min="0" class="acct-cr-input tally-input" value=""
+                                placeholder="" readonly onfocus="this.select(); this.classList.add('acct-active-field')"
+                                onblur="this.classList.remove('acct-active-field')"
+                                onkeydown="handleAmountKeydown(event, this, 'Cr')" oninput="calculateAcctTotals()"
+                                style="width: 100%; text-align: right; font-family: monospace; font-weight:600; padding:3px 6px; background:#f1f5f9;">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top:auto; padding-top:15px;">
+                <!-- Debit / Credit Totals & Difference -->
+                <div
+                    style="background:#f8fafc; border:1px solid #cbd5e1; padding:6px 14px; display:flex; justify-content:flex-end; gap:30px; font-size:13px; font-weight:bold; margin-bottom:12px;">
+                    <div>Total Debit: <span id="total_dr_display"
+                            style="font-family: monospace; color:#0f766e;">₹0.00</span></div>
+                    <div>Total Credit: <span id="total_cr_display"
+                            style="font-family: monospace; color:#0369a1;">₹0.00</span></div>
+                    <div id="diffWrapper" style="display:none; color:#dc2626;">Diff: <span id="diff_display"
+                            style="font-family: monospace;">₹0.00</span></div>
+                </div>
+
+                <!-- Narration Box -->
+                <div class="narration-box" style="margin-bottom:12px; display:flex; align-items:center; gap:10px;">
+                    <label class="field-label"
+                        style="min-width:70px; font-weight:bold; color:#092f3e;">Narration:</label>
+                    <input type="text" id="narration" class="tally-input" placeholder="Being transaction recorded..."
+                        onkeydown="handleNarrationKeydown(event)" style="flex:1; padding:4px 8px;">
+                </div>
+
+                <div class="voucher-actions" style="display:flex; justify-content:space-between; align-items:center;">
+                    <button type="button" class="tally-btn-save" onclick="showAcceptModal()"
+                        style="background:#245882; color:#fff; padding:6px 20px; font-weight:bold; cursor:pointer;">
+                        Accept (Ctrl+A / Enter)
+                    </button>
+                    <a href="/" class="tally-btn-cancel"
+                        style="color:#64748b; font-size:12px; text-decoration:none;">Quit (Esc)</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT FLYOUT DRAWER: LIST OF LEDGER ACCOUNTS ================= -->
+        <!-- Exact match with Screenshot 2: List of Ledger Accounts with Create, Show More, and Alphabetical items -->
+        <aside class="ledger-flyout-drawer" id="ledgerFlyoutDrawer">
+            <div class="ledger-flyout-header">
+                List of Ledger Accounts
+            </div>
+            <div class="flyout-action-item" onclick="openCreateLedgerDirect()"
+                title="Press Alt+C to create a new ledger">
+                Create <span style="font-size:11px; color:#475569; float:right;">(Alt+C)</span>
+            </div>
+            <div class="flyout-action-item" onclick="toggleShowAllLedgers()">
+                Show More
+            </div>
+            <div class="flyout-divider"></div>
+            <div class="flyout-ledger-list" id="flyoutLedgerList">
+                {% for l in ledgers %}
+                <div class="flyout-ledger-item {% if loop.first %}selected{% endif %}" data-id="{{ l.id }}"
+                    data-name="{{ l.name }}" data-bal="{{ l.current_balance }}" data-type="{{ l.current_balance_type }}"
+                    onclick="selectFlyoutLedger(this)">
+                    <span>{{ l.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </aside>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ================= AUTHENTIC TALLY "ACCEPT ? YES OR NO" MODAL ================= -->
+<div id="acceptModal" class="tally-modal-overlay" style="display:none; z-index:9999;">
+    <div class="tally-dialog"
+        style="background:#fff; border:2px solid #245882; width:280px; box-shadow:0 8px 30px rgba(0,0,0,0.35);">
+        <div
+            style="background:#245882; color:#fff; padding:6px 12px; font-weight:700; font-size:13px; text-align:center;">
+            Accept ?
+        </div>
+        <div style="padding:16px; font-size:14px; font-weight:bold; color:#092f3e; text-align:center;">
+            Yes or No
+        </div>
+        <div style="padding:8px 14px; background:#eaf1f6; display:flex; justify-content:center; gap:14px;">
+            <button class="inline-btn" id="btnYes" onclick="submitVoucherData()"
+                style="background:#245882; color:#fff; padding:4px 16px; font-weight:bold;"><u>Y</u>es</button>
+            <button class="inline-btn" onclick="hideAcceptModal()"
+                style="background:#fff; color:#092f3e; padding:4px 16px;"><u>N</u>o (Esc)</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= F12 VOUCHER CONFIGURATION MODAL ================= -->
+<!-- Exact 2-column modal matching authentic Tally Prime Voucher Configuration -->
+<div id="f12VoucherConfigModal" class="tally-modal-overlay" style="display:none; z-index:9999;"
+    onclick="if(event.target===this) closeF12VoucherModal()">
+    <div class="tally-modal-box"
+        style="width: 760px; max-width: 95vw; background:#ffffff; border: 1.5px solid #94a3b8; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 92vh; display: flex; flex-direction: column; border-radius: 2px;">
+        <div style="padding: 12px 20px 8px 20px; font-weight: 700; font-size: 13.5px; color: #1e293b;">
+            Configuration
+        </div>
+        <div style="border-top: 1px solid #cbd5e1; margin: 0 20px;"></div>
+
+        <div style="padding: 6px 20px 6px 20px;">
+            <div class="tally-toggle-row" id="row_vcfg_show_more" data-key="show_more" tabindex="0"
+                onclick="toggleVoucherConfigRow(this)">
+                <span class="toggle-label" style="font-weight: 600; color: #1e293b;">Show more configurations</span>
+                <span class="toggle-colon">:</span>
+                <span class="toggle-val" id="vcfg_val_show_more">Yes</span>
+            </div>
+        </div>
+        <div style="border-top: 1px solid #cbd5e1; margin: 0 20px 8px 20px;"></div>
+
+        <div style="padding: 0 20px 14px 20px; font-size: 12px; color: #1e293b; overflow-y: auto; flex: 1;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 0;">
+                <!-- Column 1: General Details -->
+                <div style="border-right: 1px solid #cbd5e1; padding-right: 18px;">
+                    <div style="font-weight: 700; font-size: 12px; color: #092f3e; margin-bottom: 6px;">General Details
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_use_dr_cr" data-key="use_dr_cr"
+                        tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Use Cr/Dr instead of To/By during voucher entry</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_use_dr_cr">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_provide_supplier_ref"
+                        data-key="provide_supplier_ref" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Provide Supplier Inv/Ref No. and Date</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_provide_supplier_ref">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_warn_negative_cash"
+                        data-key="warn_negative_cash" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Warn on negative Cash Balance</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_warn_negative_cash">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_preallocate_bills"
+                        data-key="preallocate_bills" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Preallocate bills for Payment/Receipt/Journal Vouchers</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_preallocate_bills">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_show_list_of_bills"
+                        data-key="show_list_of_bills" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show list of Bills for selection</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_list_of_bills">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row tally-toggle-sub vcfg-tier-more"
+                        id="row_vcfg_show_final_balances_bills" data-key="show_final_balances_bills" tabindex="0"
+                        onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Final Balances for each Bill</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_final_balances_bills">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_skip_date_field"
+                        data-key="skip_date_field" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Skip the Date field during voucher creation</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_skip_date_field">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_show_inventory_details"
+                        data-key="show_inventory_details" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Inventory details</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_inventory_details">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_show_current_balance"
+                        data-key="show_current_balance" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Current Balance of Ledgers</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_current_balance">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row tally-toggle-sub vcfg-tier-more"
+                        id="row_vcfg_show_balances_on_voucher_date" data-key="show_balances_on_voucher_date"
+                        tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Balances as on Voucher date</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_balances_on_voucher_date">No</span>
+                    </div>
+                    <div class="tally-toggle-row tally-toggle-sub vcfg-tier-more"
+                        id="row_vcfg_show_final_ledger_balance" data-key="show_final_ledger_balance" tabindex="0"
+                        onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show final Ledger Balance</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_final_ledger_balance">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_show_bill_wise_details"
+                        data-key="show_bill_wise_details" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Bill-wise Details</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_bill_wise_details">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row tally-toggle-sub vcfg-tier-more"
+                        id="row_vcfg_show_bill_wise_multiple_lines" data-key="show_bill_wise_multiple_lines"
+                        tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Bill-wise details in multiple lines</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_show_bill_wise_multiple_lines">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_warn_voucher_no_16"
+                        data-key="warn_voucher_no_16" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Warn when Voucher No. exceeds 16 characters</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_warn_voucher_no_16">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_enable_stripe_view"
+                        data-key="enable_stripe_view" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Enable Stripe View</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_enable_stripe_view">No</span>
+                    </div>
+                </div>
+
+                <!-- Column 2: Bank Details & Payment Gateway Details -->
+                <div style="padding-left: 18px;">
+                    <div style="font-weight: 700; font-size: 12px; color: #092f3e; margin-bottom: 6px;">Bank Details
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_bank_default_allocations"
+                        data-key="bank_default_allocations" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Use default Bank Allocations</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_default_allocations">No</span>
+                    </div>
+                    <div class="tally-toggle-row tally-toggle-sub vcfg-tier-core" id="row_vcfg_bank_auto_cheque_num"
+                        data-key="bank_auto_cheque_num" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Use Auto Cheque Numbering</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_auto_cheque_num">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row tally-toggle-sub vcfg-tier-more" id="row_vcfg_bank_select_cheque_range"
+                        data-key="bank_select_cheque_range" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Select Cheque Range</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_select_cheque_range">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_bank_show_allocation_details"
+                        data-key="bank_show_allocation_details" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Bank Allocation details</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_show_allocation_details">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_bank_remove_recon_link"
+                        data-key="bank_remove_recon_link" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Remove Bank Date/Recon Link while altering Reconciled Vouchers</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_remove_recon_link">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_bank_print_cheque"
+                        data-key="bank_print_cheque" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Print Cheque after saving Voucher</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_print_cheque">Yes</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-core" id="row_vcfg_bank_show_cheque_before_print"
+                        data-key="bank_show_cheque_before_print" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Cheque details before printing</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_bank_show_cheque_before_print">Yes</span>
+                    </div>
+
+                    <div
+                        style="margin-top: 12px; font-weight: 700; font-size: 12px; color: #092f3e; margin-bottom: 6px;">
+                        Payment Gateway Details</div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_pg_default_allocations"
+                        data-key="pg_default_allocations" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Use default Transaction Allocations</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_pg_default_allocations">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_pg_show_allocation_details"
+                        data-key="pg_show_allocation_details" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Show Transaction Allocation details</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_pg_show_allocation_details">No</span>
+                    </div>
+                    <div class="tally-toggle-row vcfg-tier-more" id="row_vcfg_pg_remove_date_recon"
+                        data-key="pg_remove_date_recon" tabindex="0" onclick="toggleVoucherConfigRow(this)">
+                        <span class="toggle-label">Remove Transaction Date while altering Reconciled voucher</span>
+                        <span class="toggle-colon">:</span>
+                        <span class="toggle-val" id="vcfg_val_pg_remove_date_recon">No</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentActiveParticularsInput = null;
+    let useDrCr = true; // true = Dr/Cr, false = By/To
+
+    // Apply user's Dr/Cr vs By/To preference
+    function applyDrCrPreference(val) {
+        useDrCr = (val === 'Yes');
+        const header = document.getElementById('colHeaderDrCr');
+        if (header) header.innerText = useDrCr ? 'Dr/Cr' : 'By/To';
+
+        document.querySelectorAll('.acct-row').forEach(row => {
+            const valEl = row.querySelector('.acct-drcr-val');
+            const tagEl = row.querySelector('.drcr-tag');
+            if (valEl && tagEl) {
+                if (useDrCr) {
+                    tagEl.innerText = valEl.value;
+                } else {
+                    tagEl.innerText = valEl.value === 'Dr' ? 'By' : 'To';
+                }
+            }
+        });
+    }
+
+    function toggleRowDrCr(tagEl) {
+        const row = tagEl.closest('.acct-row');
+        const valEl = row.querySelector('.acct-drcr-val');
+        const drInput = row.querySelector('.acct-dr-input');
+        const crInput = row.querySelector('.acct-cr-input');
+
+        if (valEl.value === 'Dr') {
+            valEl.value = 'Cr';
+            tagEl.innerText = useDrCr ? 'Cr' : 'To';
+            drInput.readOnly = true;
+            drInput.style.background = '#f1f5f9';
+            crInput.readOnly = false;
+            crInput.style.background = '#fff';
+            if (parseFloat(drInput.value) > 0) {
+                crInput.value = drInput.value;
+                drInput.value = '';
+            }
+        } else {
+            valEl.value = 'Dr';
+            tagEl.innerText = useDrCr ? 'Dr' : 'By';
+            drInput.readOnly = false;
+            drInput.style.background = '#fff';
+            crInput.readOnly = true;
+            crInput.style.background = '#f1f5f9';
+            if (parseFloat(crInput.value) > 0) {
+                drInput.value = crInput.value;
+                crInput.value = '';
+            }
+        }
+        calculateAcctTotals();
+    }
+
+    // --- Right Flyout Drawer Navigation & Filter ---
+    function handleParticularsFocus(input) {
+        currentActiveParticularsInput = input;
+        input.classList.add('acct-active-field');
+        const drawer = document.getElementById('ledgerFlyoutDrawer');
+        if (drawer) drawer.style.opacity = '1';
+        filterFlyoutList(input.value);
+    }
+
+    function handleParticularsInput(input) {
+        filterFlyoutList(input.value);
+    }
+
+    function filterFlyoutList(query) {
+        const items = document.querySelectorAll('.flyout-ledger-item');
+        const q = (query || '').toLowerCase().trim();
+        let firstMatch = null;
+        items.forEach(it => {
+            const name = (it.getAttribute('data-name') || '').toLowerCase();
+            if (!q || name.includes(q)) {
+                it.style.display = 'block';
+                if (!firstMatch) firstMatch = it;
+            } else {
+                it.style.display = 'none';
+            }
+            it.classList.remove('selected');
+        });
+        if (firstMatch) {
+            firstMatch.classList.add('selected');
+        }
+    }
+
+    function handleParticularsKeydown(e, input) {
+        const visibleItems = Array.from(document.querySelectorAll('.flyout-ledger-item')).filter(el => el.style.display !== 'none');
+        if (!visibleItems.length) return;
+
+        let selectedIdx = visibleItems.findIndex(el => el.classList.contains('selected'));
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (selectedIdx < visibleItems.length - 1) {
+                visibleItems.forEach(el => el.classList.remove('selected'));
+                visibleItems[selectedIdx + 1].classList.add('selected');
+                visibleItems[selectedIdx + 1].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (selectedIdx > 0) {
+                visibleItems.forEach(el => el.classList.remove('selected'));
+                visibleItems[selectedIdx - 1].classList.add('selected');
+                visibleItems[selectedIdx - 1].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const activeItem = visibleItems[selectedIdx > -1 ? selectedIdx : 0];
+            if (activeItem) {
+                selectFlyoutLedger(activeItem);
+            }
+        }
+    }
+
+    function selectFlyoutLedger(item) {
+        if (!currentActiveParticularsInput) return;
+        const row = currentActiveParticularsInput.closest('.acct-row');
+        const id = item.getAttribute('data-id');
+        const name = item.getAttribute('data-name');
+        const bal = item.getAttribute('data-bal');
+        const type = item.getAttribute('data-type');
+
+        currentActiveParticularsInput.value = name;
+        currentActiveParticularsInput.classList.remove('acct-active-field');
+        row.querySelector('.acct-ledger-id').value = id;
+
+        const curBalBox = row.querySelector('.acct-cur-bal-text');
+        if (curBalBox) {
+            curBalBox.style.display = 'block';
+            curBalBox.querySelector('.cur-bal-val').innerText = `₹${bal} ${type}`;
+        }
+
+        // Move focus directly to amount input with authentic yellow highlight
+        const drcr = row.querySelector('.acct-drcr-val').value;
+        const amtInput = drcr === 'Dr' ? row.querySelector('.acct-dr-input') : row.querySelector('.acct-cr-input');
+        if (amtInput) {
+            amtInput.focus();
+            amtInput.select();
+        }
+    }
+
+    function openCreateLedgerDirect() {
+        window.open('/masters/ledgers/create', '_blank');
+    }
+
+    function toggleShowAllLedgers() {
+        filterFlyoutList('');
+    }
+
+    function handleAmountKeydown(e, input, type) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            calculateAcctTotals();
+            const row = input.closest('.acct-row');
+            const rows = Array.from(document.querySelectorAll('.acct-row'));
+            const isLastRow = (rows.indexOf(row) === rows.length - 1);
+
+            const totDr = parseFloat(document.getElementById('total_dr_display').innerText.replace(/[₹,]/g, '')) || 0;
+            const totCr = parseFloat(document.getElementById('total_cr_display').innerText.replace(/[₹,]/g, '')) || 0;
+            const diff = Math.abs(totDr - totCr);
+
+            if (diff > 0.01 && isLastRow) {
+                // Automatically add balancing contra row!
+                addNewBalancingRow(totDr > totCr ? 'Cr' : 'Dr', diff);
+            } else if (diff <= 0.01 && rows.length >= 2) {
+                // Balanced! Jump directly to narration
+                document.getElementById('narration').focus();
+            } else if (!isLastRow) {
+                const nextRow = rows[rows.indexOf(row) + 1];
+                nextRow.querySelector('.acct-particulars-input').focus();
+            }
+        }
+    }
+
+    function addNewBalancingRow(drcr, amount) {
+        const tbody = document.getElementById('acctBody');
+        const idx = document.querySelectorAll('.acct-row').length;
+        const tr = document.createElement('tr');
+        tr.className = 'acct-row';
+        tr.setAttribute('data-row-idx', idx);
+
+        const tagText = useDrCr ? drcr : (drcr === 'Dr' ? 'By' : 'To');
+        const drReadonly = drcr === 'Cr' ? 'readonly' : '';
+        const crReadonly = drcr === 'Dr' ? 'readonly' : '';
+        const drBg = drcr === 'Cr' ? '#f1f5f9' : '#fff';
+        const crBg = drcr === 'Dr' ? '#f1f5f9' : '#fff';
+        const drVal = drcr === 'Dr' ? amount.toFixed(2) : '';
+        const crVal = drcr === 'Cr' ? amount.toFixed(2) : '';
+
+        tr.innerHTML = `
+        <td style="vertical-align: top; padding: 4px 6px;">
+            <span class="drcr-tag" onclick="toggleRowDrCr(this)" style="font-weight:700; color:#092f3e; cursor:pointer;">${tagText}</span>
+            <input type="hidden" class="acct-drcr-val" value="${drcr}">
+        </td>
+        <td style="vertical-align: top; padding: 4px 6px;">
+            <input type="text" class="acct-particulars-input tally-input" 
+                   placeholder="Type or select ledger..." 
+                   autocomplete="off"
+                   onfocus="handleParticularsFocus(this)" 
+                   oninput="handleParticularsInput(this)" 
+                   onkeydown="handleParticularsKeydown(event, this)"
+                   style="width: 100%; font-weight:600; padding:3px 6px;">
+            <input type="hidden" class="acct-ledger-id" value="">
+            <div class="acct-cur-bal-text" style="display:none; font-size:11px; color:#475569; margin-top:2px;">
+                Cur Bal: <span class="cur-bal-val">0.00</span>
+            </div>
+        </td>
+        <td style="vertical-align: top; padding: 4px 6px; text-align: right;">
+            <input type="number" step="0.01" min="0" class="acct-dr-input tally-input" 
+                   value="${drVal}" placeholder="${drReadonly ? '' : '0.00'}" ${drReadonly}
+                   onfocus="this.select(); this.classList.add('acct-active-field')"
+                   onblur="this.classList.remove('acct-active-field')"
+                   onkeydown="handleAmountKeydown(event, this, 'Dr')"
+                   oninput="calculateAcctTotals()"
+                   style="width: 100%; text-align: right; font-family: monospace; font-weight:600; padding:3px 6px; background:${drBg};">
+        </td>
+        <td style="vertical-align: top; padding: 4px 6px; text-align: right;">
+            <input type="number" step="0.01" min="0" class="acct-cr-input tally-input" 
+                   value="${crVal}" placeholder="${crReadonly ? '' : '0.00'}" ${crReadonly}
+                   onfocus="this.select(); this.classList.add('acct-active-field')"
+                   onblur="this.classList.remove('acct-active-field')"
+                   onkeydown="handleAmountKeydown(event, this, 'Cr')"
+                   oninput="calculateAcctTotals()"
+                   style="width: 100%; text-align: right; font-family: monospace; font-weight:600; padding:3px 6px; background:${crBg};">
+        </td>
+    `;
+        tbody.appendChild(tr);
+
+        const newPartInput = tr.querySelector('.acct-particulars-input');
+        newPartInput.focus();
+        calculateAcctTotals();
+    }
+
+    function calculateAcctTotals() {
+        let totDr = 0.0;
+        let totCr = 0.0;
+        document.querySelectorAll('.acct-dr-input').forEach(el => totDr += parseFloat(el.value) || 0);
+        document.querySelectorAll('.acct-cr-input').forEach(el => totCr += parseFloat(el.value) || 0);
+
+        const dDr = document.getElementById('total_dr_display');
+        const dCr = document.getElementById('total_cr_display');
+        const diffWrap = document.getElementById('diffWrapper');
+        const dDiff = document.getElementById('diff_display');
+
+        if (dDr) dDr.innerText = '₹' + totDr.toFixed(2);
+        if (dCr) dCr.innerText = '₹' + totCr.toFixed(2);
+
+        const diff = Math.abs(totDr - totCr);
+        if (diff > 0.01) {
+            if (diffWrap) diffWrap.style.display = 'block';
+            if (dDiff) dDiff.innerText = '₹' + diff.toFixed(2);
+        } else {
+            if (diffWrap) diffWrap.style.display = 'none';
+        }
+    }
+
+    function handleNarrationKeydown(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            showAcceptModal();
+        }
+    }
+
+    // --- F12 Configuration Modal Controller ---
+    function setVoucherConfigValue(row, val) {
+        if (!row) return;
+        const key = row.dataset.key;
+        const valSpan = row.querySelector('.toggle-val');
+        if (valSpan) valSpan.textContent = val;
+
+        if (key === 'show_more') {
+            updateVoucherConfigVisibility();
+        } else if (key === 'use_dr_cr') {
+            applyDrCrPreference(val);
+        } else if (key === 'show_current_balance') {
+            applyShowCurBal(val);
+        }
+    }
+
+    function toggleVoucherConfigRow(row) {
+        if (!row || row.classList.contains('disabled')) return;
+        const valSpan = row.querySelector('.toggle-val');
+        const cur = valSpan ? valSpan.textContent.trim() : 'No';
+        const next = (cur === 'Yes') ? 'No' : 'Yes';
+        setVoucherConfigValue(row, next);
+        row.focus();
+    }
+
+    function updateVoucherConfigVisibility() {
+        const moreSpan = document.getElementById('vcfg_val_show_more');
+        const showMore = moreSpan ? (moreSpan.textContent.trim() === 'Yes') : true;
+
+        const moreRows = document.querySelectorAll('#f12VoucherConfigModal .vcfg-tier-more');
+        moreRows.forEach(r => {
+            r.style.display = showMore ? 'flex' : 'none';
+        });
+    }
+
+    function applyShowCurBal(val) {
+        const show = (val === 'Yes');
+        document.querySelectorAll('.cur-bal-line').forEach(el => {
+            el.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    function openF12VoucherModal() {
+        fetch('/api/voucher/config')
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.config) {
+                    for (let [k, v] of Object.entries(d.config)) {
+                        const row = document.getElementById('row_vcfg_' + k);
+                        if (row) {
+                            const valSpan = row.querySelector('.toggle-val');
+                            if (valSpan) valSpan.textContent = v;
+                        }
+                    }
+                    if (d.config.use_dr_cr) applyDrCrPreference(d.config.use_dr_cr);
+                    if (d.config.show_current_balance) applyShowCurBal(d.config.show_current_balance);
+                }
+                updateVoucherConfigVisibility();
+            })
+            .catch(() => {
+                updateVoucherConfigVisibility();
+            });
+        const modal = document.getElementById('f12VoucherConfigModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            const vtypeBadge = document.getElementById('voucherTypeBadge');
+            if (vtypeBadge) {
+                if (!vtypeBadge.dataset.origText) vtypeBadge.dataset.origText = vtypeBadge.textContent;
+                vtypeBadge.textContent = 'Voucher Configuration';
+            }
+            setTimeout(() => {
+                const first = document.getElementById('row_vcfg_use_dr_cr') || document.getElementById('row_vcfg_show_more');
+                if (first) first.focus();
+            }, 60);
+        }
+    }
+
+    function closeF12VoucherModal() {
+        const modal = document.getElementById('f12VoucherConfigModal');
+        if (modal) modal.style.display = 'none';
+        const vtypeBadge = document.getElementById('voucherTypeBadge');
+        if (vtypeBadge && vtypeBadge.dataset.origText) {
+            vtypeBadge.textContent = vtypeBadge.dataset.origText;
+        }
+    }
+
+    function openF12Modal() {
+        openF12VoucherModal();
+    }
+    window.openF12Modal = openF12VoucherModal;
+    window.openF12VoucherModal = openF12VoucherModal;
+    window.triggerF12Action = openF12VoucherModal;
+
+    function saveF12VoucherConfig() {
+        const cfg = {};
+        const rows = document.querySelectorAll('#f12VoucherConfigModal .tally-toggle-row');
+        rows.forEach(r => {
+            const key = r.dataset.key;
+            const valSpan = r.querySelector('.toggle-val');
+            if (key && valSpan) {
+                cfg[key] = valSpan.textContent.trim();
+            }
+        });
+
+        fetch('/api/voucher/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cfg)
+        })
+            .then(r => r.json())
+            .then(() => {
+                if (cfg.use_dr_cr) applyDrCrPreference(cfg.use_dr_cr);
+                if (cfg.show_current_balance) applyShowCurBal(cfg.show_current_balance);
+                closeF12VoucherModal();
+            })
+            .catch(() => closeF12VoucherModal());
+    }
+
+    function handleF12VoucherModalKeyboard(e) {
+        const modal = document.getElementById('f12VoucherConfigModal');
+        if (!modal || modal.style.display === 'none') return false;
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            closeF12VoucherModal();
+            return true;
+        }
+
+        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveF12VoucherConfig();
+            return true;
+        }
+
+        const visibleRows = Array.from(modal.querySelectorAll('.tally-toggle-row')).filter(r => {
+            return r.offsetParent !== null && !r.classList.contains('disabled');
+        });
+        if (!visibleRows.length) return false;
+
+        let idx = visibleRows.indexOf(document.activeElement);
+        if (idx === -1) {
+            const parent = document.activeElement ? document.activeElement.closest('.tally-toggle-row') : null;
+            idx = parent ? visibleRows.indexOf(parent) : 0;
+        }
+        if (idx < 0) idx = 0;
+        const currentRow = visibleRows[idx];
+
+        if (e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            e.stopPropagation();
+            setVoucherConfigValue(currentRow, 'Yes');
+            const next = Math.min(visibleRows.length - 1, idx + 1);
+            visibleRows[next].focus();
+            return true;
+        }
+
+        if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            e.stopPropagation();
+            setVoucherConfigValue(currentRow, 'No');
+            const next = Math.min(visibleRows.length - 1, idx + 1);
+            visibleRows[next].focus();
+            return true;
+        }
+
+        if (e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleVoucherConfigRow(currentRow);
+            return true;
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (idx === visibleRows.length - 1) {
+                saveF12VoucherConfig();
+            } else {
+                visibleRows[idx + 1].focus();
+            }
+            return true;
+        }
+
+        if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            visibleRows[(idx + 1) % visibleRows.length].focus();
+            return true;
+        }
+
+        if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            visibleRows[(idx - 1 + visibleRows.length) % visibleRows.length].focus();
+            return true;
+        }
+
+        return true;
+    }
+
+    // Global F12 key redirection on Voucher Entry screen
+    function triggerF12Action() {
+        openF12VoucherModal();
+    }
+
+    // --- Tally Accept Confirmation Modal ---
+    function showAcceptModal() {
+        document.getElementById('acceptModal').style.display = 'flex';
+        document.getElementById('btnYes').focus();
+    }
+
+    function hideAcceptModal() {
+        document.getElementById('acceptModal').style.display = 'none';
+    }
+
+    function submitVoucherData() {
+        const vType = "{{ voucher_type }}";
+        const vDate = document.getElementById('voucher_date').value;
+        const narration = document.getElementById('narration').value;
+        const mode = "{{ mode }}";
+
+        let payload = {
+            voucher_type: vType,
+            voucher_date: vDate,
+            narration: narration
+        };
+
+        if (mode === 'item_invoice') {
+            const partyId = document.getElementById('party_ledger_id').value;
+            payload.party_ledger_id = partyId;
+            let items = [];
+            document.querySelectorAll('.item-row').forEach(r => {
+                const sel = r.querySelector('.item-select');
+                if (sel.value) {
+                    items.push({
+                        stock_item_id: parseInt(sel.value),
+                        quantity: parseFloat(r.querySelector('.item-qty').value),
+                        rate: parseFloat(r.querySelector('.item-rate').value),
+                        gst_rate: parseFloat(r.querySelector('.item-gst').value),
+                        unit_id: 1
+                    });
+                }
+            });
+            if (items.length === 0) {
+                alert("Please select at least one stock item.");
+                hideAcceptModal();
+                return;
+            }
+            payload.items = items;
+        } else if (mode === 'single') {
+            const acctId = document.getElementById('single_account_id').value;
+            if (!acctId) {
+                alert("Please select the primary Cash/Bank Account.");
+                hideAcceptModal();
+                return;
+            }
+            let postings = [];
+            let totalAmt = 0;
+            document.querySelectorAll('.single-row').forEach(r => {
+                const lid = r.querySelector('.single-ledger').value;
+                const amt = parseFloat(r.querySelector('.single-amount').value) || 0;
+                if (lid && amt > 0) {
+                    totalAmt += amt;
+                    postings.push({
+                        ledger_id: parseInt(lid),
+                        entry_type: vType === 'Payment' ? 'Dr' : 'Cr',
+                        amount: amt
+                    });
+                }
+            });
+            if (postings.length === 0) {
+                alert("Please provide at least one particulars line with amount.");
+                hideAcceptModal();
+                return;
+            }
+            postings.push({
+                ledger_id: parseInt(acctId),
+                entry_type: vType === 'Payment' ? 'Cr' : 'Dr',
+                amount: totalAmt
+            });
+            payload.postings = postings;
+        } else {
+            // Double Entry / Authentic Accounting Voucher Mode
+            let postings = [];
+            let primaryPartyId = null;
+            document.querySelectorAll('.acct-row').forEach(r => {
+                const drcr = r.querySelector('.acct-drcr-val').value;
+                const lid = r.querySelector('.acct-ledger-id').value;
+                const amt = drcr === 'Dr'
+                    ? (parseFloat(r.querySelector('.acct-dr-input').value) || 0)
+                    : (parseFloat(r.querySelector('.acct-cr-input').value) || 0);
+                if (lid && amt > 0) {
+                    if (!primaryPartyId) primaryPartyId = parseInt(lid);
+                    postings.push({
+                        ledger_id: parseInt(lid),
+                        entry_type: drcr,
+                        amount: amt
+                    });
+                }
+            });
+
+            if (postings.length < 2) {
+                alert("At least two balancing accounting entries are required.");
+                hideAcceptModal();
+                return;
+            }
+
+            const totalDr = postings.filter(p => p.entry_type === 'Dr').reduce((s, p) => s + p.amount, 0);
+            const totalCr = postings.filter(p => p.entry_type === 'Cr').reduce((s, p) => s + p.amount, 0);
+            if (Math.abs(totalDr - totalCr) > 0.01) {
+                alert(`Double-entry mismatch! Total Debit (₹${totalDr.toFixed(2)}) must equal Total Credit (₹${totalCr.toFixed(2)}).`);
+                hideAcceptModal();
+                return;
+            }
+
+            payload.postings = postings;
+            payload.party_ledger_id = primaryPartyId;
+        }
+
+        fetch('/api/vouchers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    hideAcceptModal();
+                    // Automatically advance voucher number and refresh form for next entry!
+                    const noEl = document.getElementById('voucherNoDisplay');
+                    if (noEl) {
+                        const currentNo = parseInt(noEl.innerText) || 1;
+                        noEl.innerText = currentNo + 1;
+                    }
+                    // Reset table to fresh first row
+                    const tbody = document.getElementById('acctBody');
+                    if (tbody) {
+                        tbody.innerHTML = `
+                    <tr class="acct-row" data-row-idx="0">
+                        <td style="vertical-align: top; padding: 4px 6px;">
+                            <span class="drcr-tag" onclick="toggleRowDrCr(this)" style="font-weight:700; color:#092f3e; cursor:pointer;">${useDrCr ? 'Dr' : 'By'}</span>
+                            <input type="hidden" class="acct-drcr-val" value="Dr">
+                        </td>
+                        <td style="vertical-align: top; padding: 4px 6px;">
+                            <input type="text" class="acct-particulars-input tally-input" 
+                                   placeholder="Type or select ledger..." 
+                                   autocomplete="off"
+                                   onfocus="handleParticularsFocus(this)" 
+                                   oninput="handleParticularsInput(this)" 
+                                   onkeydown="handleParticularsKeydown(event, this)"
+                                   style="width: 100%; font-weight:600; padding:3px 6px;">
+                            <input type="hidden" class="acct-ledger-id" value="">
+                            <div class="acct-cur-bal-text" style="display:none; font-size:11px; color:#475569; margin-top:2px;">
+                                Cur Bal: <span class="cur-bal-val">0.00</span>
+                            </div>
+                        </td>
+                        <td style="vertical-align: top; padding: 4px 6px; text-align: right;">
+                            <input type="number" step="0.01" min="0" class="acct-dr-input tally-input" 
+                                   value="" placeholder="0.00"
+                                   onfocus="this.select(); this.classList.add('acct-active-field')"
+                                   onblur="this.classList.remove('acct-active-field')"
+                                   onkeydown="handleAmountKeydown(event, this, 'Dr')"
+                                   oninput="calculateAcctTotals()"
+                                   style="width: 100%; text-align: right; font-family: monospace; font-weight:600; padding:3px 6px;">
+                        </td>
+                        <td style="vertical-align: top; padding: 4px 6px; text-align: right;">
+                            <input type="number" step="0.01" min="0" class="acct-cr-input tally-input" 
+                                   value="" placeholder="" readonly
+                                   onfocus="this.select(); this.classList.add('acct-active-field')"
+                                   onblur="this.classList.remove('acct-active-field')"
+                                   onkeydown="handleAmountKeydown(event, this, 'Cr')"
+                                   oninput="calculateAcctTotals()"
+                                   style="width: 100%; text-align: right; font-family: monospace; font-weight:600; padding:3px 6px; background:#f1f5f9;">
+                        </td>
+                    </tr>
+                `;
+                        document.getElementById('narration').value = '';
+                        calculateAcctTotals();
+                        const firstInput = tbody.querySelector('.acct-particulars-input');
+                        if (firstInput) firstInput.focus();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error saving voucher: ' + (data.error || 'Unknown error'));
+                    hideAcceptModal();
+                }
+            })
+            .catch(err => {
+                alert('Network error: ' + err);
+                hideAcceptModal();
+            });
+    }
+
+    // Keyboard shortcuts for modals (capture phase ensures reliable modal interaction)
+    document.addEventListener('keydown', function (e) {
+        if (typeof handleF12VoucherModalKeyboard === 'function' && handleF12VoucherModalKeyboard(e)) return;
+
+        if (document.getElementById('acceptModal').style.display === 'flex') {
+            if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+                e.preventDefault();
+                submitVoucherData();
+            } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+                e.preventDefault();
+                hideAcceptModal();
+            }
+            return;
+        }
+        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+            showAcceptModal();
+        }
+    }, true);
+
+    // Auto-focus on load
+    document.addEventListener('DOMContentLoaded', function () {
+        const pInput = document.querySelector('.acct-particulars-input');
+        if (pInput) {
+            pInput.focus();
+        }
+    });
+</script>
+{% endblock %}

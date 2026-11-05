@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-master-screen-full">
+    <form method="POST" action="/masters/voucher-types/create" id="masterForm" onsubmit="event.preventDefault(); showAcceptModal();" style="display:flex; flex-direction:column; height:100%;">
+        <!-- Top Section: Name and Alias -->
+        <div style="padding: 12px 25px; border-bottom: 1px solid #b6cddc; background: #ffffff;">
+            <div class="tally-field-row">
+                <span class="tally-lbl">Name</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="name" class="tally-fld-input" required autofocus placeholder="e.g. Tax Invoice, Petty Cash Payment">
+            </div>
+            <div class="tally-field-row">
+                <span class="tally-lbl">(alias)</span>
+                <span class="tally-colon">:</span>
+                <input type="text" name="alias" class="tally-fld-input">
+            </div>
+        </div>
+
+        <!-- Middle Section: Three Columns (General, Printing, Name of Class) -->
+        <div style="flex: 1; display: flex; overflow-y: auto;">
+            <!-- Column 1: General -->
+            <div style="flex: 1.2; padding: 15px 25px; border-right: 1px solid #c8d9e6;">
+                <div class="tally-section-title" style="text-align: center; margin-bottom: 15px;">General</div>
+
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Select type of voucher</span>
+                    <span class="tally-colon">:</span>
+                    <select name="type_of_voucher" class="tally-fld-select" required>
+                        <option value="Sales">♦ Sales</option>
+                        <option value="Purchase">♦ Purchase</option>
+                        <option value="Payment">♦ Payment</option>
+                        <option value="Receipt">♦ Receipt</option>
+                        <option value="Contra">♦ Contra</option>
+                        <option value="Journal">♦ Journal</option>
+                        <option value="Credit Note">♦ Credit Note</option>
+                        <option value="Debit Note">♦ Debit Note</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Abbreviation</span>
+                    <span class="tally-colon">:</span>
+                    <input type="text" name="abbreviation" class="tally-fld-input" placeholder="e.g. TInv">
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Activate this Voucher Type</span>
+                    <span class="tally-colon">:</span>
+                    <select name="is_active" class="tally-fld-select-sm">
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Method of Voucher Numbering</span>
+                    <span class="tally-colon">:</span>
+                    <select name="numbering_method" class="tally-fld-select">
+                        <option value="Automatic" selected>♦ Automatic</option>
+                        <option value="Manual">♦ Manual</option>
+                        <option value="None">♦ None</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Retain Original Voucher No. behaviour</span>
+                    <span class="tally-colon">:</span>
+                    <select name="retain_vno" class="tally-fld-select-sm">
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Use effective dates for vouchers</span>
+                    <span class="tally-colon">:</span>
+                    <select name="effective_dates" class="tally-fld-select-sm">
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Allow zero-valued transactions</span>
+                    <span class="tally-colon">:</span>
+                    <select name="zero_valued" class="tally-fld-select-sm">
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Make this voucher type as 'Optional' by default</span>
+                    <span class="tally-colon">:</span>
+                    <select name="is_optional" class="tally-fld-select-sm">
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Allow narration in voucher</span>
+                    <span class="tally-colon">:</span>
+                    <select name="allow_narration" class="tally-fld-select-sm">
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 280px;">Provide narrations for each ledger in voucher</span>
+                    <span class="tally-colon">:</span>
+                    <select name="narrations_each" class="tally-fld-select-sm">
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div class="tally-field-row" style="margin-top: 15px;">
+                    <span class="tally-lbl" style="width: 280px;">WhatsApp voucher after saving</span>
+                    <span class="tally-colon">:</span>
+                    <select name="whatsapp_voucher" class="tally-fld-select-sm">
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Column 2: Printing -->
+            <div style="flex: 1; padding: 15px 25px; border-right: 1px solid #c8d9e6;">
+                <div class="tally-section-title" style="text-align: center; margin-bottom: 15px;">Printing</div>
+                <div class="tally-field-row">
+                    <span class="tally-lbl" style="width: 220px;">Print voucher after saving</span>
+                    <span class="tally-colon">:</span>
+                    <select name="print_after_save" class="tally-fld-select-sm">
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Column 3: Name of Class -->
+            <div style="flex: 0.8; padding: 15px 25px;">
+                <div class="tally-section-title" style="text-align: center; margin-bottom: 15px;">Name of Class</div>
+                <div style="color: #64748b; font-size: 11px; text-align: center; padding-top: 10px;">
+                    (Class configuration optional)
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="tally-master-bottom-bar">
+            <div></div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+                <a href="/" class="tally-btn-cancel">Quit (Esc)</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Yes or No</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="document.getElementById('masterForm').submit();"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal();"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('masterForm').submit();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+{% endblock %}

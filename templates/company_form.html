@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <div class="form-title">{{ form_title }}</div>
+        <div class="form-subtitle">Company Information & Statutory Details</div>
+    </div>
+
+    <form method="POST" action="{{ form_action }}" class="tally-form">
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Company Name (Required):</label>
+                <input type="text" name="name" class="tally-input" required autofocus value="{{ comp.name if comp else '' }}" placeholder="e.g. Shiva Trading Company">
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Legal / Formal Name:</label>
+                <input type="text" name="legal_name" class="tally-input" value="{{ comp.legal_name if comp else '' }}" placeholder="e.g. Shiva Trading Company Pvt Ltd">
+            </div>
+
+            <div class="form-group">
+                <label>State:</label>
+                <select name="state" class="tally-select" id="state_select" onchange="updateStateCode()">
+                    <option value="Maharashtra" data-code="27">Maharashtra (27)</option>
+                    <option value="Gujarat" data-code="24">Gujarat (24)</option>
+                    <option value="Karnataka" data-code="29">Karnataka (29)</option>
+                    <option value="Delhi" data-code="07">Delhi (07)</option>
+                    <option value="Tamil Nadu" data-code="33">Tamil Nadu (33)</option>
+                    <option value="Telangana" data-code="36">Telangana (36)</option>
+                    <option value="Uttar Pradesh" data-code="09">Uttar Pradesh (09)</option>
+                    <option value="West Bengal" data-code="19">West Bengal (19)</option>
+                    <option value="Rajasthan" data-code="08">Rajasthan (08)</option>
+                    <option value="Madhya Pradesh" data-code="23">Madhya Pradesh (23)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>State Code:</label>
+                <input type="text" name="state_code" id="state_code_input" class="tally-input" value="{{ comp.state_code if comp else '27' }}" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>GSTIN / UIN:</label>
+                <input type="text" name="gstin" class="tally-input" maxlength="15" value="{{ comp.gstin if comp else '' }}" placeholder="15-character GSTIN">
+            </div>
+
+            <div class="form-group">
+                <label>PAN Number:</label>
+                <input type="text" name="pan" class="tally-input" maxlength="10" value="{{ comp.pan if comp else '' }}" placeholder="10-character PAN">
+            </div>
+
+            <div class="form-group">
+                <label>Financial Year Beginning From:</label>
+                <input type="date" name="fy_start_date" class="tally-input" value="{{ comp.fy_start_date if comp else '2026-04-01' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Books Beginning From:</label>
+                <input type="date" name="books_from_date" class="tally-input" value="{{ comp.books_from_date if comp else '2026-04-01' }}">
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Address:</label>
+                <textarea name="address" class="tally-input" rows="2">{{ comp.address if comp else '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="voucher-actions" style="margin-top: 25px;">
+            <button type="submit" class="tally-btn-save">Accept (Enter)</button>
+            <a href="/company/select" class="tally-btn-cancel">Cancel (Esc)</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateStateCode() {
+    const sel = document.getElementById('state_select');
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('state_code_input').value = opt.getAttribute('data-code');
+}
+</script>
+{% endblock %}
+

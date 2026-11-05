@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="tally-card-header" style="background: #245882; color: #fff;">
+        <span>Profit &amp; Loss A/c</span>
+        <div style="font-size: 11px; font-weight: normal; display: flex; gap: 15px;">
+            <span>{{ company.name if company else '' }}</span>
+            <span>Period: {{ company.fy_start_date }} to {{ company.fy_end_date }}</span>
+        </div>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; display: flex;">
+        <!-- Left Side: Trading & Expenses -->
+        <div style="flex: 1; border-right: 1px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <table class="tally-table">
+                    <thead>
+                        <tr style="background: #e2ecf2;">
+                            <th style="padding: 6px 14px; text-transform: uppercase;">Particulars</th>
+                            <th style="text-align: right; width: 150px; padding: 6px 14px;">For Period (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #f8fafc; font-weight: 700;">
+                            <td colspan="2" style="padding: 5px 14px; color: #475569; font-size: 11px;">PURCHASE &amp; DIRECT EXPENSES</td>
+                        </tr>
+                        {% for p in pnl.purchases_expenses %}
+                        <tr>
+                            <td style="padding: 5px 20px;">
+                                <a href="/masters/chart-of-accounts" style="text-decoration: none; color: inherit;" title="Drill down">
+                                    {{ p.name }}
+                                </a>
+                            </td>
+                            <td style="text-align: right; padding: 5px 14px;">₹{{ "{:,.2f}".format(p.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if pnl.gross_profit > 0 %}
+                        <tr style="background: #f0fdf4; font-weight: 700;">
+                            <td style="padding: 6px 14px; color: #15803d;">Gross Profit c/o</td>
+                            <td style="text-align: right; padding: 6px 14px; color: #15803d;">₹{{ "{:,.2f}".format(pnl.gross_profit) }}</td>
+                        </tr>
+                        {% endif %}
+
+                        <tr style="background: #f8fafc; font-weight: 700;">
+                            <td colspan="2" style="padding: 5px 14px; color: #475569; font-size: 11px;">INDIRECT EXPENSES</td>
+                        </tr>
+                        {% for ie in pnl.indirect_expenses %}
+                        <tr>
+                            <td style="padding: 5px 20px;">
+                                <a href="/masters/chart-of-accounts" style="text-decoration: none; color: inherit;" title="Drill down">
+                                    {{ ie.name }}
+                                </a>
+                            </td>
+                            <td style="text-align: right; padding: 5px 14px;">₹{{ "{:,.2f}".format(ie.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if pnl.net_profit > 0 %}
+                        <tr style="background: #ecfdf5; font-weight: 700; border-top: 1px solid #bbf7d0;">
+                            <td style="padding: 8px 14px; color: #047857;">Nett Profit</td>
+                            <td style="text-align: right; padding: 8px 14px; color: #047857; font-size: 13px;">₹{{ "{:,.2f}".format(pnl.net_profit) }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="background: #e2ecf2; border-top: 2px solid #245882; border-bottom: 2px solid #245882; padding: 8px 14px; display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;">
+                <span>Total</span>
+                <span>₹{{ "{:,.2f}".format(pnl.total_purchases_expenses + pnl.total_indirect_expenses + (pnl.net_profit if pnl.net_profit > 0 else 0)) }}</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Incomes -->
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <table class="tally-table">
+                    <thead>
+                        <tr style="background: #e2ecf2;">
+                            <th style="padding: 6px 14px; text-transform: uppercase;">Particulars</th>
+                            <th style="text-align: right; width: 150px; padding: 6px 14px;">For Period (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #f8fafc; font-weight: 700;">
+                            <td colspan="2" style="padding: 5px 14px; color: #475569; font-size: 11px;">SALES &amp; DIRECT INCOMES</td>
+                        </tr>
+                        {% for s in pnl.sales_incomes %}
+                        <tr>
+                            <td style="padding: 5px 20px;">
+                                <a href="/masters/chart-of-accounts" style="text-decoration: none; color: inherit;" title="Drill down">
+                                    {{ s.name }}
+                                </a>
+                            </td>
+                            <td style="text-align: right; padding: 5px 14px;">₹{{ "{:,.2f}".format(s.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if pnl.gross_profit > 0 %}
+                        <tr style="background: #f0fdf4; font-weight: 700;">
+                            <td style="padding: 6px 14px; color: #15803d;">Gross Profit b/f</td>
+                            <td style="text-align: right; padding: 6px 14px; color: #15803d;">₹{{ "{:,.2f}".format(pnl.gross_profit) }}</td>
+                        </tr>
+                        {% endif %}
+
+                        <tr style="background: #f8fafc; font-weight: 700;">
+                            <td colspan="2" style="padding: 5px 14px; color: #475569; font-size: 11px;">INDIRECT INCOMES</td>
+                        </tr>
+                        {% for ii in pnl.indirect_incomes %}
+                        <tr>
+                            <td style="padding: 5px 20px;">
+                                <a href="/masters/chart-of-accounts" style="text-decoration: none; color: inherit;" title="Drill down">
+                                    {{ ii.name }}
+                                </a>
+                            </td>
+                            <td style="text-align: right; padding: 5px 14px;">₹{{ "{:,.2f}".format(ii.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if pnl.net_profit < 0 %}
+                        <tr style="background: #fef2f2; font-weight: 700;">
+                            <td style="padding: 8px 14px; color: #b91c1c;">Nett Loss</td>
+                            <td style="text-align: right; padding: 8px 14px; color: #b91c1c; font-size: 13px;">₹{{ "{:,.2f}".format(pnl.net_profit|abs) }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="background: #e2ecf2; border-top: 2px solid #245882; border-bottom: 2px solid #245882; padding: 8px 14px; display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;">
+                <span>Total</span>
+                <span>₹{{ "{:,.2f}".format(pnl.total_sales_incomes + pnl.total_indirect_incomes + (pnl.gross_profit if pnl.gross_profit > 0 else 0)) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

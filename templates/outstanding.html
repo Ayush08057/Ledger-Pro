@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">{{ title }}</div>
+        <div class="report-subtitle">{{ company.name }} | Statement of Outstandings</div>
+    </div>
+
+    <div class="vtype-switcher" style="margin-bottom: 16px;">
+        <a href="/reports/outstanding-receivables" class="vtab {% if view_mode == 'receivables' %}active{% endif %}">Bills Receivable (Debtors)</a>
+        <a href="/reports/outstanding-payables" class="vtab {% if view_mode == 'payables' %}active{% endif %}">Bills Payable (Creditors)</a>
+    </div>
+
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 35%;">Party Ledger Name</th>
+                <th style="width: 20%;">GSTIN</th>
+                <th style="width: 15%;">State Code</th>
+                <th style="width: 15%;">Last Bill Date</th>
+                <th style="width: 15%; text-align: right;">Pending Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if parties %}
+                {% set total = namespace(val=0) %}
+                {% for p in parties %}
+                {% set total.val = total.val + p.current_balance %}
+                <tr>
+                    <td>
+                        <a href="/reports/ledger-statement/{{ p.id }}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                            {{ p.name }}
+                        </a>
+                    </td>
+                    <td><code>{{ p.gstin or 'Unregistered' }}</code></td>
+                    <td>{{ p.state_code or '-' }}</td>
+                    <td>{{ p.last_bill_date or '-' }}</td>
+                    <td style="text-align: right; font-weight: bold; color: {% if view_mode == 'receivables' %}#1e8449{% else %}#c0392b{% endif %};">
+                        ₹{{ "%.2f"|format(p.current_balance) }} {{ p.current_balance_type }}
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="4"><strong>Grand Total Pending</strong></td>
+                    <td style="text-align: right; font-size: 1.1em;">
+                        <strong>₹{{ "%.2f"|format(total.val) }}</strong>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #888; padding: 25px;">No pending outstanding balances found.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

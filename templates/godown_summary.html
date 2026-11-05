@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Godown (Warehouse) Summary</div>
+        <div class="report-subtitle">{{ company.name }} | Multi-Location Stock Distribution</div>
+    </div>
+
+    <div class="report-toolbar">
+        <a href="/inventory/stock-journal" class="tally-btn-action">+ Transfer Stock (Alt+F7)</a>
+        <a href="/masters/godowns/create" class="tally-btn-action" style="background:#134b5f;">+ Create Godown</a>
+    </div>
+
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Godown / Warehouse</th>
+                <th style="width: 35%;">Item Name</th>
+                <th style="width: 15%; text-align: right;">Quantity</th>
+                <th style="width: 20%; text-align: right;">Stock Value (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if summary %}
+                {% for r in summary %}
+                <tr>
+                    <td><strong>🏭 {{ r.godown_name }}</strong></td>
+                    <td>{{ r.item_name }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ r.quantity }} {{ r.unit_symbol }}</td>
+                    <td style="text-align: right;">₹{{ "%.2f"|format(r.stock_value) }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #888; padding: 25px;">No inventory records in godowns yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

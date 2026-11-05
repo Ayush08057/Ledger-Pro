@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="voucher-wrapper">
+    <div class="voucher-header-bar">
+        <div class="vtype-title">
+            <span class="vtype-badge" style="background:#5d9bb8; color:#fff;">Physical Stock Verification</span>
+            <span class="vno-badge">No. Auto</span>
+        </div>
+        <div class="vdate-box">
+            Date: <input type="date" id="voucher_date" value="{{ today }}" class="tally-input-date"> <span id="voucherDayDisplay" style="font-weight:700; color:#245882; font-size:11.5px;">{{ today_day }}</span>
+        </div>
+    </div>
+
+    <form id="physStockForm" onsubmit="event.preventDefault(); showAcceptModal();">
+        <div style="background: #eaf1f6; padding: 10px 15px; margin-bottom: 12px; border: 1px solid #b3cddf; font-size: 13px;">
+            <div style="font-weight: bold; color: #092f3e;">Physical Stock Count & Discrepancy Reconciliation</div>
+            <div style="color: #4b6b82; font-size: 11px;">Enter actual counted physical quantities. System calculates discrepancies against book balances and updates closing stock.</div>
+        </div>
+
+        <div class="grid-container">
+            <table class="tally-table" id="physTable">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Name of Item</th>
+                        <th style="width: 15%; text-align: right;">Book Quantity</th>
+                        <th style="width: 18%; text-align: right;">Physical Count (Qty)</th>
+                        <th style="width: 16%; text-align: right;">Difference (Discrepancy)</th>
+                        <th style="width: 16%; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="physTableBody">
+                    {% for it in stock_items %}
+                    <tr class="phys-row">
+                        <td>
+                            <input type="hidden" class="item-id" value="{{ it.id }}">
+                            <strong>{{ it.name }}</strong>
+                            <div style="font-size: 11px; color: #64748b;">Unit: {{ it.unit_name or 'Nos' }} | Valuation Rate: ₹{{ "%.2f"|format(it.opening_rate or 0) }}</div>
+                        </td>
+                        <td style="text-align: right;">
+                            <span class="book-qty">{{ it.closing_qty }}</span> {{ it.unit_symbol or 'Nos' }}
+                        </td>
+                        <td style="text-align: right;">
+                            <input type="number" step="0.01" class="tally-fld-input phys-qty" value="{{ it.closing_qty }}" style="width: 120px; text-align: right; font-weight: bold;" oninput="updateDiff(this)">
+                        </td>
+                        <td style="text-align: right; font-weight: bold;">
+                            <span class="diff-qty" style="color: #10b981;">0.00</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-del" onclick="this.closest('tr').remove();">Remove</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <label class="field-label">Narration:</label>
+            <input type="text" id="narration" class="tally-fld-input" style="width: 100%;" placeholder="e.g. Month-end physical verification completed without major shortage.">
+        </div>
+
+        <div class="voucher-bottom-actions" style="margin-top: 20px;">
+            <button type="submit" class="tally-btn-save">Accept (Ctrl+A)</button>
+            <a href="/reports/stock-summary" class="tally-btn-cancel">Quit (Esc)</a>
+        </div>
+    </form>
+</div>
+
+<!-- Authentic Accept Dialog -->
+<div id="acceptModal" class="tally-modal" style="display:none;">
+    <div class="tally-dialog">
+        <div class="dialog-title">Accept ?</div>
+        <div class="dialog-body">Confirm Physical Stock Reconciliation?</div>
+        <div class="dialog-actions">
+            <button class="tally-dialog-btn default" id="btnYes" onclick="submitPhysData()"><u>Y</u>es</button>
+            <button class="tally-dialog-btn" onclick="hideAcceptModal()"><u>N</u>o</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateDiff(inp) {
+    const row = inp.closest('tr');
+    const bookQty = parseFloat(row.querySelector('.book-qty').innerText) || 0;
+    const physQty = parseFloat(inp.value) || 0;
+    const diff = physQty - bookQty;
+    const diffSpan = row.querySelector('.diff-qty');
+    diffSpan.innerText = (diff >= 0 ? '+' : '') + diff.toFixed(2);
+    if (diff < 0) {
+        diffSpan.style.color = '#ef4444'; // Red for shortage
+    } else if (diff > 0) {
+        diffSpan.style.color = '#3b82f6'; // Blue for surplus
+    } else {
+        diffSpan.style.color = '#10b981'; // Green for matched
+    }
+}
+
+function showAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'flex';
+    document.getElementById('btnYes').focus();
+}
+
+function hideAcceptModal() {
+    document.getElementById('acceptModal').style.display = 'none';
+}
+
+function submitPhysData() {
+    const vDate = document.getElementById('voucher_date').value;
+    const narration = document.getElementById('narration').value;
+    let items = [];
+
+    document.querySelectorAll('.phys-row').forEach(r => {
+        const id = r.querySelector('.item-id').value;
+        const pQty = parseFloat(r.querySelector('.phys-qty').value);
+        if (!isNaN(pQty)) {
+            items.push({
+                stock_item_id: parseInt(id),
+                physical_qty: pQty
+            });
+        }
+    });
+
+    if (items.length === 0) {
+        alert("No stock items to record.");
+        hideAcceptModal();
+        return;
+    }
+
+    fetch('/inventory/physical-stock', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            voucher_date: vDate,
+            narration: narration,
+            items: items
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/reports/stock-summary';
+        } else {
+            alert('Error recording physical stock: ' + data.error);
+            hideAcceptModal();
+        }
+    })
+    .catch(err => {
+        alert('Network error: ' + err);
+        hideAcceptModal();
+    });
+}
+
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showAcceptModal();
+    }
+    if (document.getElementById('acceptModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            submitPhysData();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            hideAcceptModal();
+        }
+    }
+});
+</script>
+{% endblock %}
+

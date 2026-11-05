@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Cost Centre Break-Up Report</div>
+        <div class="report-subtitle">{{ company.name }} | Statement of Cost Allocations</div>
+    </div>
+
+    <div class="report-toolbar">
+        <a href="/masters/cost-centres" class="tally-btn-action">Manage Cost Centres</a>
+        <button class="tally-btn-action" onclick="window.print()">Print (P)</button>
+    </div>
+
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Category &amp; Cost Centre</th>
+                <th style="width: 25%;">Ledger Account</th>
+                <th style="width: 15%;">Vch Type &amp; Date</th>
+                <th style="width: 15%;">Vch No.</th>
+                <th style="width: 20%; text-align: right;">Allocated Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if allocations %}
+                {% for a in allocations %}
+                <tr>
+                    <td><strong>🎯 {{ a.centre_name }}</strong><br><small class="sub-text">{{ a.category_name }}</small></td>
+                    <td>{{ a.ledger_name }} <span class="group-tag">{{ a.nature }}</span></td>
+                    <td><span class="vtype-pill {{ a.voucher_type|lower }}">{{ a.voucher_type }}</span><br><small>{{ a.voucher_date }}</small></td>
+                    <td><code>{{ a.voucher_number }}</code></td>
+                    <td style="text-align: right; font-weight: bold;">₹{{ "%.2f"|format(a.amount) }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #888; padding: 25px;">No transactions allocated to cost centres yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

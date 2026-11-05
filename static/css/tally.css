@@ -1,0 +1,1699 @@
+/* TallyPrime Authentic Enterprise UI Theme */
+:root {
+    --tally-topbar-bg: #092f3e;
+    --tally-subheader-bg: #5d9bb8;
+    --tally-gateway-header: #245882;
+    --tally-gateway-bg: #eaf1f6;
+    --tally-gateway-border: #b3cddf;
+    --tally-highlight: #fcb92c;
+    --tally-highlight-text: #000000;
+    --tally-hotkey: #004b87;
+    --tally-btnbar-bg: #d8e8f2;
+    --tally-btn-bg: #ffffff;
+    --tally-btn-border: #b8d2e2;
+    --tally-btn-hover: #cce4f2;
+    --tally-btn-active: #fcb92c;
+    --tally-text-dark: #111827;
+    --tally-text-muted: #556b7d;
+    --tally-border-color: #cbd5e1;
+    --tally-footer-bg: #d8e8f2;
+    --tally-footer-border: #b0c8d8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body.tally-body {
+    background-color: #e6eef3;
+    color: var(--tally-text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* ========================================================
+   TOP NAVIGATION BAR (Authentic TallyPrime Header)
+   ======================================================== */
+.tally-topbar {
+    background: var(--tally-topbar-bg);
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 12px;
+    height: 38px;
+    position: relative;
+    border-bottom: 1px solid rgba(0,0,0,0.3);
+}
+
+.tally-topbar .brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tally-logo-text {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tally-edu-badge {
+    background: #009688;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+}
+
+.top-menu-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+}
+
+.top-link {
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
+
+.top-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.key-underline {
+    text-decoration: underline;
+    font-weight: 700;
+    color: #fcb92c;
+}
+
+/* Universal Search / Go To Box in Header */
+.top-search-goto-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.top-search-box {
+    background: #ffffff;
+    color: #222;
+    border: none;
+    border-radius: 2px;
+    padding: 3px 10px 3px 26px;
+    font-size: 11px;
+    width: 380px;
+    height: 22px;
+    outline: none;
+}
+
+.top-search-icon {
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    font-size: 10px;
+    color: #555;
+}
+
+.top-goto-tab {
+    background: #ffffff;
+    color: #092f3e;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 16px;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    border: 1px solid #b3cddf;
+    border-top: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    margin-top: -1px;
+}
+
+.top-goto-tab:hover {
+    background: #fcb92c;
+    color: #000;
+}
+
+.top-menu-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+}
+
+.top-win-controls {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    margin-left: 10px;
+    color: #94a3b8;
+}
+
+/* ========================================================
+   SUB-HEADER BANNER (Screen Title & Active Context)
+   ======================================================== */
+.tally-subheader {
+    background: var(--tally-subheader-bg);
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 16px;
+    font-size: 12px;
+    height: 26px;
+    border-bottom: 1px solid #4a809b;
+}
+
+.tally-screen-title {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.tally-company-center {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.tally-sub-close {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #e2e8f0;
+}
+
+.tally-sub-close:hover {
+    color: #ffffff;
+}
+
+/* ========================================================
+   MAIN WORKSPACE & LAYOUT
+   ======================================================== */
+.tally-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.tally-content {
+    flex: 1;
+    padding: 12px 18px;
+    overflow-y: auto;
+    background: #f0f5f8;
+}
+
+/* ========================================================
+   RIGHT BUTTON BAR (Function Keys & Hotkeys)
+   ======================================================== */
+.tally-btnbar {
+    width: 160px;
+    background: var(--tally-btnbar-bg);
+    border-left: 1px solid var(--tally-gateway-border);
+    display: flex;
+    flex-direction: column;
+    padding: 4px 4px;
+    gap: 3px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.btn-cell {
+    background: var(--tally-btn-bg);
+    border: 1px solid var(--tally-btn-border);
+    color: #0f2d3d;
+    text-decoration: none;
+    padding: 3px 6px;
+    border-radius: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    cursor: pointer;
+    min-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: all 0.05s ease-in-out;
+}
+
+.btn-cell:hover, .btn-cell.active-key {
+    background: var(--tally-btn-hover);
+    border-color: #245882;
+}
+
+.btn-cell .fkey {
+    color: var(--tally-hotkey);
+    font-weight: 700;
+    font-size: 11px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    margin-right: 6px;
+}
+
+.btn-cell .lbl {
+    font-weight: 500;
+    color: #111;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+}
+
+.btn-cell.primary-active {
+    background: #e1edf5;
+    border-color: #245882;
+    border-left: 3px solid #245882;
+}
+
+/* ========================================================
+   GATEWAY OF TALLY SCREEN
+   ======================================================== */
+.gateway-screen-layout {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.gateway-left-panel {
+    flex: 1;
+    padding: 15px 30px;
+    border-right: 1px solid #c8d9e6;
+}
+
+.period-date-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: #4b6b82;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.period-date-values {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a3a50;
+}
+
+.gateway-divider-line {
+    height: 1px;
+    background: #b6cddc;
+    margin-bottom: 15px;
+}
+
+.company-status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 11px;
+    color: #4b6b82;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.company-status-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 13px;
+    color: #1a3a50;
+}
+
+/* Gateway Menu Box */
+.gateway-right-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 15px;
+}
+
+.gateway-menu-window {
+    width: 360px;
+    background: var(--tally-gateway-bg);
+    border: 1px solid var(--tally-gateway-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.gateway-menu-title {
+    background: var(--tally-gateway-header);
+    color: #ffffff;
+    text-align: center;
+    padding: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.gateway-section-heading {
+    padding: 6px 16px 2px 16px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #637d92;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.gateway-menu-items {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.gateway-menu-item {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding: 6px 24px;
+    font-size: 13px;
+    color: #1a3a50;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    transition: background 0.1s ease;
+}
+
+.gateway-menu-item:hover, .gateway-menu-item.selected {
+    background: var(--tally-highlight);
+    color: var(--tally-highlight-text);
+    font-weight: 700;
+}
+
+.gateway-menu-item .hotkey {
+    color: var(--tally-hotkey);
+    font-weight: 700;
+}
+
+.gateway-menu-item.selected .hotkey, .gateway-menu-item:hover .hotkey {
+    color: #000000;
+}
+
+/* ========================================================
+   AUTHENTIC POPUP MODALS (Create, Alter, Modes, GoTo)
+   ======================================================== */
+.tally-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.tally-modal-box {
+    background: #ffffff;
+    border: 1px solid #7c9eb2;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    width: 440px;
+    max-width: 94vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.tally-modal-title {
+    background: #ffffff;
+    color: #111;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    text-align: center;
+    border-bottom: 1px solid #b3cddf;
+}
+
+.tally-modal-search {
+    background: #fff8e1;
+    border: 1px solid #e0c870;
+    padding: 4px 8px;
+    margin: 8px 12px;
+    font-size: 12px;
+    outline: none;
+}
+
+.tally-modal-header-blue {
+    background: #245882;
+    color: #ffffff;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+}
+
+.tally-modal-list {
+    overflow-y: auto;
+    padding: 6px 0;
+    max-height: 60vh;
+}
+
+.tally-modal-category {
+    font-size: 11px;
+    font-weight: 700;
+    color: #486581;
+    padding: 6px 14px 2px 14px;
+}
+
+.tally-modal-option {
+    padding: 6px 24px;
+    font-size: 13px;
+    color: #1a3a50;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    user-select: none;
+    transition: background 0.05s ease;
+}
+
+.tally-modal-option:hover, .tally-modal-option.selected {
+    background-color: #fcb92c !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+}
+
+/* ========================================================
+   BOTTOM STATUS BAR (Quit, Accept, Cancel)
+   ======================================================== */
+.tally-bottom-bar {
+    height: 24px;
+    background: var(--tally-footer-bg);
+    border-top: 1px solid var(--tally-footer-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 11px;
+}
+
+.bottom-actions-left {
+    display: flex;
+    gap: 15px;
+}
+
+.bottom-action-item {
+    color: #245882;
+    cursor: pointer;
+}
+
+.bottom-action-item strong {
+    color: #092f3e;
+    text-decoration: underline;
+}
+
+/* Quit Confirmation Dialog */
+.quit-confirm-dialog {
+    position: fixed;
+    right: 150px;
+    bottom: 25px;
+    width: 140px;
+    background: #ffffff;
+    border: 1px solid #7c9eb2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 10000;
+    text-align: center;
+    padding: 8px;
+}
+
+.quit-confirm-dialog .q-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.quit-confirm-dialog .q-options {
+    display: flex;
+    justify-content: space-around;
+    font-size: 12px;
+}
+
+.quit-confirm-dialog .q-options span {
+    cursor: pointer;
+    padding: 2px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+}
+
+.quit-confirm-dialog .q-options span:hover, .quit-confirm-dialog .q-options span.selected {
+    background: var(--tally-highlight);
+    border-color: #f59e0b;
+    font-weight: bold;
+}
+
+/* Common Card & Tables */
+.tally-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.tally-card-header {
+    background: #245882;
+    color: #ffffff;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tally-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.tally-table th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-bottom: 1px solid #cbd5e1;
+    border-right: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.tally-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    color: #0f172a;
+}
+
+.tally-table tr:hover {
+    background: #fff8e1;
+}
+
+.tally-btn {
+    background: #ffffff;
+    border: 1px solid #94a3b8;
+    color: #0f172a;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.tally-btn:hover {
+    background: #f1f5f9;
+}
+
+.tally-btn-primary {
+    background: #245882;
+    color: #ffffff;
+    border-color: #1e4769;
+}
+
+.tally-btn-primary:hover {
+    background: #1a4263;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.form-control {
+    border: 1px solid #94a3b8;
+    border-radius: 2px;
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+}
+
+.form-control:focus {
+    border-color: #245882;
+    box-shadow: 0 0 0 1px #245882;
+}
+
+/* ========================================================
+   REPORTS & DAY BOOK STYLING
+   ======================================================== */
+.report-container {
+    padding: 14px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: #eaf1f6;
+}
+
+.report-header {
+    background: #245882;
+    color: #ffffff;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 2px 2px 0 0;
+}
+
+.report-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.report-subtitle {
+    font-size: 11px;
+    color: #cbd5e1;
+}
+
+.report-toolbar {
+    background: #ffffff;
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tally-btn-action {
+    background: #245882;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tally-btn-action:hover {
+    background: #1a4263;
+    color: #ffffff;
+}
+
+.tally-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    font-size: 12px;
+}
+
+.tally-report-table th {
+    background: #e2ecf2;
+    color: #0f2d3d;
+    padding: 6px 10px;
+    font-weight: 700;
+    text-align: left;
+    border-bottom: 1px solid #b6cddc;
+    border-right: 1px solid #cbd5e1;
+}
+
+.tally-report-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    color: #1e293b;
+}
+
+.tally-report-table tr:hover {
+    background: #fff8e1;
+}
+
+.tally-report-table .total-row td {
+    background: #e2ecf2;
+    border-top: 2px solid #245882;
+    border-bottom: 3px double #245882;
+    font-weight: 700;
+    color: #092f3e;
+}
+
+.status-banner {
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    margin-bottom: 6px;
+    border-radius: 2px;
+}
+
+.status-banner.balanced {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+}
+
+.status-banner.unbalanced {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+.group-tag {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+.vtype-pill {
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.vtype-pill.sales { background: #e0e7ff; color: #3730a3; }
+.vtype-pill.purchase { background: #fae8ff; color: #86198f; }
+.vtype-pill.payment { background: #fee2e2; color: #991b1b; }
+.vtype-pill.receipt { background: #dcfce7; color: #166534; }
+.vtype-pill.contra { background: #fef3c7; color: #92400e; }
+.vtype-pill.journal { background: #e0f2fe; color: #075985; }
+
+/* ========================================================
+   FORMS & INPUT CARDS (Ledger, Group, Stock Items, Units)
+   ======================================================== */
+.form-container {
+    max-width: 680px;
+    margin: 25px auto;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.form-header {
+    background: #245882;
+    color: #ffffff;
+    padding: 10px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.form-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.form-subtitle {
+    font-size: 11px;
+    color: #cbd5e1;
+}
+
+.tally-form {
+    padding: 20px;
+    background: #ffffff;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 18px;
+}
+
+.field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.tally-input, .tally-select {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid #94a3b8;
+    border-radius: 2px;
+    background: #ffffff;
+    color: #0f172a;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.tally-input:focus, .tally-select:focus {
+    border-color: #245882;
+    box-shadow: 0 0 0 1px #245882;
+    background: #f8fafc;
+}
+
+.tally-input-date {
+    padding: 3px 6px;
+    font-size: 12px;
+    border: 1px solid #94a3b8;
+    background: #ffffff;
+    border-radius: 2px;
+}
+
+.voucher-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.tally-btn-save {
+    background: #00796b;
+    color: #ffffff;
+    border: 1px solid #004d40;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.tally-btn-save:hover {
+    background: #00695c;
+}
+
+.tally-btn-cancel {
+    background: #64748b;
+    color: #ffffff;
+    border: 1px solid #475569;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tally-btn-cancel:hover {
+    background: #475569;
+}
+
+/* ========================================================
+   VOUCHER ENTRY SCREEN (Single Entry / Double Entry / Invoices)
+   ======================================================== */
+.voucher-screen {
+    padding: 12px 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: #eaf1f6;
+}
+
+.voucher-ribbon {
+    background: #245882;
+    color: #ffffff;
+    padding: 6px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 2px 2px 0 0;
+}
+
+.vtype-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vtype-badge {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.vno-badge {
+    font-size: 13px;
+    color: #fcb92c;
+    font-weight: 700;
+}
+
+.vdate-box {
+    font-size: 12px;
+}
+
+.vtype-switcher {
+    background: #ffffff;
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    overflow-x: auto;
+}
+
+.vtab {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 2px;
+}
+
+.vtab.active, .vtab:hover {
+    background: #fcb92c;
+    border-color: #f59e0b;
+    color: #000000;
+}
+
+.party-section {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 10px 14px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 2px;
+}
+
+.balance-tag {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.inline-btn {
+    background: #f1f5f9;
+    border: 1px solid #94a3b8;
+    color: #1e293b;
+    padding: 3px 8px;
+    font-size: 11px;
+    text-decoration: none;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.inline-btn:hover {
+    background: #e2e8f0;
+}
+
+.grid-container {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 2px;
+}
+
+.del-row-btn {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    padding: 2px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-row-btn {
+    background: #f1f5f9;
+    color: #092f3e;
+    border: 1px dashed #94a3b8;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    border-radius: 2px;
+    width: 100%;
+}
+
+.add-row-btn:hover {
+    background: #e2e8f0;
+}
+
+.summary-section {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 8px 16px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-radius: 2px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #334155;
+}
+
+.summary-row.total-highlight {
+    border-top: 2px solid #245882;
+    padding-top: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #092f3e;
+}
+
+.narration-box {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 8px 14px;
+    margin-top: 8px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ========================================================
+   AUTHENTIC POPUP DIALOGS (Accept? Yes or No)
+   ======================================================== */
+.tally-dialog {
+    background: #ffffff;
+    border: 2px solid #245882;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    width: 240px;
+    padding: 16px;
+    border-radius: 3px;
+    text-align: center;
+    margin: auto;
+}
+
+.dialog-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #092f3e;
+    margin-bottom: 6px;
+}
+
+.dialog-body {
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 14px;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.tally-dialog-btn {
+    padding: 4px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid #94a3b8;
+    background: #f8fafc;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.tally-dialog-btn.default {
+    background: #fcb92c;
+    border-color: #f59e0b;
+    color: #000;
+}
+
+/* ========================================================
+   GATEWAY STATUS & DETAILS TABLE
+   ======================================================== */
+.gateway-status-box {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 10px 14px;
+    border-radius: 2px;
+    margin-top: 12px;
+}
+
+.gateway-status-heading {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4b6b82;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+}
+
+.gateway-mini-table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+}
+
+.gateway-mini-table td {
+    padding: 3px 0;
+    color: #1e293b;
+}
+
+.gateway-mini-table td:first-child {
+    color: #64748b;
+    width: 45%;
+}
+
+/* ========================================================
+   RESPONSIVE DESIGN (Narrow Screens, Mobile, Split Panes)
+   ======================================================== */
+@media (max-width: 900px) {
+    .tally-layout {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .tally-btnbar {
+        width: 100% !important;
+        height: auto !important;
+        flex-direction: row !important;
+        overflow-x: auto;
+        border-left: none;
+        border-top: 1px solid #cbd5e1;
+        padding: 4px;
+    }
+
+    .tally-btnbar .btn-cell {
+        min-width: 80px;
+        padding: 4px 6px;
+        border-bottom: none;
+        border-right: 1px solid #cbd5e1;
+    }
+
+    .gateway-screen-layout {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .gateway-left-panel {
+        border-right: none;
+        border-bottom: 1px solid #cbd5e1;
+        padding: 12px;
+    }
+
+    .gateway-right-panel {
+        padding: 12px;
+    }
+
+    .gateway-menu-window {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .top-search-goto-wrapper {
+        display: none;
+    }
+}
+
+/* ========================================================
+   AUTHENTIC MASTER CREATION & ALTERATION LAYOUTS
+   ======================================================== */
+.tally-master-screen-split {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.tally-master-pane {
+    width: 50%;
+    min-width: 520px;
+    background: #ffffff;
+    padding: 20px 30px;
+    border-right: 1px solid #b3cddf;
+    overflow-y: auto;
+}
+
+.tally-dimmed-pane {
+    flex: 1;
+    background: #c5d6e2;
+    opacity: 0.7;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    border-left: 1px solid #a8c1d2;
+}
+
+.tally-master-screen-full {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #ffffff;
+}
+
+.tally-master-bottom-bar {
+    background: #e2ecf2;
+    border-top: 1px solid #b3cddf;
+    padding: 8px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tally-field-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.tally-lbl {
+    width: 140px;
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.tally-colon {
+    width: 20px;
+    font-weight: bold;
+    color: #1e293b;
+}
+
+.tally-fld-input {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 2px 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+    border-radius: 1px;
+    min-width: 280px;
+}
+
+.tally-fld-input:focus {
+    background: #fffde7;
+    border: 1px solid #000000;
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+}
+
+.tally-fld-select {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 2px 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+    min-width: 280px;
+    cursor: pointer;
+}
+
+.tally-fld-select:focus {
+    background: #fffde7;
+    border: 1px solid #000000;
+}
+
+.tally-fld-select-sm {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 2px 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+    width: 80px;
+    cursor: pointer;
+}
+
+.tally-fld-select-sm:focus {
+    background: #fffde7;
+    border: 1px solid #000000;
+}
+
+.tally-fld-textarea {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    padding: 4px 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+    outline: none;
+    width: 320px;
+    resize: vertical;
+}
+
+.tally-fld-textarea:focus {
+    background: #fffde7;
+    border: 1px solid #000000;
+}
+
+.tally-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #092f3e;
+    border-bottom: 1px solid #b6cddc;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 900px) {
+    .tally-master-screen-split {
+        flex-direction: column;
+    }
+    .tally-master-pane {
+        width: 100%;
+        min-width: 100%;
+        padding: 15px;
+    }
+    .tally-dimmed-pane {
+        display: none;
+    }
+    .vtype-switcher {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+}
+
+@media (max-width: 600px) {
+    .tally-topbar {
+        height: auto;
+        padding: 6px 10px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .top-menu-left, .top-menu-right {
+        gap: 8px;
+    }
+    .top-link {
+        font-size: 11px;
+    }
+    .tally-subheader {
+        height: auto;
+        padding: 6px 10px;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .tally-company-center {
+        position: static;
+        transform: none;
+        width: 100%;
+        text-align: left;
+        font-size: 12px;
+    }
+    .gateway-screen-layout {
+        flex-direction: column;
+    }
+    .gateway-left-panel, .gateway-right-panel {
+        padding: 10px;
+    }
+    .gateway-menu-window {
+        width: 100%;
+        max-width: 100%;
+    }
+    .tally-field-row {
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+    .tally-lbl {
+        width: 100%;
+        margin-bottom: 2px;
+    }
+    .tally-colon {
+        display: none;
+    }
+    .tally-fld-input, .tally-fld-select {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+    .tally-fld-textarea {
+        width: 100% !important;
+    }
+    .tally-master-bottom-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    .grid-container, .tally-report-table, .report-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .tally-table, .tally-report-table {
+        min-width: 580px;
+    }
+    .tally-bottom-bar {
+        height: auto;
+        padding: 6px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .bottom-actions-left {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+/* Universal suppression of unwanted bullets */
+ul, ol, li {
+    list-style: none !important;
+}
+
+/* Authentic Tally F11 Features & F12 Configuration */
+.tally-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+    row-gap: 4px;
+}
+
+@media (max-width: 768px) {
+    .tally-feature-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tally-feature-section {
+    margin-bottom: 12px;
+}
+
+.tally-feature-section-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #092f3e;
+    border-bottom: 1px solid #b3cddf;
+    padding-bottom: 2px;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+.tally-toggle-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #1e293b;
+    cursor: pointer;
+    outline: none;
+    border-radius: 2px;
+    user-select: none;
+    min-height: 22px;
+    transition: background-color 0.1s ease;
+}
+
+.tally-toggle-sub {
+    padding-left: 20px !important;
+}
+
+.tally-toggle-row:hover {
+    background-color: #f1f5f9;
+}
+
+.tally-toggle-row.disabled {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+}
+
+.tally-toggle-row .toggle-label {
+    flex: 1;
+    white-space: normal;
+    padding-right: 8px;
+    line-height: 1.35;
+}
+
+.tally-toggle-row .toggle-colon {
+    color: #64748b;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.tally-toggle-row .toggle-val {
+    min-width: 42px;
+    text-align: left;
+    padding: 1px 6px;
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    display: inline-block;
+    transition: all 0.1s ease;
+}
+
+.tally-toggle-row:focus,
+.tally-toggle-row.focused {
+    background-color: #f8fafc;
+}
+
+.tally-toggle-row:focus .toggle-val,
+.tally-toggle-row.focused .toggle-val {
+    background: #fcb92c !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border-color: #c88900 !important;
+    box-shadow: 0 0 0 1px #b7791f inset;
+}
+
+/* F11 & F12 Modals Legacy Fallback */
+.f11-table tr, .f12-table tr {
+    height: 25px;
+}
+.f11-table td, .f12-table td {
+    padding: 2px 4px;
+}
+.f11-table select, .f12-table select {
+    width: 65px;
+    height: 22px;
+    font-size: 11.5px;
+    padding: 0 4px;
+}
+
+/* Authentic Tally Accounting Voucher Creation */
+.voucher-workspace {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 80px);
+    background: #fff;
+    overflow: hidden;
+}
+
+.voucher-main-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 18px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+.ledger-flyout-drawer {
+    width: 290px;
+    background: #f8fafc;
+    border-left: 1px solid #b3cddf;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+    user-select: none;
+}
+
+.ledger-flyout-header {
+    background: #245882;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 12px;
+    letter-spacing: 0.3px;
+}
+
+.flyout-action-item {
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: #092f3e;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.flyout-action-item:hover, .flyout-action-item.selected {
+    background: #fcb92c;
+    color: #000;
+}
+
+.flyout-divider {
+    height: 1px;
+    background: #cbd5e1;
+    margin: 2px 0;
+}
+
+.flyout-ledger-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 10px;
+}
+
+.flyout-ledger-item {
+    padding: 5px 14px;
+    font-size: 12.5px;
+    color: #1e293b;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.flyout-ledger-item:hover, .flyout-ledger-item.selected {
+    background: #fcb92c !important;
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+.acct-active-field {
+    background-color: #fffde7 !important;
+    border: 1px solid #fcb92c !important;
+    outline: none !important;
+}
+
+.acct-cur-bal-text {
+    font-size: 11px;
+    color: #475569;
+    font-style: italic;
+    margin-top: 1px;
+}
+
+

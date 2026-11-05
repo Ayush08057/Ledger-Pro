@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payslip - {{ slip.emp_name }} - {{ slip.pay_month }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff;
+            color: #111;
+            margin: 0;
+            padding: 20px;
+        }
+        .payslip-box {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #222;
+            padding: 25px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #222;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            font-size: 20px;
+        }
+        .header p {
+            margin: 2px 0;
+            font-size: 12px;
+            color: #444;
+        }
+        .title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            background: #f0f0f0;
+            padding: 6px;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        .meta-table td {
+            padding: 4px 8px;
+        }
+        .meta-table td.lbl {
+            font-weight: 600;
+            width: 20%;
+            color: #333;
+        }
+        .meta-table td.val {
+            width: 30%;
+        }
+        .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        .salary-table th, .salary-table td {
+            border: 1px solid #444;
+            padding: 6px 10px;
+        }
+        .salary-table th {
+            background: #e9ecef;
+            text-align: left;
+        }
+        .net-pay-box {
+            background: #f8f9fa;
+            border: 1px solid #444;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            font-size: 13px;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            padding-top: 15px;
+            font-size: 12px;
+        }
+        .sig-box {
+            text-align: center;
+            width: 220px;
+            border-top: 1px solid #222;
+            padding-top: 5px;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+            .payslip-box { border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print" style="max-width: 800px; margin: 0 auto 15px auto; display: flex; justify-content: flex-end; gap: 10px;">
+    <button onclick="window.print()" style="padding: 6px 16px; background: #007bff; color: #fff; border: none; cursor: pointer; border-radius: 4px; font-weight: 600;">Print Payslip</button>
+</div>
+
+<div class="payslip-box">
+    <div class="header">
+        <h2>{{ slip.company_name }}</h2>
+        <p>{{ slip.company_address or 'Head Office' }}</p>
+        {% if slip.company_gstin %}<p>GSTIN: {{ slip.company_gstin }}</p>{% endif %}
+    </div>
+
+    <div class="title">Payslip for the month of {{ slip.pay_month }}</div>
+
+    <table class="meta-table">
+        <tr>
+            <td class="lbl">Employee Code:</td>
+            <td class="val"><strong>{{ slip.emp_code }}</strong></td>
+            <td class="lbl">Designation:</td>
+            <td class="val">{{ slip.designation }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Employee Name:</td>
+            <td class="val"><strong>{{ slip.emp_name }}</strong></td>
+            <td class="lbl">Department:</td>
+            <td class="val">{{ slip.department }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Date of Joining:</td>
+            <td class="val">{{ slip.date_of_joining }}</td>
+            <td class="lbl">PAN Number:</td>
+            <td class="val">{{ slip.pan_number or '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Bank Name:</td>
+            <td class="val">{{ slip.bank_name or '-' }}</td>
+            <td class="lbl">Bank A/c No:</td>
+            <td class="val">{{ slip.bank_account_number or '-' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">PF Number:</td>
+            <td class="val">{{ slip.pf_number or '-' }}</td>
+            <td class="lbl">Working / Present:</td>
+            <td class="val"><strong>{{ slip.present_days }} / {{ slip.working_days }} Days</strong></td>
+        </tr>
+    </table>
+
+    <table class="salary-table">
+        <thead>
+            <tr>
+                <th colspan="2" style="width: 50%;">Earnings</th>
+                <th colspan="2" style="width: 50%;">Deductions</th>
+            </tr>
+            <tr style="font-size: 11px;">
+                <th>Pay Head</th>
+                <th style="text-align: right;">Amount (₹)</th>
+                <th>Pay Head</th>
+                <th style="text-align: right;">Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Basic Salary</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.basic_earned) }}</td>
+                <td>Provident Fund (PF 12%)</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.pf_deduction) }}</td>
+            </tr>
+            <tr>
+                <td>House Rent Allowance (HRA)</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.hra_earned) }}</td>
+                <td>Professional Tax (PT)</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.pt_deduction) }}</td>
+            </tr>
+            <tr>
+                <td>Conveyance Allowance</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.conveyance_earned) }}</td>
+                <td>ESI Contribution</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.esi_deduction) }}</td>
+            </tr>
+            <tr>
+                <td>Special Allowance</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.special_earned) }}</td>
+                <td>Income Tax (TDS)</td>
+                <td style="text-align: right;">{{ "{:,.2f}".format(slip.tds_deduction) }}</td>
+            </tr>
+            <tr style="font-weight: 700; background: #fafafa;">
+                <td>Total Gross Earnings</td>
+                <td style="text-align: right;">₹{{ "{:,.2f}".format(slip.gross_salary) }}</td>
+                <td>Total Deductions</td>
+                <td style="text-align: right;">₹{{ "{:,.2f}".format(slip.total_deductions) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="net-pay-box">
+        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; margin-bottom: 5px;">
+            <span>Net Payable Salary:</span>
+            <span>₹{{ "{:,.2f}".format(slip.net_salary) }}</span>
+        </div>
+        <div style="font-size: 12px; color: #555;">
+            <strong>Amount in Words:</strong> {{ slip.net_salary_words }}
+        </div>
+    </div>
+
+    <div class="signatures">
+        <div class="sig-box">Employee Signature</div>
+        <div class="sig-box">Authorised Signatory</div>
+    </div>
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">{{ title }}</div>
+        <div class="report-subtitle">{{ company.name }} | Order Processing Register</div>
+    </div>
+
+    <!-- Sub-navigation between Sales Orders and Purchase Orders -->
+    <div class="vtype-switcher" style="margin-bottom: 15px;">
+        <a href="/orders/sales" class="vtab {% if active_type == 'Sales Order' %}active{% endif %}">Sales Orders (Ctrl+F8)</a>
+        <a href="/orders/purchase" class="vtab {% if active_type == 'Purchase Order' %}active{% endif %}">Purchase Orders (Ctrl+F9)</a>
+        <a href="/orders/create?type={{ active_type|replace(' ', '+') }}" class="tally-btn-action" style="margin-left: auto;">+ New {{ active_type }}</a>
+    </div>
+
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;">Order Date</th>
+                <th style="width: 15%;">Order No.</th>
+                <th style="width: 25%;">Party Name</th>
+                <th style="width: 12%;">Due Date</th>
+                <th style="width: 12%;">Status</th>
+                <th style="width: 14%; text-align: right;">Total Value (₹)</th>
+                <th style="width: 10%; text-align: center;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if orders %}
+                {% for o in orders %}
+                <tr>
+                    <td>{{ o.order_date }}</td>
+                    <td><code>{{ o.order_number }}</code></td>
+                    <td><strong>{{ o.party_name }}</strong></td>
+                    <td>{{ o.due_date }}</td>
+                    <td>
+                        <span class="vtype-pill {% if o.status == 'Pending' %}contra{% elif o.status == 'Fulfilled' %}sales{% else %}payment{% endif %}">
+                            {{ o.status }}
+                        </span>
+                    </td>
+                    <td style="text-align: right; font-weight: bold;">₹{{ "%.2f"|format(o.total_amount) }}</td>
+                    <td style="text-align: center;">
+                        {% if o.status == 'Pending' %}
+                        <form method="POST" action="/orders/{{ o.id }}/fulfill" style="display:inline;">
+                            <button type="submit" class="inline-btn" style="color: #1e8449; cursor: pointer;" title="Mark Order as Completed">Fulfill ✓</button>
+                        </form>
+                        {% else %}
+                        <span style="color: #888; font-size: 11px;">Completed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #888; padding: 25px;">No {{ active_type }}s recorded yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

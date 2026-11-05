@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container tally-screen-container" style="background:#fff; height:100%; display:flex; flex-direction:column;">
+    <!-- Sub-header Ribbon matching authentic Tally Day Book -->
+    <div style="background:#5d9bb8; color:#fff; padding:4px 14px; display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600;">
+        <span>Day Book</span>
+        <span style="font-weight:700;">{{ company.name if company else 'Demo Traders Pvt Ltd' }}</span>
+        <span>For {{ vouchers[0].voucher_date if vouchers else today_tally }}</span>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="report-toolbar" style="padding:6px 12px; background:#eaf1f6; border-bottom:1px solid #b3cddf; display:flex; gap:10px; align-items:center;">
+        <a href="/vouchers/create?type=Sales" class="tally-btn-action" style="background:#245882; color:#fff;">+ Add Vch (A)</a>
+        <a href="javascript:void(0)" onclick="openPeriodModal()" class="tally-btn-action" style="background:#134b5f; color:#fff;">Date / Period (F2)</a>
+        <a href="/reports/gst" class="tally-btn-action" style="background:#20687d; color:#fff;">GST Reports</a>
+        <button class="tally-btn-action" onclick="window.print()" style="background:#fff; color:#092f3e; border:1px solid #b3cddf;">Print (P)</button>
+        <div style="margin-left:auto; font-size:12px; color:#475569;">
+            <span id="rowCountBadge">Total Vouchers: <strong>{{ vouchers|length }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Authentic Tally Table -->
+    <div style="flex:1; overflow-y:auto; background:#fff;">
+        <table class="tally-report-table" id="daybookTable" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+                <tr style="background:#f1f5f9; border-bottom:2px solid #94a3b8; height:28px;">
+                    <th style="width: 12%; text-align: left; padding: 4px 8px;">Date</th>
+                    <th style="width: 36%; text-align: left; padding: 4px 8px;">Particulars</th>
+                    <th style="width: 14%; text-align: left; padding: 4px 8px;">Vch Type</th>
+                    <th style="width: 10%; text-align: left; padding: 4px 8px;">Vch No.</th>
+                    <th style="width: 14%; text-align: right; padding: 4px 8px;">Debit Amount</th>
+                    <th style="width: 14%; text-align: right; padding: 4px 8px;">Credit Amount</th>
+                </tr>
+            </thead>
+            <tbody id="daybookBody">
+                {% if vouchers %}
+                    {% for v in vouchers %}
+                    <tr class="daybook-row {% if loop.first %}selected{% endif %}" 
+                        tabindex="0" 
+                        data-id="{{ v.id }}" 
+                        data-vno="{{ v.voucher_number }}"
+                        onclick="selectDaybookRow(this)"
+                        ondblclick="openVoucherAlter({{ v.id }})">
+                        <td style="padding: 4px 8px; font-family: monospace;">{{ v.voucher_date }}</td>
+                        <td style="padding: 4px 8px;">
+                            <strong>{{ v.party_name }}</strong>
+                            {% if v.narration %}
+                            <span style="font-size:11px; color:#64748b; margin-left:6px;">({{ v.narration }})</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 4px 8px;">{{ v.voucher_type }}</td>
+                        <td style="padding: 4px 8px; font-family: monospace;">{{ v.voucher_number }}</td>
+                        <td style="padding: 4px 8px; text-align: right; font-family: monospace;">
+                            {% if v.debit_amount and v.debit_amount > 0 %}
+                                {{ "%.2f"|format(v.debit_amount) }}
+                            {% endif %}
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right; font-family: monospace;">
+                            {% if v.credit_amount and v.credit_amount > 0 %}
+                                {{ "%.2f"|format(v.credit_amount) }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #888; padding: 35px; font-size: 14px;">
+                            No vouchers recorded for this period. Press <strong>A</strong> to record a voucher.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Authentic Bottom Action Bar matching Image 1 -->
+    <div style="background:#d8e8f2; border-top:1px solid #b0c8d8; padding:5px 12px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; font-size:11.5px; color:#092f3e;">
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+            <span class="daybook-action-btn" onclick="window.location.href='/'"><strong>Q</strong>: Quit</span>
+            <span class="daybook-action-btn" onclick="openSelectedVoucher()"><strong>Enter</strong>: Alter</span>
+            <span class="daybook-action-btn" onclick="toggleRowCheck()"><strong>Space</strong>: Select</span>
+            <span class="daybook-action-btn" onclick="window.location.href='/vouchers/create?type=Sales'"><strong>A</strong>: Add Vch</span>
+            <span class="daybook-action-btn" onclick="duplicateSelectedVoucher()"><strong>2</strong>: Duplicate Vch</span>
+            <span class="daybook-action-btn" onclick="window.location.href='/vouchers/create?type=Journal'"><strong>I</strong>: Insert Vch</span>
+            <span class="daybook-action-btn" onclick="deleteSelectedVoucher()"><strong>D</strong>: Delete</span>
+            <span class="daybook-action-btn" onclick="cancelSelectedVoucher()"><strong>X</strong>: Cancel Vch</span>
+            <span class="daybook-action-btn" onclick="removeSelectedLine()"><strong>R</strong>: Remove Line</span>
+            <span class="daybook-action-btn" onclick="window.location.reload()"><strong>U</strong>: Restore Line</span>
+        </div>
+        <div>
+            <span style="font-weight:600; cursor:pointer; color:#245882;" onclick="triggerF12Action()">F12: Configure</span>
+        </div>
+    </div>
+</div>
+
+<!-- ================= CONFIRMATION MODAL ================= -->
+<div id="confirmActionModal" class="tally-modal-overlay" style="display:none; z-index:9999;">
+    <div class="tally-modal-box" style="width: 380px;">
+        <div class="tally-modal-title" id="confirmActionTitle" style="background:#245882; color:#fff; font-weight:700;">Confirm Action</div>
+        <div style="padding: 20px; font-size: 13px; color: #1a3a50;" id="confirmActionMessage">
+            Are you sure you want to proceed?
+        </div>
+        <div style="padding: 10px 15px; background: #eaf1f6; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="inline-btn" style="background: #245882; color: #fff; padding: 5px 15px;" id="btnConfirmYes"><u>Y</u>es</button>
+            <button type="button" class="inline-btn" style="background: #fff; color: #092f3e; padding: 5px 15px;" onclick="closeConfirmModal()"><u>N</u>o (Esc)</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.daybook-row {
+    cursor: pointer;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.05s ease;
+}
+.daybook-row:hover {
+    background-color: #fef08a !important;
+}
+.daybook-row.selected {
+    background-color: #fcb92c !important;
+    color: #000000 !important;
+    font-weight: 600;
+}
+.daybook-row.selected td {
+    color: #000000 !important;
+}
+.daybook-row:focus {
+    outline: none;
+    background-color: #fcb92c !important;
+}
+.daybook-action-btn {
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 2px;
+}
+.daybook-action-btn:hover {
+    background: #c2dbe9;
+}
+.daybook-action-btn strong {
+    color: #004b87;
+    text-decoration: underline;
+}
+</style>
+
+<script>
+let pendingAction = null;
+
+function selectDaybookRow(row) {
+    document.querySelectorAll('.daybook-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    row.focus();
+}
+
+function getSelectedRow() {
+    return document.querySelector('.daybook-row.selected') || document.querySelector('.daybook-row');
+}
+
+function openVoucherAlter(id) {
+    window.location.href = `/invoices/${id}/print`;
+}
+
+function openSelectedVoucher() {
+    const row = getSelectedRow();
+    if (row && row.getAttribute('data-id')) {
+        openVoucherAlter(row.getAttribute('data-id'));
+    }
+}
+
+function deleteSelectedVoucher() {
+    const row = getSelectedRow();
+    if (!row) return;
+    const id = row.getAttribute('data-id');
+    const vno = row.getAttribute('data-vno');
+    promptDeleteVoucher(id, vno);
+}
+
+function cancelSelectedVoucher() {
+    const row = getSelectedRow();
+    if (!row) return;
+    const id = row.getAttribute('data-id');
+    const vno = row.getAttribute('data-vno');
+    promptCancelVoucher(id, vno);
+}
+
+function removeSelectedLine() {
+    const row = getSelectedRow();
+    if (row) {
+        const next = row.nextElementSibling || row.previousElementSibling;
+        row.remove();
+        if (next && next.classList.contains('daybook-row')) {
+            selectDaybookRow(next);
+        }
+    }
+}
+
+function duplicateSelectedVoucher() {
+    const row = getSelectedRow();
+    if (row) {
+        window.location.href = `/vouchers/create?type=Sales`;
+    }
+}
+
+function toggleRowCheck() {
+    const row = getSelectedRow();
+    if (row) {
+        row.classList.toggle('checked-line');
+    }
+}
+
+function promptDeleteVoucher(id, vnum) {
+    document.getElementById('confirmActionTitle').innerText = 'Delete Voucher ?';
+    document.getElementById('confirmActionMessage').innerHTML = `Are you sure you want to permanently <strong>DELETE</strong> voucher <code>${vnum}</code>?<br><br><small style="color: #64748b;">All journal postings and inventory movements will be reversed.</small>`;
+    pendingAction = () => {
+        fetch(`/api/vouchers/${id}/delete`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error deleting voucher: ' + data.error);
+                    closeConfirmModal();
+                }
+            })
+            .catch(err => alert('Network error: ' + err));
+    };
+    document.getElementById('confirmActionModal').style.display = 'flex';
+    document.getElementById('btnConfirmYes').focus();
+}
+
+function promptCancelVoucher(id, vnum) {
+    document.getElementById('confirmActionTitle').innerText = 'Cancel Voucher ?';
+    document.getElementById('confirmActionMessage').innerHTML = `Mark voucher <code>${vnum}</code> as <strong>CANCELLED</strong>?<br><br><small style="color: #64748b;">The voucher number will be preserved in sequence, but financials will be zeroed out.</small>`;
+    pendingAction = () => {
+        fetch(`/api/vouchers/${id}/cancel`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error cancelling voucher: ' + data.error);
+                    closeConfirmModal();
+                }
+            })
+            .catch(err => alert('Network error: ' + err));
+    };
+    document.getElementById('confirmActionModal').style.display = 'flex';
+    document.getElementById('btnConfirmYes').focus();
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmActionModal').style.display = 'none';
+    pendingAction = null;
+}
+
+document.getElementById('btnConfirmYes').onclick = function() {
+    if (typeof pendingAction === 'function') {
+        pendingAction();
+    }
+};
+
+// Full Keyboard Support: Arrow keys, Enter, D, X, Space, Esc
+document.addEventListener('keydown', function(e) {
+    if (document.getElementById('confirmActionModal').style.display === 'flex') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'Enter') {
+            e.preventDefault();
+            if (typeof pendingAction === 'function') pendingAction();
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+            e.preventDefault();
+            closeConfirmModal();
+        }
+        return;
+    }
+
+    const rows = Array.from(document.querySelectorAll('.daybook-row'));
+    if (!rows.length) return;
+    const current = document.querySelector('.daybook-row.selected') || rows[0];
+    const currentIndex = rows.indexOf(current);
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = rows[Math.min(rows.length - 1, currentIndex + 1)];
+        if (next) selectDaybookRow(next);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = rows[Math.max(0, currentIndex - 1)];
+        if (prev) selectDaybookRow(prev);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        openSelectedVoucher();
+    } else if (e.key === ' ') {
+        e.preventDefault();
+        toggleRowCheck();
+    } else if (e.key === 'd' || e.key === 'D') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            deleteSelectedVoucher();
+        }
+    } else if (e.key === 'x' || e.key === 'X') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            cancelSelectedVoucher();
+        }
+    } else if (e.key === 'a' || e.key === 'A') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            window.location.href = '/vouchers/create?type=Sales';
+        }
+    } else if (e.key === 'r' || e.key === 'R') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            removeSelectedLine();
+        }
+    } else if (e.key === 'u' || e.key === 'U') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            window.location.reload();
+        }
+    } else if (e.key === '2') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            // Duplicate Voucher
+            if (current) {
+                const id = current.dataset.id;
+                const vtype = current.dataset.vtype;
+                window.location.href = `/vouchers/create?type=${vtype || 'Sales'}`;
+            }
+        }
+    } else if (e.key === 'i' || e.key === 'I') {
+        if (!e.ctrlKey) {
+            e.preventDefault();
+            window.location.href = '/vouchers/create?type=Sales';
+        }
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        window.location.href = '/';
+    }
+});
+
+// Update Bottom Bar to match authentic Tally Day Book (Screenshot 1)
+document.addEventListener('DOMContentLoaded', function() {
+    const bar = document.querySelector('.bottom-actions-left');
+    if (bar) {
+        bar.innerHTML = `
+            <span class="bottom-action-item" onclick="window.location.href='/'"><strong>Q</strong>: Quit</span>
+            <span class="bottom-action-item" onclick="openSelectedVoucher()"><strong>Enter</strong>: Alter</span>
+            <span class="bottom-action-item" onclick="toggleRowCheck()"><strong>Space</strong>: Select</span>
+            <span class="bottom-action-item" onclick="window.location.href='/vouchers/create?type=Sales'"><strong>A</strong>: Add Vch</span>
+            <span class="bottom-action-item" onclick="window.location.href='/vouchers/create?type=Sales'"><strong>2</strong>: Duplicate Vch</span>
+            <span class="bottom-action-item" onclick="window.location.href='/vouchers/create?type=Sales'"><strong>I</strong>: Insert Vch</span>
+            <span class="bottom-action-item" onclick="deleteSelectedVoucher()"><strong>D</strong>: Delete</span>
+            <span class="bottom-action-item" onclick="cancelSelectedVoucher()"><strong>X</strong>: Cancel Vch</span>
+            <span class="bottom-action-item" onclick="removeSelectedLine()"><strong>R</strong>: Remove Line</span>
+            <span class="bottom-action-item" onclick="window.location.reload()"><strong>U</strong>: Restore Line</span>
+        `;
+    }
+});
+</script>
+{% endblock %}

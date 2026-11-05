@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card">
+    <div class="tally-card-header">
+        <span>Manufacturing Journals Register (Alt+F7)</span>
+        <div style="display:flex; gap:10px;">
+            <a href="/inventory/bom/create" class="tally-btn" style="padding:4px 12px; font-size:12px; text-decoration:none;">B: Bill of Materials</a>
+            <a href="/inventory/manufacturing/create" class="tally-btn tally-btn-primary" style="padding:4px 12px; font-size:12px; text-decoration:none;">+ New Manufacturing Journal</a>
+        </div>
+    </div>
+    <div class="tally-card-body" style="padding: 0;">
+        <table class="tally-table">
+            <thead>
+                <tr>
+                    <th style="width: 120px;">Voucher No</th>
+                    <th style="width: 120px;">Date</th>
+                    <th>Finished Good Produced</th>
+                    <th>Destination Godown</th>
+                    <th style="text-align: right; width: 120px;">Produced Qty</th>
+                    <th style="text-align: right; width: 140px;">Raw Mat Cost</th>
+                    <th style="text-align: right; width: 120px;">Addl Cost</th>
+                    <th style="text-align: right; width: 140px;">Total Cost</th>
+                    <th style="text-align: right; width: 120px;">Eff. Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if journals %}
+                    {% for j in journals %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--tally-yellow);">{{ j.voucher_number }}</td>
+                        <td>{{ j.voucher_date }}</td>
+                        <td><strong>{{ j.finished_item_name }}</strong></td>
+                        <td>{{ j.destination_godown_name }}</td>
+                        <td style="text-align: right;">{{ "{:,.2f}".format(j.produced_qty) }}</td>
+                        <td style="text-align: right;">₹{{ "{:,.2f}".format(j.raw_materials_cost) }}</td>
+                        <td style="text-align: right;">₹{{ "{:,.2f}".format(j.additional_cost) }}</td>
+                        <td style="text-align: right; font-weight: 600;">₹{{ "{:,.2f}".format(j.total_cost) }}</td>
+                        <td style="text-align: right; color: var(--tally-cyan);">₹{{ "{:,.2f}".format(j.effective_rate) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px; color: var(--tally-muted);">
+                            No manufacturing journals recorded yet. Click <strong>+ New Manufacturing Journal</strong> to assemble finished goods from components.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="tally-card-header" style="background: #245882; color: #fff;">
+        <span>Funds Flow Statement</span>
+        <span style="font-size: 11px; font-weight: normal;">FY {{ report.fy_year }}-{{ report.fy_year + 1 }}</span>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; padding: 0;">
+        <!-- Two Column Sources vs Applications -->
+        <div style="display: flex; border-bottom: 2px solid #245882;">
+            <!-- Left Side: Sources of Funds -->
+            <div style="flex: 1; border-right: 1px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <table class="tally-table">
+                        <thead>
+                            <tr style="background: #e2ecf2;">
+                                <th style="padding: 6px 14px; text-transform: uppercase;">Sources of Funds</th>
+                                <th style="text-align: right; width: 140px; padding: 6px 14px;">Amount (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in report.sources %}
+                            <tr>
+                                <td style="padding: 6px 14px; font-weight: 600; color: #0f2d3d;">{{ s.name }}</td>
+                                <td style="text-align: right; padding: 6px 14px; color: #047857; font-weight: 700;">
+                                    ₹{{ "{:,.2f}".format(s.amount) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" style="padding: 10px 14px; color: #7f8c8d; text-align: center;">No additional sources recorded</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="background: #e2ecf2; border-top: 1px solid #cbd5e1; padding: 8px 14px; display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;">
+                    <span>Total Sources</span>
+                    <span style="color: #047857;">₹{{ "{:,.2f}".format(report.total_sources) }}</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Applications of Funds -->
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <table class="tally-table">
+                        <thead>
+                            <tr style="background: #e2ecf2;">
+                                <th style="padding: 6px 14px; text-transform: uppercase;">Applications of Funds</th>
+                                <th style="text-align: right; width: 140px; padding: 6px 14px;">Amount (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in report.applications %}
+                            <tr>
+                                <td style="padding: 6px 14px; font-weight: 600; color: #0f2d3d;">{{ a.name }}</td>
+                                <td style="text-align: right; padding: 6px 14px; color: #b91c1c; font-weight: 700;">
+                                    ₹{{ "{:,.2f}".format(a.amount) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" style="padding: 10px 14px; color: #7f8c8d; text-align: center;">No funds applied out</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="background: #e2ecf2; border-top: 1px solid #cbd5e1; padding: 8px 14px; display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;">
+                    <span>Total Applications</span>
+                    <span style="color: #b91c1c;">₹{{ "{:,.2f}".format(report.total_applications) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Working Capital Bar -->
+        <div style="background: #fcb92c; color: #000; padding: 10px 16px; display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; border-bottom: 2px solid #b45309;">
+            <span>Net Change in Working Capital:</span>
+            <span>₹{{ "{:,.2f}".format(report.working_capital_change) }}</span>
+        </div>
+
+        <!-- Monthly Breakdown Table -->
+        <div style="margin: 15px;">
+            <div style="font-size: 11px; font-weight: bold; color: #4b6b82; margin-bottom: 8px; text-transform: uppercase;">
+                Monthly Summary
+            </div>
+            <table class="tally-table">
+                <thead>
+                    <tr style="background: #e2ecf2;">
+                        <th style="padding: 5px 12px;">Month</th>
+                        <th style="text-align: right; padding: 5px 12px;">Inflow (₹)</th>
+                        <th style="text-align: right; padding: 5px 12px;">Outflow (₹)</th>
+                        <th style="text-align: right; padding: 5px 12px;">Nett Flow (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in report.monthly_flows %}
+                    <tr>
+                        <td style="padding: 4px 12px; font-weight: 600;">{{ m.month_name }}</td>
+                        <td style="text-align: right; padding: 4px 12px; color: #0d9488;">₹{{ "{:,.2f}".format(m.inflow) }}</td>
+                        <td style="text-align: right; padding: 4px 12px; color: #e11d48;">₹{{ "{:,.2f}".format(m.outflow) }}</td>
+                        <td style="text-align: right; padding: 4px 12px; font-weight: 700; color: {% if m.nett_flow >= 0 %}#047857{% else %}#b91c1c{% endif %};">
+                            ₹{{ "{:,.2f}".format(m.nett_flow) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

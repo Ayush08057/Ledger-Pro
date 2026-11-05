@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Bank Reconciliation Statement (BRS)</div>
+        <div class="report-subtitle">{{ company.name }} | {{ brs.bank_name if brs else 'Select Bank Account' }}</div>
+    </div>
+
+    <!-- Bank Account Selector -->
+    <div class="party-section" style="margin-bottom: 15px;">
+        <label class="field-label">Bank Ledger:</label>
+        <select id="bank_ledger_select" class="tally-select" onchange="changeBank(this.value)">
+            {% for b in bank_ledgers %}
+            <option value="{{ b.id }}" {% if selected_bank_id == b.id %}selected{% endif %}>
+                🏦 {{ b.name }} (Cur Bal: ₹{{ b.current_balance }} {{ b.current_balance_type }})
+            </option>
+            {% endfor %}
+        </select>
+        {% if brs and brs.is_reconciled %}
+        <span class="status-banner balanced" style="padding: 4px 10px; margin: 0; margin-left: auto;">✓ Bank Account is Fully Reconciled</span>
+        {% endif %}
+    </div>
+
+    {% if brs %}
+    <!-- BRS Header Summary Box (Classic Tally BRS Box) -->
+    <div class="summary-section" style="width: 100%; margin-bottom: 16px; background: #fdfefe; border: 2px solid #0f3d4c;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; font-size: 13px;">
+            <div>
+                <span style="color: #555;">Balance as per Company Books:</span><br>
+                <strong style="font-size: 15px; color: #0f3d4c;">₹{{ "%.2f"|format(brs.book_balance) }} {{ brs.book_balance_type }}</strong>
+            </div>
+            <div>
+                <span style="color: #555;">Uncleared Cheques / Deposits:</span><br>
+                <span style="color: #c0392b;">Outward: ₹{{ "%.2f"|format(brs.uncleared_payments) }}</span> | 
+                <span style="color: #1e8449;">Inward: ₹{{ "%.2f"|format(brs.uncleared_deposits) }}</span>
+            </div>
+            <div>
+                <span style="color: #555;">Balance as per Bank Statement:</span><br>
+                <strong style="font-size: 15px; color: #1e8449;">₹{{ "%.2f"|format(brs.bank_statement_balance) }} {{ brs.bank_statement_balance_type }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Table with Editable Bank Dates -->
+    <table class="tally-report-table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">Book Date</th>
+                <th style="width: 25%;">Particulars / Party</th>
+                <th style="width: 12%;">Vch Type &amp; No.</th>
+                <th style="width: 13%; text-align: right;">Debit (Deposit)</th>
+                <th style="width: 13%; text-align: right;">Credit (Payment)</th>
+                <th style="width: 15%;">Instrument / Cheque No.</th>
+                <th style="width: 12%;">Bank Clearance Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if brs.transactions %}
+                {% for t in brs.transactions %}
+                <tr class="brs-row" data-jid="{{ t.journal_id }}">
+                    <td>{{ t.entry_date }}</td>
+                    <td><strong>{{ t.party_name }}</strong><br><small class="sub-text">{{ t.narration }}</small></td>
+                    <td><span class="vtype-pill {{ t.voucher_type|lower }}">{{ t.voucher_type }}</span><br><code>{{ t.voucher_number }}</code></td>
+                    <td style="text-align: right; color: #1e8449;">{% if t.entry_type == 'Dr' %}₹{{ "%.2f"|format(t.amount) }}{% else %}-{% endif %}</td>
+                    <td style="text-align: right; color: #c0392b;">{% if t.entry_type == 'Cr' %}₹{{ "%.2f"|format(t.amount) }}{% else %}-{% endif %}</td>
+                    <td>
+                        <input type="text" class="inst-no tally-input" style="width: 100px; font-size: 12px;" value="{{ t.instrument_no or '' }}" placeholder="Chq No.">
+                    </td>
+                    <td>
+                        <input type="date" class="bank-date tally-input" style="width: 130px; font-size: 12px;" value="{{ t.bank_date or '' }}">
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #888; padding: 25px;">No transactions recorded under this bank account yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="voucher-actions" style="margin-top: 18px;">
+        <button type="button" class="tally-btn-save" onclick="saveReconciliations()">Save Reconciliation (Ctrl+A / Enter)</button>
+        <a href="/" class="tally-btn-cancel">Cancel (Esc)</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeBank(bankId) {
+    window.location.href = `/banking/reconciliation?bank_id=${bankId}`;
+}
+
+function saveReconciliations() {
+    const bankId = parseInt(document.getElementById('bank_ledger_select').value);
+    const rows = document.querySelectorAll('.brs-row');
+    let items = [];
+
+    rows.forEach(r => {
+        const jid = parseInt(r.getAttribute('data-jid'));
+        const bDate = r.querySelector('.bank-date').value;
+        const instNo = r.querySelector('.inst-no').value;
+        items.push({
+            journal_id: jid,
+            bank_date: bDate,
+            instrument_no: instNo
+        });
+    });
+
+    fetch('/api/banking/reconcile', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            bank_ledger_id: bankId,
+            items: items
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Reconciliation successfully updated!');
+            window.location.reload();
+        } else {
+            alert('Error updating reconciliation: ' + data.error);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}
+

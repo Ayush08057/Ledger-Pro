@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tally-card">
+    <div class="tally-card-header">
+        <span>Form 26Q - Tax Deducted at Source (TDS) Summary</span>
+        <div style="display:flex; gap:10px;">
+            <a href="/statutory/tds/entry" class="tally-btn tally-btn-primary" style="padding:4px 12px; font-size:12px; text-decoration:none;">+ New TDS Expense Entry</a>
+        </div>
+    </div>
+    <div class="tally-card-body" style="padding: 20px;">
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-left: 3px solid var(--tally-cyan); border-radius: 4px;">
+                <div style="font-size: 11px; color: var(--tally-muted); text-transform: uppercase;">Total Gross Expense</div>
+                <div style="font-size: 20px; font-weight: 700; color: #fff; margin-top: 5px;">₹{{ "{:,.2f}".format(report.total_gross) }}</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-left: 3px solid var(--tally-yellow); border-radius: 4px;">
+                <div style="font-size: 11px; color: var(--tally-muted); text-transform: uppercase;">Total TDS Deducted</div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--tally-yellow); margin-top: 5px;">₹{{ "{:,.2f}".format(report.total_tds) }}</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-left: 3px solid #2ecc71; border-radius: 4px;">
+                <div style="font-size: 11px; color: var(--tally-muted); text-transform: uppercase;">Total Net Payable</div>
+                <div style="font-size: 20px; font-weight: 700; color: #2ecc71; margin-top: 5px;">₹{{ "{:,.2f}".format(report.total_gross - report.total_tds) }}</div>
+            </div>
+        </div>
+
+        <h4 style="color:var(--tally-yellow); margin-bottom: 10px;">Section-wise Summary</h4>
+        <table class="tally-table" style="margin-bottom: 25px;">
+            <thead>
+                <tr>
+                    <th style="width: 140px;">Section Code</th>
+                    <th>Nature of Payment</th>
+                    <th style="text-align: right; width: 100px;">Count</th>
+                    <th style="text-align: right; width: 180px;">Gross Amount</th>
+                    <th style="text-align: right; width: 180px;">TDS Deducted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if report.section_summary %}
+                    {% for sec in report.section_summary %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--tally-yellow);">u/s {{ sec.section_code }}</td>
+                        <td>
+                            {% if sec.section_code == '194C' %}Payments to Contractors
+                            {% elif sec.section_code == '194J' %}Professional & Technical Fees
+                            {% elif '194I' in sec.section_code %}Rent
+                            {% elif sec.section_code == '194H' %}Commission / Brokerage
+                            {% elif sec.section_code == '206C' %}TCS on Sale
+                            {% else %}Other Nature of Payment{% endif %}
+                        </td>
+                        <td style="text-align: right;">{{ sec.count }}</td>
+                        <td style="text-align: right;">₹{{ "{:,.2f}".format(sec.gross_amount) }}</td>
+                        <td style="text-align: right; font-weight: 600; color: var(--tally-cyan);">₹{{ "{:,.2f}".format(sec.tds_amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:20px; color:var(--tally-muted);">No section summaries recorded yet.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <h4 style="color:var(--tally-yellow); margin-bottom: 10px;">Deductee Transactions (Annexure 26Q)</h4>
+        <table class="tally-table">
+            <thead>
+                <tr>
+                    <th style="width: 110px;">Date</th>
+                    <th style="width: 110px;">Voucher No</th>
+                    <th>Deductee / Vendor Name</th>
+                    <th style="width: 120px;">PAN</th>
+                    <th style="width: 90px;">Section</th>
+                    <th style="text-align: right; width: 130px;">Gross Amount</th>
+                    <th style="text-align: right; width: 80px;">Rate %</th>
+                    <th style="text-align: right; width: 130px;">TDS Amount</th>
+                    <th style="text-align: right; width: 130px;">Net Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if report.entries %}
+                    {% for e in report.entries %}
+                    <tr>
+                        <td>{{ e.booking_date }}</td>
+                        <td style="color: var(--tally-yellow);">{{ e.voucher_number or '-' }}</td>
+                        <td><strong>{{ e.deductee_name }}</strong></td>
+                        <td style="font-family: monospace;">{{ e.pan_number or 'NO PAN (20%)' }}</td>
+                        <td>{{ e.section_code }}</td>
+                        <td style="text-align: right;">₹{{ "{:,.2f}".format(e.gross_amount) }}</td>
+                        <td style="text-align: right;">{{ e.tds_rate }}%</td>
+                        <td style="text-align: right; color: var(--tally-cyan); font-weight: 600;">₹{{ "{:,.2f}".format(e.tds_amount) }}</td>
+                        <td style="text-align: right;">₹{{ "{:,.2f}".format(e.net_amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" style="text-align:center; padding:30px; color:var(--tally-muted);">
+                            No TDS deduction vouchers found. Click <strong>+ New TDS Expense Entry</strong> to book an expense with withholding tax.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

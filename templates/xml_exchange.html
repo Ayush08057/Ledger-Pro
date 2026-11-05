@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">Data Exchange (Tally XML Interoperability)</div>
+        <div class="report-subtitle">{{ company.name }} | Standard &lt;ENVELOPE&gt; XML Format</div>
+    </div>
+
+    <div class="bs-grid">
+        <!-- Export Box -->
+        <div class="bs-column">
+            <div class="tally-box">
+                <div class="tally-box-header">EXPORT DATA TO TALLY XML</div>
+                <div class="tally-box-body">
+                    <p style="font-size: 13px; color: #555; margin-bottom: 15px;">
+                        Export all Ledgers, Groups, and Stock Items in the standard Tally XML format compatible with Tally.ERP 9 and TallyPrime.
+                    </p>
+                    <a href="/data/export/tally-xml" class="tally-btn-save" download="tally_masters.xml" style="text-decoration: none; display: inline-block;">
+                        📥 Download Tally XML
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Box -->
+        <div class="bs-column">
+            <div class="tally-box">
+                <div class="tally-box-header">IMPORT DATA FROM TALLY XML</div>
+                <div class="tally-box-body">
+                    <p style="font-size: 13px; color: #555; margin-bottom: 15px;">
+                        Select and import a valid Tally XML file exported from another Tally installation.
+                    </p>
+                    <form method="POST" action="/data/import/tally-xml" enctype="multipart/form-data">
+                        <input type="file" name="xml_file" accept=".xml" required style="margin-bottom: 15px; font-size: 12px;"><br>
+                        <button type="submit" class="tally-btn-action">📤 Import into SQLite</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="status-banner balanced" style="margin-top: 20px;">
+        {{ message }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
