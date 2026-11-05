@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0d47a1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ledger Pro">
+    <title>{{ data.company_name }} - Mobile Dashboard</title>
+    
+    <!-- Chart.js for smooth touch-enabled interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #0288d1;
+            --primary-dark: #01579b;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 40px;
+        }
+
+        /* Top App Bar */
+        .app-bar {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 16px 20px 20px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .app-bar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .company-title {
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 75%;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background-color: #4ade80;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px #4ade80;
+        }
+
+        .sync-info {
+            font-size: 11px;
+            opacity: 0.85;
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Container */
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Section Titles */
+        .section-header {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-sub);
+            margin: 18px 0 10px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card.full-width {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+        }
+
+        .kpi-card.full-width .kpi-label {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .kpi-card.full-width .kpi-value {
+            color: white;
+            font-size: 26px;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .kpi-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-sub {
+            font-size: 11px;
+            margin-top: 4px;
+            color: var(--text-sub);
+        }
+
+        .kpi-card.full-width .kpi-sub {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 18px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 14px;
+        }
+
+        .chart-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 220px;
+            width: 100%;
+        }
+
+        /* List Items */
+        .list-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .list-row {
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .list-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-main {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .item-sub {
+            font-size: 11.5px;
+            color: var(--text-sub);
+        }
+
+        .item-amount {
+            font-size: 14px;
+            font-weight: 700;
+            text-align: right;
+            color: var(--text-main);
+        }
+
+        .pct-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 2px;
+        }
+
+        /* Empty state notice */
+        .empty-notice {
+            padding: 24px 16px;
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 13px;
+        }
+
+        /* Spinning animation for refresh */
+        .spinning {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= APP BAR ================= -->
+    <header class="app-bar">
+        <div class="app-bar-top">
+            <div class="company-title" id="companyName">{{ data.company_name }}</div>
+            <div class="status-badge">
+                <span class="pulse-dot"></span>
+                <span>Live Sync</span>
+            </div>
+        </div>
+        <div class="sync-info">
+            <span id="syncTimestamp">Synced: {{ data.synced_at }}</span>
+            <button class="refresh-btn" onclick="fetchLiveDashboard(this)">
+                <span id="refreshIcon">🔄</span>
+                <span>Refresh</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- ================= TOP KPI CARDS ================= -->
+        <div class="section-header">
+            <span>Sales Overview</span>
+            <span style="font-size: 11px; text-transform:none; font-weight: normal; color: var(--text-sub);">Real-time</span>
+        </div>
+
+        <div class="kpi-grid">
+            <!-- Today's Sales Full Width -->
+            <div class="kpi-card full-width">
+                <div class="kpi-label">Today's Total Sales</div>
+                <div class="kpi-value" id="todaySales">₹{{ "{:,.2f}".format(data.metrics.today_sales) }}</div>
+                <div class="kpi-sub">Strictly dynamic from verified invoices</div>
+            </div>
+
+            <!-- This Month Sales -->
+            <div class="kpi-card">
+                <div class="kpi-label">This Month Sales</div>
+                <div class="kpi-value" style="color: #0288d1;" id="monthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
+                <div class="kpi-sub" id="monthInvoices">{{ data.metrics.month_invoices }} bills this month</div>
+            </div>
+
+            <!-- This Year Sales -->
+            <div class="kpi-card">
+                <div class="kpi-label">Year-to-Date Sales</div>
+                <div class="kpi-value" style="color: #8b5cf6;" id="yearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
+                <div class="kpi-sub">Financial Year Total</div>
+            </div>
+        </div>
+
+        <!-- ================= FINANCIAL HEALTH ================= -->
+        <div class="section-header">
+            <span>Cash & Receivables</span>
+        </div>
+
+        <div class="kpi-grid">
+            <!-- Cash in Hand -->
+            <div class="kpi-card">
+                <div class="kpi-label">Cash in Hand</div>
+                <div class="kpi-value" style="color: #10b981;" id="cashBalance">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
+                <div class="kpi-sub">Ready Cash</div>
+            </div>
+
+            <!-- Bank Accounts -->
+            <div class="kpi-card">
+                <div class="kpi-label">Bank Balance</div>
+                <div class="kpi-value" style="color: #0288d1;" id="bankBalance">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
+                <div class="kpi-sub">All Linked Accounts</div>
+            </div>
+
+            <!-- Pending Receivables (Debtors) -->
+            <div class="kpi-card">
+                <div class="kpi-label">To Collect (Debtors)</div>
+                <div class="kpi-value" style="color: #f59e0b;" id="totalReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
+                <div class="kpi-sub">Customer Outstanding</div>
+            </div>
+
+            <!-- Pending Payables (Creditors) -->
+            <div class="kpi-card">
+                <div class="kpi-label">To Pay (Creditors)</div>
+                <div class="kpi-value" style="color: #ef4444;" id="totalPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
+                <div class="kpi-sub">Supplier Outstanding</div>
+            </div>
+        </div>
+
+        <!-- ================= BAR CHART: MONTHLY SALES TREND ================= -->
+        <div class="section-header">
+            <span>Monthly Sales Growth</span>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">
+                <span>Sales Trend (Last 6 Months)</span>
+                <span style="font-size: 11px; font-weight: 500; color: var(--text-sub);">Dynamic</span>
+            </div>
+            <div class="chart-box">
+                <canvas id="salesBarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ================= DONUT CHART: PAYMENT MODES ================= -->
+        <div class="section-header">
+            <span>Sales By Payment Mode</span>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">
+                <span>Cash vs Bank vs Credit</span>
+            </div>
+            <div class="chart-box" style="height: 200px;">
+                <canvas id="salesDonutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ================= TOP CUSTOMERS ================= -->
+        <div class="section-header">
+            <span>Top Customers by Sales</span>
+        </div>
+
+        <div class="list-card" id="topCustomersList">
+            {% if data.top_customers %}
+                {% for c in data.top_customers %}
+                    <div class="list-row">
+                        <div>
+                            <div class="item-main">{{ c.name }}</div>
+                            <div class="item-sub">{{ c.bills }} Invoices</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="item-amount">₹{{ "{:,.2f}".format(c.amount) }}</div>
+                            <span class="pct-badge">{{ c.percentage }}% of total</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-notice">No sales invoices recorded yet.</div>
+            {% endif %}
+        </div>
+
+        <!-- ================= RECENT INVOICES ================= -->
+        <div class="section-header">
+            <span>Recent Sales Invoices</span>
+        </div>
+
+        <div class="list-card" id="recentInvoicesList">
+            {% if data.recent_invoices %}
+                {% for inv in data.recent_invoices %}
+                    <div class="list-row">
+                        <div>
+                            <div class="item-main">{{ inv.voucher_number }}</div>
+                            <div class="item-sub">{{ inv.customer }} &bull; {{ inv.date }}</div>
+                        </div>
+                        <div class="item-amount" style="color: #059669;">
+                            ₹{{ "{:,.2f}".format(inv.amount) }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-notice">No recent sales vouchers found.</div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- ================= CHARTS INITIALIZATION & AUTO-REFRESH SCRIPT ================= -->
+    <script>
+        // Initial data injected dynamically from server
+        let chartData = {{ data.charts | tojson }};
+
+        let barChartInstance = null;
+        let donutChartInstance = null;
+
+        function initCharts(data) {
+            // 1. Bar Chart Setup
+            const barCtx = document.getElementById('salesBarChart').getContext('2d');
+            if (barChartInstance) barChartInstance.destroy();
+
+            barChartInstance = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.bar_chart.labels,
+                    datasets: [{
+                        label: 'Sales (₹)',
+                        data: data.bar_chart.values,
+                        backgroundColor: '#0288d1',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        maxBarThickness: 32
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value);
+                                },
+                                font: { size: 10 }
+                            },
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // 2. Donut Chart Setup
+            const donutCtx = document.getElementById('salesDonutChart').getContext('2d');
+            if (donutChartInstance) donutChartInstance.destroy();
+
+            const sumDonut = data.donut_chart.values.reduce((a, b) => a + b, 0);
+            const donutValues = sumDonut > 0 ? data.donut_chart.values : [1, 0, 0];
+            const donutColors = sumDonut > 0 ? ['#10b981', '#0288d1', '#f59e0b'] : ['#e5e7eb', '#e5e7eb', '#e5e7eb'];
+
+            donutChartInstance = new Chart(donutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.donut_chart.labels,
+                    datasets: [{
+                        data: donutValues,
+                        backgroundColor: donutColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            enabled: sumDonut > 0,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
+                                }
+                            }
+                        }
+                    },
+                    cutout: '68%'
+                }
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts(chartData);
+        });
+
+        // Dynamic One-tap Refresh via API
+        async function fetchLiveDashboard(btn) {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('spinning');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/mobile/dashboard');
+                if (!res.ok) throw new Error('Network error');
+                const json = await res.json();
+
+                // Update text metrics
+                document.getElementById('companyName').textContent = json.company_name;
+                document.getElementById('syncTimestamp').textContent = 'Synced: ' + json.synced_at;
+                document.getElementById('todaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('monthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('yearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills this month';
+                document.getElementById('cashBalance').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('bankBalance').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('totalReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('totalPayables').textContent = '₹' + json.metrics.total_payables.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+                // Update Charts
+                initCharts(json.charts);
+
+                // Update Top Customers
+                const custList = document.getElementById('topCustomersList');
+                if (json.top_customers && json.top_customers.length > 0) {
+                    custList.innerHTML = json.top_customers.map(c => `
+                        <div class="list-row">
+                            <div>
+                                <div class="item-main">${c.name}</div>
+                                <div class="item-sub">${c.bills} Invoices</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="item-amount">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                                <span class="pct-badge">${c.percentage}% of total</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Update Recent Invoices
+                const invList = document.getElementById('recentInvoicesList');
+                if (json.recent_invoices && json.recent_invoices.length > 0) {
+                    invList.innerHTML = json.recent_invoices.map(inv => `
+                        <div class="list-row">
+                            <div>
+                                <div class="item-main">${inv.voucher_number}</div>
+                                <div class="item-sub">${inv.customer} &bull; ${inv.date}</div>
+                            </div>
+                            <div class="item-amount" style="color: #059669;">
+                                ₹${inv.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (err) {
+                console.error("Sync error:", err);
+            } finally {
+                icon.classList.remove('spinning');
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -60,6 +60,7 @@
         </div>
 
         <div class="top-menu-right">
+            <a href="javascript:void(0)" onclick="openMobileModal()" class="top-link" style="color: #6ee7b7; font-weight: 700;">📱 Mobile</a>
             <a href="/data/exchange" class="top-link"><span class="key-underline">O</span>: Import</a>
             <a href="/data/exchange" class="top-link"><span class="key-underline">E</span>: Export</a>
             <a href="javascript:void(0)" onclick="openShareModal()" class="top-link"><span class="key-underline">M</span>: Share</a>
@@ -140,6 +141,27 @@
         <div class="q-options">
             <span onclick="confirmQuit()" class="selected">Yes</span>
             <span onclick="closeQuitPrompt()">No</span>
+        </div>
+    </div>
+
+    <!-- ================= MOBILE DASHBOARD MODAL ================= -->
+    <div id="mobileDashboardModal" class="tally-modal-overlay" style="display:none; justify-content:center; align-items:center;">
+        <div class="tally-modal-box" style="width: 360px; padding: 20px; text-align: center; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background:#fff;">
+            <div style="font-size: 16px; font-weight: 700; color: #002b49; margin-bottom: 6px;">📱 Live Mobile Dashboard</div>
+            <div style="font-size: 12px; color: #555; margin-bottom: 16px;">Scan with your phone's camera to view live sales, graphs, and cash balances:</div>
+            
+            <div style="display:flex; justify-content:center; margin-bottom: 14px;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://ledgerpro-ten.vercel.app/mobile" alt="Mobile Dashboard QR" style="width: 170px; height: 170px; border: 1px solid #ccc; padding: 6px; border-radius: 8px;">
+            </div>
+
+            <div style="background:#f1f5f9; padding: 10px; border-radius: 6px; font-size: 12px; word-break: break-all; margin-bottom: 16px; color:#0369a1; font-weight:600;">
+                https://ledgerpro-ten.vercel.app/mobile
+            </div>
+
+            <div style="display:flex; gap: 8px; justify-content:center;">
+                <a href="/mobile" target="_blank" style="padding: 8px 14px; background:#0288d1; color:white; text-decoration:none; border-radius:4px; font-size:12px; font-weight:600;">Open Mobile View</a>
+                <button onclick="closeMobileModal()" style="padding: 8px 14px; background:#e2e8f0; color:#334155; border:none; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer;">Close (Esc)</button>
+            </div>
         </div>
     </div>
 
@@ -882,6 +904,15 @@
     }
     function closeCreateModal() {
         document.getElementById('createMasterModal').style.display = 'none';
+    }
+
+    function openMobileModal() {
+        const modal = document.getElementById('mobileDashboardModal');
+        if (modal) modal.style.display = 'flex';
+    }
+    function closeMobileModal() {
+        const modal = document.getElementById('mobileDashboardModal');
+        if (modal) modal.style.display = 'none';
     }
 
     function openAlterModal() {
@@ -1629,6 +1660,7 @@
                 e.target.blur();
                 e.preventDefault();
                 closeGotoModal();
+                closeMobileModal();
                 closeCreateModal();
                 closeAlterModal();
                 closeChangeModeModal();
@@ -1671,7 +1703,7 @@
         if (e.key === 'Escape') {
             e.preventDefault();
             const openModals = [
-                'gotoModal', 'createMasterModal', 'alterMasterModal',
+                'gotoModal', 'mobileDashboardModal', 'createMasterModal', 'alterMasterModal',
                 'changeModeModal', 'periodModal', 'generalConfigModal',
                 'shareModal', 'helpModal', 'companyFeaturesModal', 'otherVouchersModal'
             ];

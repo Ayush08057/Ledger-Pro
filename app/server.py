@@ -135,7 +135,6 @@ app = Flask(
     template_folder=str(BASE_DIR / "templates"),
     static_folder=str(BASE_DIR / "static")
 )
-app.url_map.strict_slashes = False
 
 # Active company ID in memory
 ACTIVE_COMPANY_ID = 1
@@ -154,16 +153,35 @@ def get_active_company():
     return comp
 
 
+from app.mobile_analytics import get_mobile_dashboard_data
+
+
 @app.before_request
 def ensure_company_selected():
-    if not request.endpoint or request.endpoint in ["company_create_view", "company_select", "static"]:
+    if not request.endpoint or request.endpoint in ["company_create_view", "company_select", "static", "mobile_dashboard", "mobile_dashboard_api"]:
         return
     path = request.path or ""
-    if path.startswith("/company") or path.startswith("/static") or "company" in path:
+    if path.startswith("/company") or path.startswith("/static") or path.startswith("/mobile") or path.startswith("/api/mobile") or "company" in path:
         return
     comps = list_companies()
     if not comps:
         return redirect(url_for("company_create_view"))
+
+
+@app.route("/mobile")
+def mobile_dashboard():
+    comp = get_active_company()
+    cid = comp["id"] if comp else 1
+    data = get_mobile_dashboard_data(cid)
+    return render_template("mobile_dashboard.html", data=data)
+
+
+@app.route("/api/mobile/dashboard")
+def mobile_dashboard_api():
+    comp = get_active_company()
+    cid = comp["id"] if comp else 1
+    data = get_mobile_dashboard_data(cid)
+    return jsonify(data)
 
 
 @app.context_processor

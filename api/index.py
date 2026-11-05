@@ -39,3 +39,5 @@ try:
     init_price_list_schema()
 except Exception as e:
     print(f"Serverless init notice: {e}")
+
+

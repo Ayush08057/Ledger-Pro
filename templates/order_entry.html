@@ -8,15 +8,19 @@
             <span class="vno-badge">No. {{ next_order_no }}</span>
         </div>
         <div class="vdate-box" style="display: flex; gap: 14px; align-items: center;">
-            <div>Order Date: <input type="date" id="order_date" value="{{ today }}" class="tally-input-date"> <span id="voucherDayDisplay" style="font-weight:700; color:#245882; font-size:11.5px;">{{ today_day }}</span></div>
+            <div>Order Date: <input type="date" id="order_date" value="{{ today }}" class="tally-input-date"> <span
+                    id="voucherDayDisplay" style="font-weight:700; color:#245882; font-size:11.5px;">{{ today_day
+                    }}</span></div>
             <div>Due Date: <input type="date" id="due_date" value="2026-11-15" class="tally-input-date"></div>
         </div>
     </div>
 
     <!-- Switcher between Sales Order & Purchase Order -->
     <div class="vtype-switcher">
-        <a href="/orders/create?type=Sales+Order" class="vtab {% if order_type == 'Sales Order' %}active{% endif %}">Ctrl+F8: Sales Order</a>
-        <a href="/orders/create?type=Purchase+Order" class="vtab {% if order_type == 'Purchase Order' %}active{% endif %}">Ctrl+F9: Purchase Order</a>
+        <a href="/orders/create?type=Sales+Order"
+            class="vtab {% if order_type == 'Sales Order' %}active{% endif %}">Ctrl+F8: Sales Order</a>
+        <a href="/orders/create?type=Purchase+Order"
+            class="vtab {% if order_type == 'Purchase Order' %}active{% endif %}">Ctrl+F9: Purchase Order</a>
         <a href="/orders/sales" class="vtab" style="margin-left: auto;">View Sales Orders</a>
         <a href="/orders/purchase" class="vtab">View Purchase Orders</a>
     </div>
@@ -55,14 +59,17 @@
                             <select class="item-select tally-select" required onchange="calculateOrderTotals()">
                                 <option value="">-- Select Item --</option>
                                 {% for s in stock_items %}
-                                <option value="{{ s.id }}" data-rate="{{ s.opening_rate }}" data-gst="{{ s.gst_rate }}" data-unit="{{ s.unit_symbol }}">
+                                <option value="{{ s.id }}" data-rate="{{ s.opening_rate }}" data-gst="{{ s.gst_rate }}"
+                                    data-unit="{{ s.unit_symbol }}">
                                     {{ s.name }} ({{ s.unit_symbol }})
                                 </option>
                                 {% endfor %}
                             </select>
                         </td>
-                        <td><input type="number" step="any" min="0.01" class="item-qty tally-input" value="1" required oninput="calculateOrderTotals()"></td>
-                        <td><input type="number" step="0.01" min="0" class="item-rate tally-input" value="0.0" required oninput="calculateOrderTotals()"></td>
+                        <td><input type="number" step="any" min="0.01" class="item-qty tally-input" value="1" required
+                                oninput="calculateOrderTotals()"></td>
+                        <td><input type="number" step="0.01" min="0" class="item-rate tally-input" value="0.0" required
+                                oninput="calculateOrderTotals()"></td>
                         <td><input type="number" step="0.01" class="item-gst tally-input" value="18.0" readonly></td>
                         <td><span class="item-amount" style="font-weight: bold;">0.00</span></td>
                         <td><button type="button" class="del-row-btn" onclick="removeOrderRow(this)">✕</button></td>
@@ -75,7 +82,8 @@
         <div class="summary-section">
             <div class="summary-row"><span>Order Subtotal:</span><strong id="order_subtotal">₹0.00</strong></div>
             <div class="summary-row"><span>Estimated Tax:</span><strong id="order_tax">₹0.00</strong></div>
-            <div class="summary-row total-highlight"><span>Total Order Value:</span><strong id="order_total">₹0.00</strong></div>
+            <div class="summary-row total-highlight"><span>Total Order Value:</span><strong
+                    id="order_total">₹0.00</strong></div>
         </div>
 
         <div class="narration-box">
@@ -91,110 +99,109 @@
 </div>
 
 <script>
-function calculateOrderTotals() {
-    let subtotal = 0.0;
-    let tax = 0.0;
+    function calculateOrderTotals() {
+        let subtotal = 0.0;
+        let tax = 0.0;
 
-    document.querySelectorAll('.order-item-row').forEach(r => {
-        const sel = r.querySelector('.item-select');
-        const opt = sel.options[sel.selectedIndex];
-        let rateInput = r.querySelector('.item-rate');
-        let gstInput = r.querySelector('.item-gst');
+        document.querySelectorAll('.order-item-row').forEach(r => {
+            const sel = r.querySelector('.item-select');
+            const opt = sel.options[sel.selectedIndex];
+            let rateInput = r.querySelector('.item-rate');
+            let gstInput = r.querySelector('.item-gst');
 
-        if (opt && opt.value && parseFloat(rateInput.value) === 0) {
-            rateInput.value = opt.getAttribute('data-rate') || 0;
-            gstInput.value = opt.getAttribute('data-gst') || 0;
-        }
+            if (opt && opt.value && parseFloat(rateInput.value) === 0) {
+                rateInput.value = opt.getAttribute('data-rate') || 0;
+                gstInput.value = opt.getAttribute('data-gst') || 0;
+            }
 
-        const qty = parseFloat(r.querySelector('.item-qty').value) || 0;
-        const rate = parseFloat(rateInput.value) || 0;
-        const gstRate = parseFloat(gstInput.value) || 0;
+            const qty = parseFloat(r.querySelector('.item-qty').value) || 0;
+            const rate = parseFloat(rateInput.value) || 0;
+            const gstRate = parseFloat(gstInput.value) || 0;
 
-        const lineTaxable = qty * rate;
-        const lineTax = lineTaxable * (gstRate / 100.0);
-        const lineTotal = lineTaxable + lineTax;
+            const lineTaxable = qty * rate;
+            const lineTax = lineTaxable * (gstRate / 100.0);
+            const lineTotal = lineTaxable + lineTax;
 
-        r.querySelector('.item-amount').innerText = lineTotal.toFixed(2);
-        subtotal += lineTaxable;
-        tax += lineTax;
-    });
+            r.querySelector('.item-amount').innerText = lineTotal.toFixed(2);
+            subtotal += lineTaxable;
+            tax += lineTax;
+        });
 
-    const total = subtotal + tax;
-    document.getElementById('order_subtotal').innerText = '₹' + subtotal.toFixed(2);
-    document.getElementById('order_tax').innerText = '₹' + tax.toFixed(2);
-    document.getElementById('order_total').innerText = '₹' + total.toFixed(2);
-}
-
-function addOrderRow() {
-    const tbody = document.getElementById('orderItemsBody');
-    const firstRow = document.querySelector('.order-item-row');
-    const newRow = firstRow.cloneNode(true);
-    newRow.querySelector('.item-select').selectedIndex = 0;
-    newRow.querySelector('.item-qty').value = 1;
-    newRow.querySelector('.item-rate').value = 0.0;
-    newRow.querySelector('.item-amount').innerText = '0.00';
-    tbody.appendChild(newRow);
-}
-
-function removeOrderRow(btn) {
-    const rows = document.querySelectorAll('.order-item-row');
-    if (rows.length > 1) {
-        btn.closest('tr').remove();
-        calculateOrderTotals();
-    } else {
-        alert("At least one order line is required.");
-    }
-}
-
-function submitOrderData() {
-    const oType = document.getElementById('order_type').value;
-    const oDate = document.getElementById('order_date').value;
-    const dueDate = document.getElementById('due_date').value;
-    const partyId = document.getElementById('party_ledger_id').value;
-    const narration = document.getElementById('narration').value;
-
-    let items = [];
-    document.querySelectorAll('.order-item-row').forEach(r => {
-        const sel = r.querySelector('.item-select');
-        if (sel.value) {
-            items.push({
-                stock_item_id: parseInt(sel.value),
-                quantity: parseFloat(r.querySelector('.item-qty').value),
-                rate: parseFloat(r.querySelector('.item-rate').value),
-                gst_rate: parseFloat(r.querySelector('.item-gst').value),
-                unit_id: 1
-            });
-        }
-    });
-
-    if (items.length === 0) {
-        alert("Please add at least one stock item to the order.");
-        return;
+        const total = subtotal + tax;
+        document.getElementById('order_subtotal').innerText = '₹' + subtotal.toFixed(2);
+        document.getElementById('order_tax').innerText = '₹' + tax.toFixed(2);
+        document.getElementById('order_total').innerText = '₹' + total.toFixed(2);
     }
 
-    fetch('/api/orders/create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            order_type: oType,
-            order_date: oDate,
-            due_date: dueDate,
-            party_ledger_id: parseInt(partyId),
-            narration: narration,
-            items: items
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            const redirectUrl = (oType === 'Sales Order') ? '/orders/sales' : '/orders/purchase';
-            window.location.href = redirectUrl;
+    function addOrderRow() {
+        const tbody = document.getElementById('orderItemsBody');
+        const firstRow = document.querySelector('.order-item-row');
+        const newRow = firstRow.cloneNode(true);
+        newRow.querySelector('.item-select').selectedIndex = 0;
+        newRow.querySelector('.item-qty').value = 1;
+        newRow.querySelector('.item-rate').value = 0.0;
+        newRow.querySelector('.item-amount').innerText = '0.00';
+        tbody.appendChild(newRow);
+    }
+
+    function removeOrderRow(btn) {
+        const rows = document.querySelectorAll('.order-item-row');
+        if (rows.length > 1) {
+            btn.closest('tr').remove();
+            calculateOrderTotals();
         } else {
-            alert('Error creating order: ' + data.error);
+            alert("At least one order line is required.");
         }
-    })
-    .catch(err => alert('Network error: ' + err));
-}
+    }
+
+    function submitOrderData() {
+        const oType = document.getElementById('order_type').value;
+        const oDate = document.getElementById('order_date').value;
+        const dueDate = document.getElementById('due_date').value;
+        const partyId = document.getElementById('party_ledger_id').value;
+        const narration = document.getElementById('narration').value;
+
+        let items = [];
+        document.querySelectorAll('.order-item-row').forEach(r => {
+            const sel = r.querySelector('.item-select');
+            if (sel.value) {
+                items.push({
+                    stock_item_id: parseInt(sel.value),
+                    quantity: parseFloat(r.querySelector('.item-qty').value),
+                    rate: parseFloat(r.querySelector('.item-rate').value),
+                    gst_rate: parseFloat(r.querySelector('.item-gst').value),
+                    unit_id: 1
+                });
+            }
+        });
+
+        if (items.length === 0) {
+            alert("Please add at least one stock item to the order.");
+            return;
+        }
+
+        fetch('/api/orders/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                order_type: oType,
+                order_date: oDate,
+                due_date: dueDate,
+                party_ledger_id: parseInt(partyId),
+                narration: narration,
+                items: items
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const redirectUrl = (oType === 'Sales Order') ? '/orders/sales' : '/orders/purchase';
+                    window.location.href = redirectUrl;
+                } else {
+                    alert('Error creating order: ' + data.error);
+                }
+            })
+            .catch(err => alert('Network error: ' + err));
+    }
 </script>
 {% endblock %}
-
