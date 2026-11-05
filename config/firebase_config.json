@@ -1,0 +1,5 @@
+{
+  "database_url": "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  "auth_token": "",
+  "auto_sync_enabled": true
+}

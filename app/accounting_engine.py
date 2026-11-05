@@ -200,6 +200,13 @@ def post_voucher(
             VALUES (?, 'Voucher', ?, 'CREATE', ?)
         """, (company_id, voucher_id, f"Voucher {v_num} ({voucher_type}) created for ₹{final_total}"))
 
+        # Trigger non-blocking realtime sync to mobile view / Firebase
+        try:
+            from app.firebase_sync import async_firebase_sync
+            async_firebase_sync(company_id)
+        except Exception:
+            pass
+
         return voucher_id
 
 
