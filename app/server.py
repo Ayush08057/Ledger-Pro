@@ -7,7 +7,7 @@ tax invoices, Tally XML data exchange, banking, backups, and multi-company manag
 import os
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify, redirect, url_for, Response
+from flask import Flask, render_template, request, jsonify, redirect, url_for, Response, make_response
 
 from app.config import DATABASE_PATH, APP_NAME, APP_VERSION
 from app.database import (
@@ -173,7 +173,11 @@ def mobile_dashboard():
     comp = get_active_company()
     cid = comp["id"] if comp else 1
     data = get_mobile_dashboard_data(cid)
-    return render_template("mobile_dashboard.html", data=data)
+    resp = make_response(render_template("mobile_dashboard.html", data=data, v=int(datetime.now().timestamp())))
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.route("/api/mobile/dashboard")
@@ -181,7 +185,11 @@ def mobile_dashboard_api():
     comp = get_active_company()
     cid = comp["id"] if comp else 1
     data = get_mobile_dashboard_data(cid)
-    return jsonify(data)
+    resp = jsonify(data)
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.context_processor

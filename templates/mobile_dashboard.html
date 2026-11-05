@@ -2,144 +2,216 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="theme-color" content="#f0f7ff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Ledger Pro">
-    <title>{{ data.company_name }} - Executive Live Dashboard</title>
+    <title>{{ data.company_name }} - Mobile Dashboard</title>
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
         :root {
-            --bg-page: #f8fafc;
-            --card-bg: #ffffff;
-            --border-light: #e2e8f0;
-            --border-subtle: #edf2f7;
-            
-            --text-heading: #0f172a;
-            --text-body: #334155;
-            --text-muted: #64748b;
-            --text-light: #94a3b8;
-            
-            --brand-blue: #0284c7;
-            --brand-dark: #0369a1;
-            --brand-light: #e0f2fe;
-            
-            --emerald: #10b981;
-            --emerald-bg: #ecfdf5;
-            --emerald-text: #047857;
-            
-            --amber: #f59e0b;
-            --amber-bg: #fffbeb;
-            --amber-text: #b45309;
-            
-            --purple: #8b5cf6;
-            --purple-bg: #f5f3ff;
-            --purple-text: #6d28d9;
-            
-            --rose: #ef4444;
-            --rose-bg: #fef2f2;
-            --rose-text: #b91c1c;
+            /* Fresh Light Glassmorphism Tokens */
+            --glass-surface: rgba(255, 255, 255, 0.72);
+            --glass-surface-hover: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-border-subtle: rgba(255, 255, 255, 0.55);
+            --glass-blur: blur(24px) saturate(190%);
+            --glass-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.08), 0 4px 12px -2px rgba(31, 38, 135, 0.04);
+            --glass-inner-light: inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
 
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-            --shadow-lg: 0 10px 25px -3px rgba(15, 23, 42, 0.06), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --text-caption: #94a3b8;
+
+            --brand-primary: #0284c7;
+            --brand-gradient: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            
+            --emerald-vibrant: #10b981;
+            --emerald-soft: #ecfdf5;
+            
+            --blue-vibrant: #0ea5e9;
+            --blue-soft: #f0f9ff;
+            
+            --purple-vibrant: #8b5cf6;
+            --purple-soft: #f5f3ff;
+            
+            --amber-vibrant: #f59e0b;
+            --amber-soft: #fffbeb;
+            
+            --rose-vibrant: #f43f5e;
+            --rose-soft: #fff1f2;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Inter", sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: linear-gradient(180deg, #f0fdfa 0%, #f8fafc 180px, #f8fafc 100%);
-            color: var(--text-body);
+            background-color: #f1f5f9;
+            color: var(--text-primary);
             min-height: 100vh;
-            padding-bottom: 50px;
+            padding-bottom: 70px;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Clean Glass Bar */
-        .top-navbar {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border-light);
+        /* Ambient Dynamic Pastel Light Mesh Background */
+        .ambient-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            background: linear-gradient(160deg, #eff6ff 0%, #f8fafc 50%, #f0fdf4 100%);
+        }
+
+        .mesh-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(65px);
+            opacity: 0.65;
+            animation: floatMesh 16s ease-in-out infinite alternate;
+        }
+
+        .orb-sky {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #7dd3fc, #38bdf8);
+            top: -60px;
+            right: -60px;
+        }
+
+        .orb-rose {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #fbcfe8, #f472b6);
+            top: 30%;
+            left: -80px;
+            animation-duration: 20s;
+        }
+
+        .orb-emerald {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #a7f3d0, #34d399);
+            bottom: 40px;
+            right: -50px;
+            animation-duration: 24s;
+        }
+
+        .orb-violet {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #ddd6fe, #a78bfa);
+            bottom: 25%;
+            left: 10%;
+            animation-duration: 18s;
+        }
+
+        @keyframes floatMesh {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(35px) scale(1.1); }
+        }
+
+        /* Glassmorphism Header */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            padding: 12px 16px;
         }
 
-        .navbar-inner {
-            max-width: 1200px;
+        .header-content {
+            max-width: 600px;
             margin: 0 auto;
-            padding: 14px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .brand-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-logo {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 19px;
-            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
-        }
-
-        .brand-text h1 {
-            font-size: 17px;
-            font-weight: 800;
-            color: var(--text-heading);
-            letter-spacing: -0.3px;
-        }
-
-        .brand-text p {
-            font-size: 11.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .actions-section {
+        .header-brand {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .live-badge {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
+        .brand-badge {
+            width: 36px;
+            height: 36px;
+            background: var(--brand-gradient);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .header-title-box h1 {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .header-title-box p {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 1px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-pill {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
             color: #059669;
-            padding: 5px 12px;
+            backdrop-filter: blur(10px);
+            padding: 5px 10px;
             border-radius: 20px;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .pulse-dot {
-            width: 7px;
-            height: 7px;
+            width: 6.5px;
+            height: 6.5px;
             background-color: #10b981;
             border-radius: 50%;
             display: inline-block;
@@ -149,260 +221,298 @@
 
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
+            50% { opacity: 0.4; transform: scale(1.2); }
         }
 
-        .refresh-btn {
-            background: #ffffff;
-            border: 1px solid var(--border-light);
-            color: var(--text-heading);
-            padding: 6px 14px;
+        .btn-refresh {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            backdrop-filter: blur(8px);
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11.5px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s ease;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .refresh-btn:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+        .btn-refresh:active {
+            transform: scale(0.94);
+            background: #ffffff;
         }
 
-        .refresh-btn:active {
-            transform: scale(0.96);
-        }
-
-        /* Responsive Main Layout Container */
-        .main-container {
-            max-width: 1200px;
+        /* Mobile Container */
+        .mobile-container {
+            max-width: 600px;
             margin: 0 auto;
-            padding: 24px 20px;
+            padding: 14px 14px;
         }
 
-        /* Section Headings */
-        .section-header {
+        /* Section Title Header */
+        .section-label {
+            font-size: 11.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin: 20px 0 10px 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 28px 0 14px 2px;
         }
 
-        .section-header:first-of-type {
+        .section-label:first-of-type {
             margin-top: 4px;
         }
 
-        .section-title {
-            font-size: 14px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--text-heading);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .section-badge {
-            font-size: 11.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        /* KPI Cards Grid */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        /* Fresh Clean KPI Card */
-        .kpi-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 16px;
-            padding: 20px 18px;
-            box-shadow: var(--shadow-md);
+        /* Glassmorphism Card Element */
+        .glass-card {
+            background: var(--glass-surface);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            box-shadow: var(--glass-shadow), var(--glass-inner-light);
             position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .kpi-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+        /* Hero Today's Sales Glass Banner */
+        .hero-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(224, 242, 254, 0.65) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            padding: 20px 18px;
+            border-radius: 22px;
+            position: relative;
+            box-shadow: 0 14px 35px -5px rgba(2, 132, 199, 0.12), var(--glass-inner-light);
         }
 
-        .kpi-top {
+        .hero-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .hero-tag {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0369a1;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-badge-live {
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        .hero-amount {
+            font-size: 32px;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.8px;
+            line-height: 1.15;
+            margin-bottom: 6px;
+        }
+
+        .hero-footer {
+            font-size: 11.5px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* 2-Column Mobile Grid for Metrics */
+        .mobile-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 12px;
         }
 
-        .kpi-label {
-            font-size: 12px;
-            font-weight: 700;
+        .metric-cell {
+            padding: 15px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             color: var(--text-muted);
         }
 
-        .kpi-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+        .metric-icon-bubble {
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            font-size: 13px;
         }
 
-        .kpi-value {
-            font-size: 26px;
+        .metric-value {
+            font-size: 20px;
             font-weight: 800;
-            letter-spacing: -0.6px;
-            color: var(--text-heading);
-            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            color: var(--text-primary);
         }
 
-        .kpi-sub {
-            font-size: 12px;
+        .metric-sub {
+            font-size: 10.5px;
             color: var(--text-muted);
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            margin-top: 4px;
         }
 
-        /* Hero Highlight Card (Today's Sales) */
-        .kpi-card.hero {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-            border: none;
-            color: white;
-            box-shadow: 0 10px 25px -3px rgba(2, 132, 199, 0.35);
+        /* Chart Glass Card */
+        .chart-glass-card {
+            padding: 18px 16px;
         }
 
-        .kpi-card.hero .kpi-label {
-            color: rgba(255, 255, 255, 0.85);
-        }
-
-        .kpi-card.hero .kpi-value {
-            color: #ffffff;
-            font-size: 28px;
-        }
-
-        .kpi-card.hero .kpi-sub {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .kpi-card.hero .kpi-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        /* Two-Column Responsive Grid for Charts & Lists */
-        .two-col-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 18px;
-            margin-top: 10px;
-        }
-
-        .equal-two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-            margin-top: 10px;
-        }
-
-        /* Card Container */
-        .clean-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 18px;
-            padding: 22px 20px;
-            box-shadow: var(--shadow-md);
-        }
-
-        .card-header {
+        .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
-        .card-title {
-            font-size: 15px;
+        .chart-title {
+            font-size: 14px;
             font-weight: 800;
-            color: var(--text-heading);
+            color: var(--text-primary);
             letter-spacing: -0.2px;
         }
 
-        .chart-box {
+        .chart-badge {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 2px 7px;
+            border-radius: 8px;
+        }
+
+        .chart-container-box {
             position: relative;
-            height: 250px;
+            height: 200px;
             width: 100%;
         }
 
-        /* List Items */
-        .clean-list {
-            display: flex;
-            flex-direction: column;
+        /* List Rows */
+        .list-glass-card {
+            padding: 4px 0;
         }
 
-        .list-row {
-            padding: 13px 4px;
+        .glass-row {
+            padding: 13px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        .list-row:last-child {
+        .glass-row:last-child {
             border-bottom: none;
-            padding-bottom: 4px;
         }
 
-        .item-main {
+        .customer-title {
             font-size: 13.5px;
             font-weight: 700;
-            color: var(--text-heading);
+            color: var(--text-primary);
             margin-bottom: 2px;
         }
 
-        .item-sub {
-            font-size: 11.5px;
+        .customer-sub {
+            font-size: 11px;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
-        .item-amount {
-            font-size: 14.5px;
+        .customer-total {
+            font-size: 14px;
             font-weight: 800;
             text-align: right;
-            color: var(--text-heading);
+            color: var(--text-primary);
         }
 
-        .pct-pill {
-            background: var(--brand-light);
-            color: var(--brand-dark);
-            font-size: 10.5px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
+        .pill-pct {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 8px;
             display: inline-block;
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
-        .empty-box {
-            padding: 36px 16px;
+        .empty-message {
+            padding: 30px 16px;
             text-align: center;
             color: var(--text-muted);
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 500;
+        }
+
+        /* Floating Mobile Quick Action Pill */
+        .floating-sync-bar {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 99;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .floating-sync-bar button {
+            background: #0284c7;
+            border: none;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
         }
 
         .spinning {
@@ -412,250 +522,235 @@
         @keyframes spin {
             100% { transform: rotate(360deg); }
         }
-
-        /* Responsive Breakpoints for Tablet & Mobile */
-        @media (max-width: 992px) {
-            .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .two-col-grid, .equal-two-col {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 580px) {
-            .navbar-inner {
-                padding: 12px 16px;
-            }
-            .main-container {
-                padding: 16px 14px;
-            }
-            .kpi-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-            .kpi-card.hero .kpi-value {
-                font-size: 26px;
-            }
-            .kpi-value {
-                font-size: 22px;
-            }
-            .chart-box {
-                height: 210px;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <!-- ================= FRESH CLEAN NAVBAR ================= -->
-    <header class="top-navbar">
-        <div class="navbar-inner">
-            <div class="brand-section">
-                <div class="brand-logo">L</div>
-                <div class="brand-text">
+    <!-- ================= AMBIENT DYNAMIC PASTEL MESH ================= -->
+    <div class="ambient-mesh">
+        <div class="mesh-orb orb-sky"></div>
+        <div class="mesh-orb orb-rose"></div>
+        <div class="mesh-orb orb-emerald"></div>
+        <div class="mesh-orb orb-violet"></div>
+    </div>
+
+    <!-- ================= GLASS HEADER ================= -->
+    <header class="glass-header">
+        <div class="header-content">
+            <div class="header-brand">
+                <div class="brand-badge">L</div>
+                <div class="header-title-box">
                     <h1 id="companyName">{{ data.company_name }}</h1>
                     <p id="syncTimestamp">Synced: {{ data.synced_at }}</p>
                 </div>
             </div>
-            <div class="actions-section">
-                <div class="live-badge">
+            <div class="header-actions">
+                <div class="status-pill">
                     <span class="pulse-dot"></span>
                     <span>Live</span>
                 </div>
-                <button class="refresh-btn" onclick="fetchLiveDashboard(this)">
+                <button class="btn-refresh" onclick="fetchLiveDashboard(this)">
                     <span id="refreshIcon">🔄</span>
-                    <span>Refresh</span>
+                    <span>Sync</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- ================= MAIN DASHBOARD CONTAINER ================= -->
-    <main class="main-container">
+    <!-- ================= MOBILE CONTENT ================= -->
+    <main class="mobile-container">
 
-        <!-- SALES PERFORMANCE HEADER -->
-        <div class="section-header">
-            <div class="section-title">
-                <span>📈 Sales Overview</span>
-            </div>
-            <span class="section-badge">Direct Accounting Entries</span>
+        <!-- HERO TODAY'S SALES CARD -->
+        <div class="section-label">
+            <span>Today's Performance</span>
+            <span style="font-size: 10.5px; color: #0284c7; font-weight: 700;">Realtime Sync</span>
         </div>
 
-        <!-- 4-COLUMN TOP KPI GRID -->
-        <div class="kpi-grid">
-            <!-- 1. Today's Sales (Hero Gradient) -->
-            <div class="kpi-card hero">
-                <div class="kpi-top">
-                    <span class="kpi-label">Today's Sales</span>
-                    <div class="kpi-icon">⚡</div>
+        <div class="glass-card hero-card">
+            <div class="hero-top">
+                <div class="hero-tag">
+                    <span>⚡ Daily Sales Total</span>
+                    <span class="hero-badge-live">Live</span>
                 </div>
-                <div class="kpi-value" id="todaySales">₹{{ "{:,.2f}".format(data.metrics.today_sales) }}</div>
-                <div class="kpi-sub">Real-time daily turnover</div>
+            </div>
+            <div class="hero-amount" id="todaySales">₹{{ "{:,.2f}".format(data.metrics.today_sales) }}</div>
+            <div class="hero-footer">Directly aggregated from verified sales invoices</div>
+        </div>
+
+        <!-- 2-COLUMN SALES OVERVIEW -->
+        <div class="mobile-grid-2">
+            <!-- This Month -->
+            <div class="glass-card metric-cell">
+                <div class="metric-header">
+                    <span class="metric-label">This Month</span>
+                    <div class="metric-icon-bubble" style="background: #e0f2fe; color: #0284c7;">📅</div>
+                </div>
+                <div class="metric-value" style="color: #0284c7;" id="monthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
+                <div class="metric-sub" id="monthInvoices">{{ data.metrics.month_invoices }} bills billed</div>
             </div>
 
-            <!-- 2. This Month Sales -->
-            <div class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">This Month</span>
-                    <div class="kpi-icon" style="background: var(--brand-light); color: var(--brand-dark);">📅</div>
+            <!-- Financial Year -->
+            <div class="glass-card metric-cell">
+                <div class="metric-header">
+                    <span class="metric-label">Annual YTD</span>
+                    <div class="metric-icon-bubble" style="background: #f5f3ff; color: #7c3aed;">🎯</div>
                 </div>
-                <div class="kpi-value" style="color: var(--brand-blue);" id="monthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
-                <div class="kpi-sub" id="monthInvoices">{{ data.metrics.month_invoices }} invoices billed</div>
-            </div>
-
-            <!-- 3. Financial Year Sales -->
-            <div class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">Year-to-Date</span>
-                    <div class="kpi-icon" style="background: var(--purple-bg); color: var(--purple-text);">🎯</div>
-                </div>
-                <div class="kpi-value" style="color: var(--purple);" id="yearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
-                <div class="kpi-sub">Financial Year Cumulative</div>
-            </div>
-
-            <!-- 4. Cash in Hand -->
-            <div class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">Cash in Hand</span>
-                    <div class="kpi-icon" style="background: var(--emerald-bg); color: var(--emerald-text);">💵</div>
-                </div>
-                <div class="kpi-value" style="color: var(--emerald);" id="cashBalance">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
-                <div class="kpi-sub">Ready Cash Balance</div>
+                <div class="metric-value" style="color: #7c3aed;" id="yearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
+                <div class="metric-sub">Financial Year</div>
             </div>
         </div>
 
-        <!-- LIQUIDITY & OUTSTANDING HEADER -->
-        <div class="section-header">
-            <div class="section-title">
-                <span>💼 Bank & Outstanding Balances</span>
+        <!-- CASH & BANK BALANCES -->
+        <div class="section-label">
+            <span>Cash & Bank Liquidity</span>
+        </div>
+
+        <div class="mobile-grid-2">
+            <!-- Cash in Hand -->
+            <div class="glass-card metric-cell">
+                <div class="metric-header">
+                    <span class="metric-label">Cash in Hand</span>
+                    <div class="metric-icon-bubble" style="background: #ecfdf5; color: #059669;">💵</div>
+                </div>
+                <div class="metric-value" style="color: #059669;" id="cashBalance">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
+                <div class="metric-sub">Ready Physical Cash</div>
+            </div>
+
+            <!-- Bank Balance -->
+            <div class="glass-card metric-cell">
+                <div class="metric-header">
+                    <span class="metric-label">Bank Balance</span>
+                    <div class="metric-icon-bubble" style="background: #e0f2fe; color: #0284c7;">🏦</div>
+                </div>
+                <div class="metric-value" style="color: #0284c7;" id="bankBalance">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
+                <div class="metric-sub">Bank Accounts Total</div>
             </div>
         </div>
 
-        <!-- 3-COLUMN OUTSTANDING GRID -->
-        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
-            <!-- Bank Accounts -->
-            <div class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">Bank Accounts</span>
-                    <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">🏦</div>
+        <!-- RECEIVABLES & PAYABLES -->
+        <div class="section-label">
+            <span>Outstanding Balances</span>
+        </div>
+
+        <div class="mobile-grid-2">
+            <!-- To Collect (Debtors) -->
+            <div class="glass-card metric-cell">
+                <div class="metric-header">
+                    <span class="metric-label">To Collect</span>
+                    <div class="metric-icon-bubble" style="background: #fffbeb; color: #d97706;">⏳</div>
                 </div>
-                <div class="kpi-value" style="color: #0284c7;" id="bankBalance">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
-                <div class="kpi-sub">Total Available Across Banks</div>
+                <div class="metric-value" style="color: #d97706;" id="totalReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
+                <div class="metric-sub">Customer Outstanding</div>
             </div>
 
-            <!-- Sundry Debtors (To Collect) -->
-            <div class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">To Collect (Debtors)</span>
-                    <div class="kpi-icon" style="background: var(--amber-bg); color: var(--amber-text);">⏳</div>
+            <!-- To Pay (Creditors) -->
+            <div class="glass-card metric-cell">
+                <div class="metric-header">
+                    <span class="metric-label">To Pay</span>
+                    <div class="metric-icon-bubble" style="background: #fff1f2; color: #e11d48;">💳</div>
                 </div>
-                <div class="kpi-value" style="color: var(--amber);" id="totalReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
-                <div class="kpi-sub">Pending Customer Collections</div>
-            </div>
-
-            <!-- Sundry Creditors (To Pay) -->
-            <div class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">To Pay (Creditors)</span>
-                    <div class="kpi-icon" style="background: var(--rose-bg); color: var(--rose-text);">💳</div>
-                </div>
-                <div class="kpi-value" style="color: var(--rose);" id="totalPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
-                <div class="kpi-sub">Supplier Outstanding Bills</div>
+                <div class="metric-value" style="color: #e11d48;" id="totalPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
+                <div class="metric-sub">Supplier Obligations</div>
             </div>
         </div>
 
-        <!-- CHARTS SECTION: BAR CHART + DONUT CHART -->
-        <div class="two-col-grid">
-            <!-- Left: 6-Month Sales Trend Bar Chart -->
-            <div class="clean-card">
-                <div class="card-header">
-                    <div class="card-title">Monthly Sales Growth (Last 6 Months)</div>
-                    <span style="font-size: 11.5px; font-weight: 600; color: var(--brand-blue);">Dynamic Trend</span>
-                </div>
-                <div class="chart-box">
-                    <canvas id="salesBarChart"></canvas>
-                </div>
-            </div>
+        <!-- MONTHLY SALES GROWTH (BAR CHART) -->
+        <div class="section-label">
+            <span>Sales Growth Graph</span>
+        </div>
 
-            <!-- Right: Payment Mode Donut Chart -->
-            <div class="clean-card">
-                <div class="card-header">
-                    <div class="card-title">Sales by Payment Mode</div>
-                </div>
-                <div class="chart-box">
-                    <canvas id="salesDonutChart"></canvas>
-                </div>
+        <div class="glass-card chart-glass-card">
+            <div class="chart-header">
+                <span class="chart-title">Last 6 Months Sales</span>
+                <span class="chart-badge">Dynamic ₹</span>
+            </div>
+            <div class="chart-container-box">
+                <canvas id="salesBarChart"></canvas>
             </div>
         </div>
 
-        <!-- LISTS SECTION: TOP CUSTOMERS + RECENT INVOICES -->
-        <div class="equal-two-col">
-            <!-- Top Performing Clients -->
-            <div class="clean-card">
-                <div class="card-header">
-                    <div class="card-title">Top Clients by Revenue</div>
-                </div>
-                <div class="clean-list" id="topCustomersList">
-                    {% if data.top_customers %}
-                        {% for c in data.top_customers %}
-                            <div class="list-row">
-                                <div>
-                                    <div class="item-main">{{ c.name }}</div>
-                                    <div class="item-sub">{{ c.bills }} Invoices Issued</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div class="item-amount">₹{{ "{:,.2f}".format(c.amount) }}</div>
-                                    <span class="pct-pill">{{ c.percentage }}% Volume</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-box">No client transactions recorded yet.</div>
-                    {% endif %}
-                </div>
-            </div>
+        <!-- PAYMENT MODE BREAKDOWN (DONUT CHART) -->
+        <div class="section-label">
+            <span>Payment Modes</span>
+        </div>
 
-            <!-- Recent Invoices -->
-            <div class="clean-card">
-                <div class="card-header">
-                    <div class="card-title">Recent Invoices Billed</div>
-                </div>
-                <div class="clean-list" id="recentInvoicesList">
-                    {% if data.recent_invoices %}
-                        {% for inv in data.recent_invoices %}
-                            <div class="list-row">
-                                <div>
-                                    <div class="item-main">{{ inv.voucher_number }}</div>
-                                    <div class="item-sub">{{ inv.customer }} &bull; {{ inv.date }}</div>
-                                </div>
-                                <div class="item-amount" style="color: var(--emerald-text);">
-                                    ₹{{ "{:,.2f}".format(inv.amount) }}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-box">No recent invoices billed yet.</div>
-                    {% endif %}
-                </div>
+        <div class="glass-card chart-glass-card">
+            <div class="chart-header">
+                <span class="chart-title">Cash vs Bank vs Credit</span>
             </div>
+            <div class="chart-container-box" style="height: 190px;">
+                <canvas id="salesDonutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- TOP CLIENTS -->
+        <div class="section-label">
+            <span>Top Performing Clients</span>
+        </div>
+
+        <div class="glass-card list-glass-card" id="topCustomersList">
+            {% if data.top_customers %}
+                {% for c in data.top_customers %}
+                    <div class="glass-row">
+                        <div>
+                            <div class="customer-title">{{ c.name }}</div>
+                            <div class="customer-sub">{{ c.bills }} Invoices Billed</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="customer-total">₹{{ "{:,.2f}".format(c.amount) }}</div>
+                            <span class="pill-pct">{{ c.percentage }}% Volume</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-message">No client transactions recorded yet.</div>
+            {% endif %}
+        </div>
+
+        <!-- RECENT INVOICES -->
+        <div class="section-label">
+            <span>Recent Invoices</span>
+        </div>
+
+        <div class="glass-card list-glass-card" id="recentInvoicesList">
+            {% if data.recent_invoices %}
+                {% for inv in data.recent_invoices %}
+                    <div class="glass-row">
+                        <div>
+                            <div class="customer-title">{{ inv.voucher_number }}</div>
+                            <div class="customer-sub">{{ inv.customer }} &bull; {{ inv.date }}</div>
+                        </div>
+                        <div class="customer-total" style="color: #059669;">
+                            ₹{{ "{:,.2f}".format(inv.amount) }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-message">No recent sales vouchers recorded yet.</div>
+            {% endif %}
         </div>
 
     </main>
 
-    <!-- ================= CHARTS ENGINE & DYNAMIC LIVE FETCH ================= -->
+    <!-- FLOATING SYNC PILL AT BOTTOM -->
+    <div class="floating-sync-bar">
+        <span>🟢 Live Connected</span>
+        <button onclick="fetchLiveDashboard(this)">Sync Now</button>
+    </div>
+
+    <!-- ================= CHARTS ENGINE & REAL-TIME SYNC SCRIPT ================= -->
     <script>
         let chartData = {{ data.charts | tojson }};
         let barChartInstance = null;
         let donutChartInstance = null;
 
         function initCharts(data) {
-            // 1. Clean Crisp Bar Chart
+            // 1. Fresh Glassmorphism Bar Chart
             const barCtx = document.getElementById('salesBarChart').getContext('2d');
             if (barChartInstance) barChartInstance.destroy();
 
-            // Create smooth vertical gradient for bars
-            const barGrad = barCtx.createLinearGradient(0, 0, 0, 240);
+            // Smooth modern gradient for bars
+            const barGrad = barCtx.createLinearGradient(0, 0, 0, 200);
             barGrad.addColorStop(0, '#0284c7');
             barGrad.addColorStop(1, '#38bdf8');
 
@@ -669,7 +764,7 @@
                         backgroundColor: barGrad,
                         borderRadius: 8,
                         borderSkipped: false,
-                        maxBarThickness: 42
+                        maxBarThickness: 32
                     }]
                 },
                 options: {
@@ -678,11 +773,11 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#0f172a',
+                            backgroundColor: 'rgba(15, 23, 42, 0.92)',
                             titleColor: '#ffffff',
                             bodyColor: '#38bdf8',
-                            padding: 12,
-                            cornerRadius: 8,
+                            padding: 10,
+                            cornerRadius: 10,
                             displayColors: false,
                             callbacks: {
                                 label: function(context) {
@@ -699,26 +794,26 @@
                                 callback: function(value) {
                                     return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value);
                                 },
-                                font: { size: 11, weight: '500' }
+                                font: { size: 10, weight: '600' }
                             },
-                            grid: { color: '#f1f5f9' },
-                            border: { dash: [4, 4], color: '#e2e8f0' }
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' },
+                            border: { dash: [4, 4], color: '#cbd5e1' }
                         },
                         x: {
-                            ticks: { color: '#64748b', font: { size: 11, weight: '600' } },
+                            ticks: { color: '#64748b', font: { size: 10.5, weight: '700' } },
                             grid: { display: false }
                         }
                     }
                 }
             });
 
-            // 2. Fresh Crisp Donut Chart
+            // 2. Fresh Glassmorphism Donut Chart
             const donutCtx = document.getElementById('salesDonutChart').getContext('2d');
             if (donutChartInstance) donutChartInstance.destroy();
 
             const sumDonut = data.donut_chart.values.reduce((a, b) => a + b, 0);
             const donutValues = sumDonut > 0 ? data.donut_chart.values : [1, 0, 0];
-            const donutColors = sumDonut > 0 ? ['#10b981', '#0284c7', '#f59e0b'] : ['#f1f5f9', '#f1f5f9', '#f1f5f9'];
+            const donutColors = sumDonut > 0 ? ['#10b981', '#0284c7', '#f59e0b'] : ['#e2e8f0', '#e2e8f0', '#e2e8f0'];
 
             donutChartInstance = new Chart(donutCtx, {
                 type: 'doughnut',
@@ -728,7 +823,7 @@
                         data: donutValues,
                         backgroundColor: donutColors,
                         borderWidth: 3,
-                        borderColor: '#ffffff'
+                        borderColor: 'rgba(255, 255, 255, 0.95)'
                     }]
                 },
                 options: {
@@ -739,17 +834,17 @@
                             position: 'bottom',
                             labels: {
                                 color: '#334155',
-                                boxWidth: 12,
-                                padding: 14,
-                                font: { size: 12, weight: '600' }
+                                boxWidth: 10,
+                                padding: 12,
+                                font: { size: 11, weight: '700' }
                             }
                         },
                         tooltip: {
                             enabled: sumDonut > 0,
-                            backgroundColor: '#0f172a',
+                            backgroundColor: 'rgba(15, 23, 42, 0.92)',
                             titleColor: '#ffffff',
                             padding: 10,
-                            cornerRadius: 8,
+                            cornerRadius: 10,
                             callbacks: {
                                 label: function(context) {
                                     return context.label + ': ₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
@@ -768,11 +863,12 @@
 
         async function fetchLiveDashboard(btn) {
             const icon = document.getElementById('refreshIcon');
-            icon.classList.add('spinning');
-            btn.disabled = true;
+            if (icon) icon.classList.add('spinning');
+            if (btn) btn.disabled = true;
 
             try {
-                const res = await fetch('/api/mobile/dashboard');
+                // Cache-busting timestamp
+                const res = await fetch('/api/mobile/dashboard?t=' + Date.now());
                 if (!res.ok) throw new Error('Network error');
                 const json = await res.json();
 
@@ -781,7 +877,7 @@
                 document.getElementById('todaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('monthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('yearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' invoices billed';
+                document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills billed';
                 document.getElementById('cashBalance').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('bankBalance').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('totalReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
@@ -792,14 +888,14 @@
                 const custList = document.getElementById('topCustomersList');
                 if (json.top_customers && json.top_customers.length > 0) {
                     custList.innerHTML = json.top_customers.map(c => `
-                        <div class="list-row">
+                        <div class="glass-row">
                             <div>
-                                <div class="item-main">${c.name}</div>
-                                <div class="item-sub">${c.bills} Invoices Issued</div>
+                                <div class="customer-title">${c.name}</div>
+                                <div class="customer-sub">${c.bills} Invoices Billed</div>
                             </div>
                             <div style="text-align: right;">
-                                <div class="item-amount">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                                <span class="pct-pill">${c.percentage}% Volume</span>
+                                <div class="customer-total">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                                <span class="pill-pct">${c.percentage}% Volume</span>
                             </div>
                         </div>
                     `).join('');
@@ -808,12 +904,12 @@
                 const invList = document.getElementById('recentInvoicesList');
                 if (json.recent_invoices && json.recent_invoices.length > 0) {
                     invList.innerHTML = json.recent_invoices.map(inv => `
-                        <div class="list-row">
+                        <div class="glass-row">
                             <div>
-                                <div class="item-main">${inv.voucher_number}</div>
-                                <div class="item-sub">${inv.customer} &bull; ${inv.date}</div>
+                                <div class="customer-title">${inv.voucher_number}</div>
+                                <div class="customer-sub">${inv.customer} &bull; ${inv.date}</div>
                             </div>
-                            <div class="item-amount" style="color: var(--emerald-text);">
+                            <div class="customer-total" style="color: #059669;">
                                 ₹${inv.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
                             </div>
                         </div>
@@ -823,8 +919,8 @@
             } catch (err) {
                 console.error("Dashboard refresh error:", err);
             } finally {
-                icon.classList.remove('spinning');
-                btn.disabled = false;
+                if (icon) icon.classList.remove('spinning');
+                if (btn) btn.disabled = false;
             }
         }
     </script>
