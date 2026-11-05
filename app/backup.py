@@ -10,10 +10,21 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any
 
-from app.config import DATABASE_PATH, BASE_DIR
+from app.config import DATABASE_PATH, BASE_DIR, IS_SERVERLESS
 
-BACKUP_DIR = BASE_DIR / "backups"
-BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+if IS_SERVERLESS:
+    BACKUP_DIR = Path("/tmp/backups")
+else:
+    BACKUP_DIR = BASE_DIR / "backups"
+
+try:
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    BACKUP_DIR = Path("/tmp/backups")
+    try:
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
 
 
 def create_backup(db_path: Path = None, note: str = "") -> str:
@@ -44,7 +55,10 @@ def list_backups() -> List[Dict[str, Any]]:
     """
     Returns list of existing backup files sorted by creation date descending.
     """
-    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
     backups = []
     for f in sorted(BACKUP_DIR.glob("*.db"), key=os.path.getmtime, reverse=True):
         size_kb = round(f.stat().st_size / 1024, 2)

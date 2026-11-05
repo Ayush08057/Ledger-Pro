@@ -2,14 +2,19 @@
 Vercel Serverless Function entry point for Ledger Pro (Flask)
 """
 import sys
+import os
 from pathlib import Path
 
-# Ensure project root is in sys.path for serverless execution
-ROOT_DIR = Path(__file__).resolve().parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
+# Add possible root directories to sys.path so 'app' package is always found
+current_dir = Path(__file__).resolve().parent
+for p in [current_dir.parent, current_dir, Path(os.getcwd())]:
+    p_str = str(p)
+    if p_str not in sys.path:
+        sys.path.insert(0, p_str)
 
 from app.server import app
+
+# Cold-start database schema validation in /tmp
 from app.database import init_db
 from app.manufacturing_engine import init_manufacturing_schema
 from app.physical_stock_engine import init_physical_stock_schema
@@ -21,7 +26,6 @@ from app.pos_engine import init_pos_schema
 from app.budget_engine import init_budget_schema
 from app.price_list_engine import init_price_list_schema
 
-# Cold-start database schema validation in /tmp
 try:
     init_db()
     init_manufacturing_schema()
@@ -34,7 +38,6 @@ try:
     init_budget_schema()
     init_price_list_schema()
 except Exception as e:
-    pass
+    print(f"Serverless init notice: {e}")
 
-# Export WSGI application object for Vercel
-# Vercel Python runtime detects 'app'
+

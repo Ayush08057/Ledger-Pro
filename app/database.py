@@ -10,7 +10,7 @@ from pathlib import Path
 from contextlib import contextmanager
 from typing import Optional, List, Dict, Any
 
-from app.config import DATABASE_PATH, DATA_DIR
+from app.config import DATABASE_PATH, DATA_DIR, IS_SERVERLESS
 from app.seed_data import seed_company_defaults
 
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
@@ -21,10 +21,24 @@ def get_connection(db_path: Optional[Path] = None) -> sqlite3.Connection:
     Returns an SQLite connection with Foreign Keys enabled and Row factory configured.
     """
     path = db_path or DATABASE_PATH
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path))
+    try:
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    conn = sqlite3.connect(str(path), timeout=30.0)
     conn.execute("PRAGMA foreign_keys = ON;")
-    conn.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for speed & safety
+    if not IS_SERVERLESS:
+        try:
+            conn.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for speed & safety
+        except Exception:
+            pass
+    else:
+        try:
+            conn.execute("PRAGMA journal_mode = DELETE;")
+        except Exception:
+            pass
+
     conn.row_factory = sqlite3.Row
     return conn
 

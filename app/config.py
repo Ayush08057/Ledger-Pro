@@ -1,17 +1,29 @@
 import os
 import shutil
+import tempfile
 from pathlib import Path
 
 # Base Paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Vercel Serverless Environment Detection
-IS_VERCEL = bool(os.environ.get("VERCEL"))
+# Detect serverless / cloud / read-only filesystem environment
+IS_SERVERLESS = (
+    bool(os.environ.get("VERCEL")) or
+    bool(os.environ.get("VERCEL_ENV")) or
+    bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME")) or
+    bool(os.environ.get("LAMBDA_TASK_ROOT")) or
+    "/var/task" in str(BASE_DIR) or
+    not os.access(str(BASE_DIR), os.W_OK)
+)
+IS_VERCEL = IS_SERVERLESS
 
-if IS_VERCEL:
-    # Vercel serverless functions have a read-only filesystem except /tmp
-    DATA_DIR = Path("/tmp/data")
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+if IS_SERVERLESS:
+    # In serverless environments, writable temp directory is tempfile.gettempdir() (/tmp on Linux/Vercel)
+    DATA_DIR = Path(tempfile.gettempdir()) / "ledger_pro_data"
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
     DATABASE_PATH = DATA_DIR / "tally_offline.db"
     starter_db = BASE_DIR / "data" / "tally_offline.db"
     if not DATABASE_PATH.exists() and starter_db.exists():
@@ -21,8 +33,15 @@ if IS_VERCEL:
             pass
 else:
     DATA_DIR = BASE_DIR / "data"
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        DATA_DIR = Path(tempfile.gettempdir()) / "ledger_pro_data"
+        try:
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
     DATABASE_PATH = DATA_DIR / "tally_offline.db"
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Application Configuration
 APP_NAME = "Ledger Pro"
