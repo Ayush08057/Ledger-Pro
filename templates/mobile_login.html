@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta name="theme-color" content="#f0f7ff">
+    <title>Executive Login - Ledger Pro Mobile</title>
+
+    <style>
+        :root {
+            --glass-surface: rgba(255, 255, 255, 0.78);
+            --glass-border: rgba(255, 255, 255, 0.92);
+            --glass-blur: blur(24px) saturate(190%);
+            --glass-shadow: 0 14px 40px -8px rgba(31, 38, 135, 0.12), 0 4px 14px -2px rgba(31, 38, 135, 0.05);
+            --glass-inner-light: inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --brand-primary: #0284c7;
+            --brand-gradient: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Inter", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient Pastel Mesh Orbs */
+        .ambient-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            background: linear-gradient(160deg, #eff6ff 0%, #f8fafc 50%, #f0fdf4 100%);
+        }
+
+        .mesh-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(65px);
+            opacity: 0.65;
+            animation: floatMesh 16s ease-in-out infinite alternate;
+        }
+
+        .orb-sky {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #7dd3fc, #38bdf8);
+            top: -60px;
+            right: -60px;
+        }
+
+        .orb-rose {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #fbcfe8, #f472b6);
+            bottom: -60px;
+            left: -60px;
+        }
+
+        @keyframes floatMesh {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(35px) scale(1.1); }
+        }
+
+        /* Login Card */
+        .login-card {
+            background: var(--glass-surface);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 26px;
+            box-shadow: var(--glass-shadow), var(--glass-inner-light);
+            width: 100%;
+            max-width: 400px;
+            padding: 34px 28px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .brand-icon {
+            width: 58px;
+            height: 58px;
+            background: var(--brand-gradient);
+            color: white;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35);
+        }
+
+        .app-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .app-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        /* Error Alert */
+        .error-alert {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Input Controls */
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .input-glass {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 14px;
+            font-size: 14.5px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .input-glass:focus {
+            background: #ffffff;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--brand-gradient);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.97);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        }
+
+        /* Helper Box with Default Credentials */
+        .credentials-hint {
+            background: rgba(240, 249, 255, 0.85);
+            border: 1px solid rgba(186, 230, 253, 0.8);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-top: 22px;
+            text-align: left;
+            font-size: 11.5px;
+            color: #0369a1;
+        }
+
+        .credentials-hint strong {
+            color: #075985;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .cred-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-family: monospace, sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Mesh Orbs -->
+    <div class="ambient-mesh">
+        <div class="mesh-orb orb-sky"></div>
+        <div class="mesh-orb orb-rose"></div>
+    </div>
+
+    <div class="login-card">
+        <div class="brand-icon">L</div>
+        <h1 class="app-title">Executive Access</h1>
+        <p class="app-sub">{{ company_name }} &bull; Live Mobile View</p>
+
+        {% if error %}
+        <div class="error-alert">
+            <span>⚠️</span>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/mobile/login">
+            <div class="form-group">
+                <label class="form-label" for="username">Username / Mobile ID</label>
+                <input type="text" id="username" name="username" class="input-glass" placeholder="admin" value="admin" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password or PIN</label>
+                <input type="password" id="password" name="password" class="input-glass" placeholder="Enter password or 4-digit PIN" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In to Dashboard →</button>
+        </form>
+
+        <div class="credentials-hint">
+            <strong>🔑 Authorized Credentials:</strong>
+            <div class="cred-row">
+                <span>Username:</span>
+                <strong>admin</strong>
+            </div>
+            <div class="cred-row">
+                <span>Password:</span>
+                <strong>admin@123</strong>
+            </div>
+            <div class="cred-row" style="margin-top: 3px; color: #0284c7;">
+                <span>Quick PIN:</span>
+                <strong>1234</strong>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

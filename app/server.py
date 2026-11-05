@@ -7,7 +7,7 @@ tax invoices, Tally XML data exchange, banking, backups, and multi-company manag
 import os
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify, redirect, url_for, Response, make_response
+from flask import Flask, render_template, request, jsonify, redirect, url_for, Response, make_response, session
 
 from app.config import DATABASE_PATH, APP_NAME, APP_VERSION
 from app.database import (
@@ -135,6 +135,7 @@ app = Flask(
     template_folder=str(BASE_DIR / "templates"),
     static_folder=str(BASE_DIR / "static")
 )
+app.secret_key = os.environ.get("SECRET_KEY", "ledger-pro-secret-auth-key-2026")
 
 # Active company ID in memory
 ACTIVE_COMPANY_ID = 1
@@ -156,9 +157,14 @@ def get_active_company():
 from app.mobile_analytics import get_mobile_dashboard_data
 
 
+MOBILE_ADMIN_USER = os.environ.get("MOBILE_USER", "admin")
+MOBILE_ADMIN_PASS = os.environ.get("MOBILE_PASS", "admin@123")
+MOBILE_PIN = os.environ.get("MOBILE_PIN", "1234")
+
+
 @app.before_request
 def ensure_company_selected():
-    if not request.endpoint or request.endpoint in ["company_create_view", "company_select", "static", "mobile_dashboard", "mobile_dashboard_api"]:
+    if not request.endpoint or request.endpoint in ["company_create_view", "company_select", "static", "mobile_dashboard", "mobile_dashboard_api", "mobile_login", "mobile_logout"]:
         return
     path = request.path or ""
     if path.startswith("/company") or path.startswith("/static") or path.startswith("/mobile") or path.startswith("/api/mobile") or "company" in path:
@@ -168,12 +174,41 @@ def ensure_company_selected():
         return redirect(url_for("company_create_view"))
 
 
+@app.route("/mobile/login", methods=["GET", "POST"])
+def mobile_login():
+    error = None
+    if request.method == "POST":
+        user_input = request.form.get("username", "").strip()
+        pass_input = request.form.get("password", "").strip()
+        if (user_input.lower() == MOBILE_ADMIN_USER.lower() and pass_input == MOBILE_ADMIN_PASS) or (pass_input == MOBILE_PIN):
+            session["mobile_authenticated"] = True
+            session["mobile_user"] = user_input or "admin"
+            return redirect(url_for("mobile_dashboard"))
+        else:
+            error = "Invalid Username or Password / PIN. Please try again."
+
+    comp = get_active_company()
+    company_name = comp["name"] if comp else "Ledger Pro"
+    resp = make_response(render_template("mobile_login.html", error=error, company_name=company_name))
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    return resp
+
+
+@app.route("/mobile/logout")
+def mobile_logout():
+    session.pop("mobile_authenticated", None)
+    session.pop("mobile_user", None)
+    return redirect(url_for("mobile_login"))
+
+
 @app.route("/mobile")
 def mobile_dashboard():
+    if not session.get("mobile_authenticated"):
+        return redirect(url_for("mobile_login"))
     comp = get_active_company()
     cid = comp["id"] if comp else 1
     data = get_mobile_dashboard_data(cid)
-    resp = make_response(render_template("mobile_dashboard.html", data=data, v=int(datetime.now().timestamp())))
+    resp = make_response(render_template("mobile_dashboard.html", data=data, user=session.get("mobile_user", "admin"), v=int(datetime.now().timestamp())))
     resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     resp.headers["Expires"] = "0"
@@ -182,6 +217,8 @@ def mobile_dashboard():
 
 @app.route("/api/mobile/dashboard")
 def mobile_dashboard_api():
+    if not session.get("mobile_authenticated"):
+        return jsonify({"error": "Unauthorized. Please sign in at /mobile/login"}), 401
     comp = get_active_company()
     cid = comp["id"] if comp else 1
     data = get_mobile_dashboard_data(cid)
