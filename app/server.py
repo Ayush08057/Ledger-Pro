@@ -135,6 +135,7 @@ app = Flask(
     template_folder=str(BASE_DIR / "templates"),
     static_folder=str(BASE_DIR / "static")
 )
+app.url_map.strict_slashes = False
 
 # Active company ID in memory
 ACTIVE_COMPANY_ID = 1
@@ -155,10 +156,10 @@ def get_active_company():
 
 @app.before_request
 def ensure_company_selected():
-    if request.endpoint in ["company_create_view", "company_select", "static"]:
+    if not request.endpoint or request.endpoint in ["company_create_view", "company_select", "static"]:
         return
     path = request.path or ""
-    if path.startswith("/static") or "static" in path or "company" in path:
+    if path.startswith("/company") or path.startswith("/static") or "company" in path:
         return
     comps = list_companies()
     if not comps:
