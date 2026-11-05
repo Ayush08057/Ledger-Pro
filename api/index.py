@@ -3,6 +3,7 @@ Vercel Serverless Function entry point for Ledger Pro (Flask)
 """
 import sys
 import os
+import urllib.parse
 from pathlib import Path
 
 # Add possible root directories to sys.path so 'app' package is always found
@@ -13,6 +14,28 @@ for p in [current_dir.parent, current_dir, Path(os.getcwd())]:
         sys.path.insert(0, p_str)
 
 from app.server import app
+
+# WSGI Middleware to map Vercel rewrites back to Flask's real URL paths
+class VercelPathFixer:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        query = environ.get("QUERY_STRING", "")
+        if "__vercel_path" in query:
+            params = urllib.parse.parse_qs(query)
+            if "__vercel_path" in params and params["__vercel_path"]:
+                target_path = params["__vercel_path"][0]
+                if not target_path.startswith("/"):
+                    target_path = "/" + target_path
+                while "//" in target_path:
+                    target_path = target_path.replace("//", "/")
+                environ["PATH_INFO"] = target_path
+                new_params = {k: v for k, v in params.items() if k != "__vercel_path"}
+                environ["QUERY_STRING"] = urllib.parse.urlencode(new_params, doseq=True)
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathFixer(app.wsgi_app)
 
 # Cold-start database schema validation in /tmp
 from app.database import init_db
@@ -39,5 +62,3 @@ try:
     init_price_list_schema()
 except Exception as e:
     print(f"Serverless init notice: {e}")
-
-

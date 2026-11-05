@@ -166,17 +166,6 @@ def ensure_company_selected():
         return redirect(url_for("company_create_view"))
 
 
-@app.errorhandler(404)
-def handle_404(e):
-    return jsonify({
-        "error": "404 Not Found",
-        "request_path": request.path,
-        "environ_path_info": request.environ.get("PATH_INFO"),
-        "environ_script_name": request.environ.get("SCRIPT_NAME"),
-        "headers": {k: v for k, v in request.headers.items()}
-    }), 404
-
-
 @app.context_processor
 def inject_global_data():
     comp = get_active_company()
