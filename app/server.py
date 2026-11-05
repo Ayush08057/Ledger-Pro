@@ -155,9 +155,10 @@ def get_active_company():
 
 @app.before_request
 def ensure_company_selected():
-    if request.path.startswith("/static"):
+    if request.endpoint in ["company_create_view", "company_select", "static"]:
         return
-    if request.path in ["/company/create", "/company/select"]:
+    path = request.path or ""
+    if path.startswith("/static") or "static" in path or "company" in path:
         return
     comps = list_companies()
     if not comps:

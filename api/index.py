@@ -14,6 +14,19 @@ for p in [current_dir.parent, current_dir, Path(os.getcwd())]:
 
 from app.server import app
 
+# WSGI Middleware to map Vercel rewrites to original user paths
+class VercelPathMiddleware:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        matched = environ.get("HTTP_X_MATCHED_PATH") or environ.get("HTTP_X_INVOKE_PATH")
+        if matched:
+            environ["PATH_INFO"] = matched
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
+
 # Cold-start database schema validation in /tmp
 from app.database import init_db
 from app.manufacturing_engine import init_manufacturing_schema
