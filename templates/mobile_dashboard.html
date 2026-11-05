@@ -3,52 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0d47a1">
+    <meta name="theme-color" content="#0a0f1d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ledger Pro">
     <title>{{ data.company_name }} - Mobile Dashboard</title>
     
-    <!-- Chart.js for smooth touch-enabled interactive charts -->
+    <!-- Chart.js for touch-enabled responsive charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
         :root {
-            --primary: #0288d1;
-            --primary-dark: #01579b;
-            --bg: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --text-sub: #6b7280;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --purple: #8b5cf6;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-bg-hover: rgba(255, 255, 255, 0.12);
+            --glass-border: rgba(255, 255, 255, 0.16);
+            --glass-border-light: rgba(255, 255, 255, 0.28);
+            --glass-blur: blur(20px) saturate(190%);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --text-muted: #64748b;
+            
+            --cyan-glow: #06b6d4;
+            --emerald-glow: #10b981;
+            --violet-glow: #8b5cf6;
+            --amber-glow: #f59e0b;
+            --rose-glow: #f43f5e;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg);
+            background-color: #0b1120;
             color: var(--text-main);
-            padding-bottom: 40px;
+            min-height: 100vh;
+            padding-bottom: 45px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* Top App Bar */
+        /* Dynamic Glassmorphism Background Orbs */
+        .bg-orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.55;
+            animation: floatOrb 18s ease-in-out infinite alternate;
+        }
+
+        .orb-1 {
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, #0284c7, #0369a1);
+            top: -60px;
+            right: -60px;
+        }
+
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #7c3aed, #4f46e5);
+            top: 35%;
+            left: -80px;
+            animation-duration: 22s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #059669, #0d9488);
+            bottom: 50px;
+            right: -40px;
+            animation-duration: 26s;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(40px) scale(1.12); }
+        }
+
+        /* Glassmorphism App Header */
         .app-bar {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            color: white;
-            padding: 16px 20px 20px 20px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px 20px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
         .app-bar-top {
@@ -58,83 +120,121 @@
         }
 
         .company-title {
-            font-size: 19px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 75%;
+            max-width: 72%;
         }
 
         .status-badge {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(4px);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            backdrop-filter: blur(10px);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
         }
 
         .pulse-dot {
             width: 7px;
             height: 7px;
-            background-color: #4ade80;
+            background-color: #34d399;
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 6px #4ade80;
+            box-shadow: 0 0 8px #34d399;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
         }
 
         .sync-info {
-            font-size: 11px;
-            opacity: 0.85;
-            margin-top: 6px;
+            font-size: 11.5px;
+            color: var(--text-sub);
+            margin-top: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .refresh-btn {
-            background: rgba(255, 255, 255, 0.25);
-            border: none;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border-light);
+            color: #ffffff;
+            backdrop-filter: blur(12px);
+            padding: 5px 14px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
-            transition: all 0.2s;
+            gap: 6px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .refresh-btn:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.94);
+            background: rgba(255, 255, 255, 0.2);
         }
 
         /* Container */
         .container {
-            padding: 16px;
-            max-width: 600px;
+            padding: 18px 16px;
+            max-width: 580px;
             margin: 0 auto;
         }
 
         /* Section Titles */
         .section-header {
-            font-size: 14px;
+            font-size: 12.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-sub);
-            margin: 18px 0 10px 4px;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+            margin: 22px 0 12px 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            pointer-events: none;
         }
 
         /* KPI Cards Grid */
@@ -145,71 +245,76 @@
         }
 
         .kpi-card {
-            background: var(--card-bg);
-            border-radius: 14px;
-            padding: 16px 14px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            position: relative;
-            overflow: hidden;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .kpi-card.full-width {
+        .kpi-card.hero-sales {
             grid-column: span 2;
-            background: linear-gradient(135deg, #059669, #10b981);
-            color: white;
-        }
-
-        .kpi-card.full-width .kpi-label {
-            color: rgba(255, 255, 255, 0.85);
-        }
-
-        .kpi-card.full-width .kpi-value {
-            color: white;
-            font-size: 26px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(16, 185, 129, 0.28));
+            border: 1px solid rgba(52, 211, 153, 0.38);
+            box-shadow: 0 10px 36px rgba(16, 185, 129, 0.18);
         }
 
         .kpi-label {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11.5px;
+            font-weight: 700;
             color: var(--text-sub);
-            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.6px;
+            margin-bottom: 6px;
+        }
+
+        .kpi-card.hero-sales .kpi-label {
+            color: #a7f3d0;
         }
 
         .kpi-value {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
-            color: var(--text-main);
             letter-spacing: -0.5px;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .kpi-card.hero-sales .kpi-value {
+            font-size: 30px;
+            color: #ffffff;
+            text-shadow: 0 2px 14px rgba(16, 185, 129, 0.4);
         }
 
         .kpi-sub {
             font-size: 11px;
-            margin-top: 4px;
-            color: var(--text-sub);
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
-        .kpi-card.full-width .kpi-sub {
-            color: rgba(255, 255, 255, 0.9);
+        .kpi-card.hero-sales .kpi-sub {
+            color: #d1fae5;
+            font-weight: 600;
         }
+
+        /* Color-coded accent indicators */
+        .glow-cyan { color: #38bdf8 !important; }
+        .glow-emerald { color: #34d399 !important; }
+        .glow-violet { color: #c084fc !important; }
+        .glow-amber { color: #fbbf24 !important; }
+        .glow-rose { color: #fb7185 !important; }
 
         /* Chart Card */
         .chart-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 18px 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            margin-bottom: 14px;
+            padding: 20px 18px;
+            margin-bottom: 16px;
         }
 
         .chart-title {
             font-size: 15px;
             font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 14px;
+            color: #f1f5f9;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -221,33 +326,33 @@
             width: 100%;
         }
 
-        /* List Items */
+        /* List Rows */
         .list-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .list-row {
-            padding: 14px 16px;
+            padding: 15px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #f1f3f5;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            transition: background 0.2s ease;
         }
 
         .list-row:last-child {
             border-bottom: none;
         }
 
+        .list-row:active {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
         .item-main {
             font-size: 14px;
             font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 2px;
+            color: #f8fafc;
+            margin-bottom: 3px;
         }
 
         .item-sub {
@@ -256,32 +361,32 @@
         }
 
         .item-amount {
-            font-size: 14px;
+            font-size: 14.5px;
             font-weight: 700;
             text-align: right;
-            color: var(--text-main);
+            color: #ffffff;
         }
 
         .pct-badge {
-            background: #e0f2fe;
-            color: #0369a1;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #38bdf8;
             font-size: 10.5px;
             font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 6px;
+            padding: 2px 8px;
+            border-radius: 12px;
             display: inline-block;
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
-        /* Empty state notice */
         .empty-notice {
-            padding: 24px 16px;
+            padding: 28px 16px;
             text-align: center;
-            color: var(--text-sub);
+            color: var(--text-muted);
             font-size: 13px;
+            font-weight: 500;
         }
 
-        /* Spinning animation for refresh */
         .spinning {
             animation: spin 0.8s linear infinite;
         }
@@ -293,7 +398,14 @@
 </head>
 <body>
 
-    <!-- ================= APP BAR ================= -->
+    <!-- ================= FLOATING GLASS BACKGROUND ORBS ================= -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- ================= GLASS APP BAR ================= -->
     <header class="app-bar">
         <div class="app-bar-top">
             <div class="company-title" id="companyName">{{ data.company_name }}</div>
@@ -313,79 +425,79 @@
 
     <div class="container">
 
-        <!-- ================= TOP KPI CARDS ================= -->
+        <!-- ================= SALES OVERVIEW ================= -->
         <div class="section-header">
-            <span>Sales Overview</span>
-            <span style="font-size: 11px; text-transform:none; font-weight: normal; color: var(--text-sub);">Real-time</span>
+            <span>Sales Performance</span>
+            <span style="font-size: 11px; text-transform:none; color: var(--cyan-glow);">Dynamic Realtime</span>
         </div>
 
         <div class="kpi-grid">
-            <!-- Today's Sales Full Width -->
-            <div class="kpi-card full-width">
+            <!-- Hero Today's Sales Glass Card -->
+            <div class="glass-card kpi-card hero-sales">
                 <div class="kpi-label">Today's Total Sales</div>
                 <div class="kpi-value" id="todaySales">₹{{ "{:,.2f}".format(data.metrics.today_sales) }}</div>
-                <div class="kpi-sub">Strictly dynamic from verified invoices</div>
+                <div class="kpi-sub">Directly computed from offline ledger records</div>
             </div>
 
             <!-- This Month Sales -->
-            <div class="kpi-card">
-                <div class="kpi-label">This Month Sales</div>
-                <div class="kpi-value" style="color: #0288d1;" id="monthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
-                <div class="kpi-sub" id="monthInvoices">{{ data.metrics.month_invoices }} bills this month</div>
+            <div class="glass-card kpi-card">
+                <div class="kpi-label">This Month</div>
+                <div class="kpi-value glow-cyan" id="monthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
+                <div class="kpi-sub" id="monthInvoices">{{ data.metrics.month_invoices }} bills generated</div>
             </div>
 
-            <!-- This Year Sales -->
-            <div class="kpi-card">
-                <div class="kpi-label">Year-to-Date Sales</div>
-                <div class="kpi-value" style="color: #8b5cf6;" id="yearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
-                <div class="kpi-sub">Financial Year Total</div>
+            <!-- Year to Date Sales -->
+            <div class="glass-card kpi-card">
+                <div class="kpi-label">Financial Year</div>
+                <div class="kpi-value glow-violet" id="yearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
+                <div class="kpi-sub">Annual Cumulative</div>
             </div>
         </div>
 
-        <!-- ================= FINANCIAL HEALTH ================= -->
+        <!-- ================= CASH & OUTSTANDING ================= -->
         <div class="section-header">
-            <span>Cash & Receivables</span>
+            <span>Liquidity & Outstanding</span>
         </div>
 
         <div class="kpi-grid">
             <!-- Cash in Hand -->
-            <div class="kpi-card">
+            <div class="glass-card kpi-card">
                 <div class="kpi-label">Cash in Hand</div>
-                <div class="kpi-value" style="color: #10b981;" id="cashBalance">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
-                <div class="kpi-sub">Ready Cash</div>
+                <div class="kpi-value glow-emerald" id="cashBalance">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
+                <div class="kpi-sub">Physical Balance</div>
             </div>
 
             <!-- Bank Accounts -->
-            <div class="kpi-card">
-                <div class="kpi-label">Bank Balance</div>
-                <div class="kpi-value" style="color: #0288d1;" id="bankBalance">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
-                <div class="kpi-sub">All Linked Accounts</div>
+            <div class="glass-card kpi-card">
+                <div class="kpi-label">Bank Accounts</div>
+                <div class="kpi-value glow-cyan" id="bankBalance">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
+                <div class="kpi-sub">Total Available</div>
             </div>
 
-            <!-- Pending Receivables (Debtors) -->
-            <div class="kpi-card">
+            <!-- Debtors (To Collect) -->
+            <div class="glass-card kpi-card">
                 <div class="kpi-label">To Collect (Debtors)</div>
-                <div class="kpi-value" style="color: #f59e0b;" id="totalReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
-                <div class="kpi-sub">Customer Outstanding</div>
+                <div class="kpi-value glow-amber" id="totalReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
+                <div class="kpi-sub">Pending Collections</div>
             </div>
 
-            <!-- Pending Payables (Creditors) -->
-            <div class="kpi-card">
+            <!-- Creditors (To Pay) -->
+            <div class="glass-card kpi-card">
                 <div class="kpi-label">To Pay (Creditors)</div>
-                <div class="kpi-value" style="color: #ef4444;" id="totalPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
-                <div class="kpi-sub">Supplier Outstanding</div>
+                <div class="kpi-value glow-rose" id="totalPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
+                <div class="kpi-sub">Supplier Obligations</div>
             </div>
         </div>
 
-        <!-- ================= BAR CHART: MONTHLY SALES TREND ================= -->
+        <!-- ================= BAR CHART: MONTHLY SALES GROWTH ================= -->
         <div class="section-header">
-            <span>Monthly Sales Growth</span>
+            <span>Sales Growth Trend</span>
         </div>
 
-        <div class="chart-card">
+        <div class="glass-card chart-card">
             <div class="chart-title">
-                <span>Sales Trend (Last 6 Months)</span>
-                <span style="font-size: 11px; font-weight: 500; color: var(--text-sub);">Dynamic</span>
+                <span>Monthly Revenue (Last 6 Months)</span>
+                <span style="font-size: 11px; font-weight: 600; color: #38bdf8;">₹ Dynamic</span>
             </div>
             <div class="chart-box">
                 <canvas id="salesBarChart"></canvas>
@@ -394,10 +506,10 @@
 
         <!-- ================= DONUT CHART: PAYMENT MODES ================= -->
         <div class="section-header">
-            <span>Sales By Payment Mode</span>
+            <span>Payment Modes Breakdown</span>
         </div>
 
-        <div class="chart-card">
+        <div class="glass-card chart-card">
             <div class="chart-title">
                 <span>Cash vs Bank vs Credit</span>
             </div>
@@ -408,25 +520,25 @@
 
         <!-- ================= TOP CUSTOMERS ================= -->
         <div class="section-header">
-            <span>Top Customers by Sales</span>
+            <span>Top Performing Clients</span>
         </div>
 
-        <div class="list-card" id="topCustomersList">
+        <div class="glass-card list-card" id="topCustomersList">
             {% if data.top_customers %}
                 {% for c in data.top_customers %}
                     <div class="list-row">
                         <div>
                             <div class="item-main">{{ c.name }}</div>
-                            <div class="item-sub">{{ c.bills }} Invoices</div>
+                            <div class="item-sub">{{ c.bills }} Invoices Issued</div>
                         </div>
                         <div style="text-align: right;">
                             <div class="item-amount">₹{{ "{:,.2f}".format(c.amount) }}</div>
-                            <span class="pct-badge">{{ c.percentage }}% of total</span>
+                            <span class="pct-badge">{{ c.percentage }}% Volume</span>
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="empty-notice">No sales invoices recorded yet.</div>
+                <div class="empty-notice">No client transaction records found yet.</div>
             {% endif %}
         </div>
 
@@ -435,7 +547,7 @@
             <span>Recent Sales Invoices</span>
         </div>
 
-        <div class="list-card" id="recentInvoicesList">
+        <div class="glass-card list-card" id="recentInvoicesList">
             {% if data.recent_invoices %}
                 {% for inv in data.recent_invoices %}
                     <div class="list-row">
@@ -443,30 +555,33 @@
                             <div class="item-main">{{ inv.voucher_number }}</div>
                             <div class="item-sub">{{ inv.customer }} &bull; {{ inv.date }}</div>
                         </div>
-                        <div class="item-amount" style="color: #059669;">
+                        <div class="item-amount glow-emerald">
                             ₹{{ "{:,.2f}".format(inv.amount) }}
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="empty-notice">No recent sales vouchers found.</div>
+                <div class="empty-notice">No sales vouchers recorded yet.</div>
             {% endif %}
         </div>
 
     </div>
 
-    <!-- ================= CHARTS INITIALIZATION & AUTO-REFRESH SCRIPT ================= -->
+    <!-- ================= CHARTS ENGINE & LIVE FETCH ================= -->
     <script>
-        // Initial data injected dynamically from server
         let chartData = {{ data.charts | tojson }};
-
         let barChartInstance = null;
         let donutChartInstance = null;
 
         function initCharts(data) {
-            // 1. Bar Chart Setup
+            // 1. Glassmorphism Bar Chart
             const barCtx = document.getElementById('salesBarChart').getContext('2d');
             if (barChartInstance) barChartInstance.destroy();
+
+            // Create linear gradient for bars
+            const barGrad = barCtx.createLinearGradient(0, 0, 0, 220);
+            barGrad.addColorStop(0, '#06b6d4');
+            barGrad.addColorStop(1, '#3b82f6');
 
             barChartInstance = new Chart(barCtx, {
                 type: 'bar',
@@ -475,10 +590,10 @@
                     datasets: [{
                         label: 'Sales (₹)',
                         data: data.bar_chart.values,
-                        backgroundColor: '#0288d1',
-                        borderRadius: 6,
+                        backgroundColor: barGrad,
+                        borderRadius: 8,
                         borderSkipped: false,
-                        maxBarThickness: 32
+                        maxBarThickness: 34
                     }]
                 },
                 options: {
@@ -487,6 +602,13 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#f8fafc',
+                            bodyColor: '#38bdf8',
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
                             callbacks: {
                                 label: function(context) {
                                     return '₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
@@ -498,28 +620,29 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
+                                color: '#94a3b8',
                                 callback: function(value) {
                                     return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value);
                                 },
-                                font: { size: 10 }
+                                font: { size: 10.5 }
                             },
-                            grid: { color: '#f3f4f6' }
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' }
                         },
                         x: {
-                            ticks: { font: { size: 10 } },
+                            ticks: { color: '#94a3b8', font: { size: 10.5 } },
                             grid: { display: false }
                         }
                     }
                 }
             });
 
-            // 2. Donut Chart Setup
+            // 2. Glassmorphism Donut Chart
             const donutCtx = document.getElementById('salesDonutChart').getContext('2d');
             if (donutChartInstance) donutChartInstance.destroy();
 
             const sumDonut = data.donut_chart.values.reduce((a, b) => a + b, 0);
             const donutValues = sumDonut > 0 ? data.donut_chart.values : [1, 0, 0];
-            const donutColors = sumDonut > 0 ? ['#10b981', '#0288d1', '#f59e0b'] : ['#e5e7eb', '#e5e7eb', '#e5e7eb'];
+            const donutColors = sumDonut > 0 ? ['#10b981', '#06b6d4', '#f59e0b'] : ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.05)'];
 
             donutChartInstance = new Chart(donutCtx, {
                 type: 'doughnut',
@@ -529,7 +652,7 @@
                         data: donutValues,
                         backgroundColor: donutColors,
                         borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderColor: 'rgba(15, 23, 42, 0.8)'
                     }]
                 },
                 options: {
@@ -538,10 +661,19 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { boxWidth: 12, font: { size: 11 } }
+                            labels: {
+                                color: '#cbd5e1',
+                                boxWidth: 12,
+                                padding: 14,
+                                font: { size: 11.5, weight: '600' }
+                            }
                         },
                         tooltip: {
                             enabled: sumDonut > 0,
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#f8fafc',
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
                                     return context.label + ': ₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
@@ -549,17 +681,15 @@
                             }
                         }
                     },
-                    cutout: '68%'
+                    cutout: '70%'
                 }
             });
         }
 
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             initCharts(chartData);
         });
 
-        // Dynamic One-tap Refresh via API
         async function fetchLiveDashboard(btn) {
             const icon = document.getElementById('refreshIcon');
             icon.classList.add('spinning');
@@ -567,42 +697,38 @@
 
             try {
                 const res = await fetch('/api/mobile/dashboard');
-                if (!res.ok) throw new Error('Network error');
+                if (!res.ok) throw new Error('Network response not ok');
                 const json = await res.json();
 
-                // Update text metrics
                 document.getElementById('companyName').textContent = json.company_name;
                 document.getElementById('syncTimestamp').textContent = 'Synced: ' + json.synced_at;
                 document.getElementById('todaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('monthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('yearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills this month';
+                document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills generated';
                 document.getElementById('cashBalance').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('bankBalance').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('totalReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
                 document.getElementById('totalPayables').textContent = '₹' + json.metrics.total_payables.toLocaleString('en-IN', {minimumFractionDigits: 2});
 
-                // Update Charts
                 initCharts(json.charts);
 
-                // Update Top Customers
                 const custList = document.getElementById('topCustomersList');
                 if (json.top_customers && json.top_customers.length > 0) {
                     custList.innerHTML = json.top_customers.map(c => `
                         <div class="list-row">
                             <div>
                                 <div class="item-main">${c.name}</div>
-                                <div class="item-sub">${c.bills} Invoices</div>
+                                <div class="item-sub">${c.bills} Invoices Issued</div>
                             </div>
                             <div style="text-align: right;">
                                 <div class="item-amount">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                                <span class="pct-badge">${c.percentage}% of total</span>
+                                <span class="pct-badge">${c.percentage}% Volume</span>
                             </div>
                         </div>
                     `).join('');
                 }
 
-                // Update Recent Invoices
                 const invList = document.getElementById('recentInvoicesList');
                 if (json.recent_invoices && json.recent_invoices.length > 0) {
                     invList.innerHTML = json.recent_invoices.map(inv => `
@@ -611,7 +737,7 @@
                                 <div class="item-main">${inv.voucher_number}</div>
                                 <div class="item-sub">${inv.customer} &bull; ${inv.date}</div>
                             </div>
-                            <div class="item-amount" style="color: #059669;">
+                            <div class="item-amount glow-emerald">
                                 ₹${inv.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
                             </div>
                         </div>
@@ -619,7 +745,7 @@
                 }
 
             } catch (err) {
-                console.error("Sync error:", err);
+                console.error("Dashboard refresh error:", err);
             } finally {
                 icon.classList.remove('spinning');
                 btn.disabled = false;
