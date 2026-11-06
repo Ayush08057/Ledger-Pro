@@ -215,12 +215,22 @@ def mobile_dashboard():
     return resp
 
 
-@app.route("/api/mobile/dashboard")
+@app.route("/api/mobile/dashboard", methods=["GET", "OPTIONS"])
 def mobile_dashboard_api():
+    if request.method == "OPTIONS":
+        resp = make_response("", 204)
+        resp.headers["Access-Control-Allow-Origin"] = "*"
+        resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-App-Key, Cache-Control"
+        resp.headers["Access-Control-Max-Age"] = "86400"
+        return resp
+
     comp = get_active_company()
     cid = comp["id"] if comp else 1
     data = get_mobile_dashboard_data(cid)
     resp = jsonify(data)
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-App-Key, Cache-Control"
     resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     resp.headers["Expires"] = "0"

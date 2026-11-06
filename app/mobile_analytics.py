@@ -141,14 +141,14 @@ def get_mobile_dashboard_data(company_id: int) -> Dict[str, Any]:
     if not bar_labels:
         curr_m = date.today().month
         curr_y = date.today().year
-        # Generate last 3 calendar month labels
-        for offset in [2, 1, 0]:
+        # Generate last 6 calendar month labels with 0.0 values for clean start
+        for offset in [5, 4, 3, 2, 1, 0]:
             m = curr_m - offset
             y = curr_y
-            if m <= 0:
+            while m <= 0:
                 m += 12
                 y -= 1
-            bar_labels.append(f"{date(y, m, 1).strftime('%b')} {y}")
+            bar_labels.append(f"{date(y, m, 1).strftime('%b')}")
             bar_values.append(0.0)
 
     # 7. Sales Breakdown by Payment Mode (Cash vs Bank vs Credit) for Donut Chart
