@@ -12,8 +12,13 @@
     <meta name="apple-mobile-web-app-title" content="Ledger Pro">
     <title>{{ data.company_name }} - Mobile Dashboard</title>
     
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Chart.js -->
+    <script src="/static/js/chart.umd.min.js"></script>
+    <script>
+        if (typeof Chart === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+        }
+    </script>
 
     <!-- Firebase App & Database SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -469,9 +474,6 @@
                         <span class="pulse-dot"></span>
                         <span id="lblSyncMode">Live</span>
                     </div>
-                    <button class="btn-head" onclick="triggerManualSync(this)">
-                        <span id="refreshIcon">🔄</span> Sync
-                    </button>
                     <a href="/mobile/logout" class="btn-head" style="color:#dc2626;" title="Sign Out">
                         <span>🔒</span> Exit
                     </a>
@@ -607,20 +609,6 @@
                 </div>
             </div>
         </main>
-
-        <!-- Floating Bottom Dock -->
-        <div class="floating-dock">
-            <div class="dock-left">
-                <span class="dock-pulse"></span>
-                <div>
-                    <div class="dock-title">Live</div>
-                    <div class="dock-sub">Connected</div>
-                </div>
-            </div>
-            <button class="btn-dock-sync" onclick="triggerManualSync(this)">
-                <span id="dockRefreshIcon">🔄</span> Sync Now
-            </button>
-        </div>
     </div>
 
     <!-- ================= APP LOGIC & ENGINE ================= -->
@@ -630,7 +618,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initRealtimeSync();
-            if (cachedChartsData) renderLineChart(cachedChartsData);
+            renderLineChart(cachedChartsData);
         });
 
         function initRealtimeSync() {
@@ -661,9 +649,10 @@
                 console.log("Firebase sync note:", err);
             }
 
+            // High-speed auto-sync every 2.5 seconds
             setInterval(function() {
                 triggerManualSync(null, true);
-            }, 15000);
+            }, 2500);
 
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) triggerManualSync(null, true);

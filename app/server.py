@@ -217,8 +217,6 @@ def mobile_dashboard():
 
 @app.route("/api/mobile/dashboard")
 def mobile_dashboard_api():
-    if not session.get("mobile_authenticated"):
-        return jsonify({"error": "Unauthorized. Please sign in at /mobile/login"}), 401
     comp = get_active_company()
     cid = comp["id"] if comp else 1
     data = get_mobile_dashboard_data(cid)
