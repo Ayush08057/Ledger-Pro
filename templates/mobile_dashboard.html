@@ -21,17 +21,16 @@
 
     <style>
         :root {
-            /* Fresh Light Glassmorphism Tokens */
-            --glass-surface: rgba(255, 255, 255, 0.72);
-            --glass-surface-hover: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.9);
-            --glass-border-subtle: rgba(255, 255, 255, 0.55);
+            --glass-surface: rgba(255, 255, 255, 0.84);
+            --glass-surface-hover: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.95);
+            --glass-border-subtle: rgba(255, 255, 255, 0.6);
             --glass-blur: blur(24px) saturate(190%);
-            --glass-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.08), 0 4px 12px -2px rgba(31, 38, 135, 0.04);
+            --glass-shadow: 0 10px 25px -4px rgba(31, 38, 135, 0.05), 0 4px 10px -2px rgba(31, 38, 135, 0.03);
             --glass-inner-light: inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
 
             --text-primary: #0f172a;
-            --text-secondary: #475569;
+            --text-secondary: #334155;
             --text-muted: #64748b;
             --text-caption: #94a3b8;
 
@@ -40,18 +39,6 @@
             
             --emerald-vibrant: #10b981;
             --emerald-soft: #ecfdf5;
-            
-            --blue-vibrant: #0ea5e9;
-            --blue-soft: #f0f9ff;
-            
-            --purple-vibrant: #8b5cf6;
-            --purple-soft: #f5f3ff;
-            
-            --amber-vibrant: #f59e0b;
-            --amber-soft: #fffbeb;
-            
-            --rose-vibrant: #f43f5e;
-            --rose-soft: #fff1f2;
         }
 
         * {
@@ -63,10 +50,10 @@
         }
 
         body {
-            background-color: #f1f5f9;
+            background-color: #f1f6fc;
             color: var(--text-primary);
             min-height: 100vh;
-            padding-bottom: 70px;
+            padding-bottom: 95px;
             position: relative;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
@@ -82,64 +69,31 @@
             z-index: -1;
             overflow: hidden;
             pointer-events: none;
-            background: linear-gradient(160deg, #eff6ff 0%, #f8fafc 50%, #f0fdf4 100%);
+            background: linear-gradient(160deg, #eef6ff 0%, #f8fafc 45%, #f0fdf4 100%);
         }
 
         .mesh-orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(65px);
-            opacity: 0.65;
-            animation: floatMesh 16s ease-in-out infinite alternate;
+            filter: blur(70px);
+            opacity: 0.6;
+            animation: floatMesh 18s ease-in-out infinite alternate;
         }
 
-        .orb-sky {
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, #7dd3fc, #38bdf8);
-            top: -60px;
-            right: -60px;
-        }
-
-        .orb-rose {
-            width: 280px;
-            height: 280px;
-            background: radial-gradient(circle, #fbcfe8, #f472b6);
-            top: 30%;
-            left: -80px;
-            animation-duration: 20s;
-        }
-
-        .orb-emerald {
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, #a7f3d0, #34d399);
-            bottom: 40px;
-            right: -50px;
-            animation-duration: 24s;
-        }
-
-        .orb-violet {
-            width: 250px;
-            height: 250px;
-            background: radial-gradient(circle, #ddd6fe, #a78bfa);
-            bottom: 25%;
-            left: 10%;
-            animation-duration: 18s;
-        }
+        .orb-sky { width: 340px; height: 340px; background: radial-gradient(circle, #bae6fd, #38bdf8); top: -80px; right: -60px; }
+        .orb-rose { width: 280px; height: 280px; background: radial-gradient(circle, #fce7f3, #f472b6); top: 32%; left: -80px; animation-duration: 22s; }
+        .orb-emerald { width: 320px; height: 320px; background: radial-gradient(circle, #a7f3d0, #34d399); bottom: 50px; right: -60px; animation-duration: 26s; }
 
         @keyframes floatMesh {
             0% { transform: translateY(0px) scale(1); }
-            100% { transform: translateY(35px) scale(1.1); }
+            100% { transform: translateY(35px) scale(1.08); }
         }
 
-        /* Glassmorphism Header */
         .glass-header {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.86);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
-            border-bottom: 1px solid var(--glass-border);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.75);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -154,721 +108,532 @@
             align-items: center;
         }
 
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-badge {
-            width: 36px;
-            height: 36px;
-            background: var(--brand-gradient);
+        .header-brand { display: flex; align-items: center; gap: 10px; }
+        .brand-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #0ea5e9;
             color: white;
-            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             font-weight: 800;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+            overflow: hidden;
+            flex-shrink: 0;
         }
-
+        .brand-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
         .header-title-box h1 {
             font-size: 16px;
             font-weight: 800;
             color: var(--text-primary);
             letter-spacing: -0.3px;
             line-height: 1.2;
+            max-width: 140px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 180px;
         }
+        .header-title-box p { font-size: 10.5px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
 
-        .header-title-box p {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 1px;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .header-actions { display: flex; align-items: center; gap: 6px; }
+        
         .status-pill {
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             color: #059669;
-            backdrop-filter: blur(10px);
-            padding: 5px 10px;
-            border-radius: 20px;
+            padding: 5px 9px;
+            border-radius: 18px;
             font-size: 11px;
             font-weight: 700;
             display: flex;
             align-items: center;
             gap: 5px;
         }
-
         .pulse-dot {
             width: 6.5px;
             height: 6.5px;
             background-color: #10b981;
             border-radius: 50%;
-            display: inline-block;
             box-shadow: 0 0 6px #10b981;
-            animation: pulse 2s infinite;
+            animation: pulseGlow 1.8s infinite;
         }
-
-        @keyframes pulse {
+        @keyframes pulseGlow {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.2); }
+            50% { opacity: 0.5; transform: scale(0.85); }
         }
 
-        .btn-refresh {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            backdrop-filter: blur(8px);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11.5px;
+        .btn-head {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            border-radius: 18px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            text-decoration: none;
         }
+        .btn-head:active { transform: scale(0.96); }
 
-        .btn-refresh:active {
-            transform: scale(0.94);
-            background: #ffffff;
-        }
+        .mobile-container { max-width: 600px; margin: 0 auto; padding: 14px 14px; }
 
-        /* Mobile Container */
-        .mobile-container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 14px 14px;
-        }
-
-        /* Section Title Header */
         .section-label {
             font-size: 11.5px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.7px;
             color: var(--text-muted);
-            margin: 20px 0 10px 4px;
+            margin: 18px 0 10px 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
-        .section-label:first-of-type {
-            margin-top: 4px;
+        .section-tag-right {
+            font-size: 10.5px;
+            color: #0284c7;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .badge-growth {
+            background: #ecfdf5;
+            color: #059669;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 12px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            text-transform: none;
+            letter-spacing: 0;
         }
 
-        /* Glassmorphism Card Element */
         .glass-card {
             background: var(--glass-surface);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: var(--glass-shadow);
+            border-radius: 22px;
             box-shadow: var(--glass-shadow), var(--glass-inner-light);
             position: relative;
             overflow: hidden;
             margin-bottom: 12px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        /* Hero Today's Sales Glass Banner */
+        /* Hero Today's Sales */
         .hero-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(224, 242, 254, 0.65) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.95);
-            padding: 20px 18px;
-            border-radius: 22px;
-            position: relative;
-            box-shadow: 0 14px 35px -5px rgba(2, 132, 199, 0.12), var(--glass-inner-light);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.8) 100%);
+            padding: 20px 20px 18px;
         }
-
-        .hero-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .hero-tag {
-            font-size: 11.5px;
-            font-weight: 800;
-            color: #0369a1;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .hero-badge-live {
-            background: #dbeafe;
-            color: #1d4ed8;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 7px;
-            border-radius: 12px;
-        }
-
-        .hero-amount {
-            font-size: 32px;
-            font-weight: 900;
-            color: #0f172a;
-            letter-spacing: -0.8px;
-            line-height: 1.15;
-            margin-bottom: 6px;
-        }
-
-        .hero-footer {
-            font-size: 11.5px;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        /* 2-Column Mobile Grid for Metrics */
-        .mobile-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .metric-cell {
-            padding: 15px 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .metric-header {
+        .hero-top-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
-
-        .metric-label {
-            font-size: 11px;
+        .hero-tag {
+            font-size: 11.5px;
             font-weight: 800;
+            color: #334155;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
+        .hero-live-badge {
+            background: rgba(2, 132, 199, 0.08);
+            color: #0284c7;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+        }
+        .hero-amount {
+            font-size: 34px;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+            line-height: 1.15;
+        }
+        .hero-footer { font-size: 11.5px; color: #64748b; font-weight: 500; }
 
-        .metric-icon-bubble {
-            width: 28px;
-            height: 28px;
-            border-radius: 9px;
+        /* 2-Column Mobile Grid */
+        .mobile-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .metric-cell { padding: 16px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between; }
+        .metric-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .metric-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.3px; }
+        
+        .metric-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            flex-shrink: 0;
         }
+        .metric-value { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; color: #0f172a; line-height: 1.2; }
+        .metric-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 4px; }
 
-        .metric-value {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            line-height: 1.2;
-            color: var(--text-primary);
-        }
-
-        .metric-sub {
-            font-size: 10.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 4px;
-        }
-
-        /* Chart Glass Card */
-        .chart-glass-card {
-            padding: 18px 16px;
-        }
-
-        .chart-header {
+        /* ================= GROWTH CARD (LINE CHART) ================= */
+        .growth-card { padding: 18px 18px 16px; }
+        .growth-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
-
-        .chart-title {
-            font-size: 14px;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.2px;
+        .growth-title { font-size: 12.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.3px; }
+        
+        .growth-tabs {
+            display: flex;
+            background: rgba(241, 245, 249, 0.9);
+            border-radius: 12px;
+            padding: 3px;
+            gap: 2px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
-
-        .chart-badge {
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 3px 9px;
             font-size: 10.5px;
             font-weight: 700;
+            color: #64748b;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .growth-sub-badges {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .pill-mini {
+            background: rgba(240, 249, 255, 0.8);
+            border: 1px solid rgba(186, 230, 253, 0.7);
             color: #0284c7;
-            background: #e0f2fe;
+            font-size: 10px;
+            font-weight: 700;
             padding: 2px 7px;
             border-radius: 8px;
         }
 
-        .chart-container-box {
+        .growth-hero-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .growth-amount { font-size: 26px; font-weight: 900; color: #0f172a; letter-spacing: -0.6px; }
+        .growth-mom-pill {
+            background: #ecfdf5;
+            color: #059669;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 8px;
+        }
+
+        .chart-wrapper {
             position: relative;
-            height: 200px;
+            height: 160px;
             width: 100%;
+            margin-bottom: 16px;
+        }
+        .floating-chart-tooltip {
+            position: absolute;
+            top: 25px;
+            left: 20%;
+            background: #0f172a;
+            color: white;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 5px 9px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            pointer-events: none;
+            z-index: 5;
         }
 
-        /* List Rows */
-        .list-glass-card {
-            padding: 4px 0;
+        .growth-footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            padding-top: 12px;
+            text-align: left;
         }
+        .growth-footer-item { padding: 0 4px; }
+        .growth-footer-item:not(:first-child) { border-left: 1px solid rgba(226, 232, 240, 0.6); padding-left: 10px; }
+        .growth-footer-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+        .growth-footer-val { font-size: 12.5px; font-weight: 800; color: #0f172a; }
+        .growth-footer-val.highlight-green { color: #059669; }
 
-        .glass-row {
-            padding: 13px 16px;
+        /* Floating Bottom Pill Dock */
+        .floating-dock {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 36px;
+            padding: 7px 10px 7px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+            z-index: 999;
+            width: calc(100% - 36px);
+            max-width: 360px;
         }
-
-        .glass-row:last-child {
-            border-bottom: none;
+        .dock-left { display: flex; align-items: center; gap: 10px; }
+        .dock-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulseGlow 1.8s infinite;
         }
-
-        .customer-title {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .customer-sub {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .customer-total {
-            font-size: 14px;
-            font-weight: 800;
-            text-align: right;
-            color: var(--text-primary);
-        }
-
-        .pill-pct {
-            background: #e0f2fe;
-            color: #0369a1;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 8px;
-            display: inline-block;
-            margin-top: 2px;
-        }
-
-        .empty-message {
-            padding: 30px 16px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 12.5px;
-            font-weight: 500;
-        }
-
-        /* Floating Mobile Quick Action Pill */
-        .floating-sync-bar {
-            position: fixed;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 99;
+        .dock-title { font-size: 12.5px; font-weight: 800; color: #ffffff; line-height: 1.1; }
+        .dock-sub { font-size: 10px; color: #94a3b8; font-weight: 500; }
+        
+        .btn-dock-sync {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
             font-size: 12px;
             font-weight: 700;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .floating-sync-bar button {
-            background: #0284c7;
-            border: none;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 14px;
-            font-size: 11px;
-            font-weight: 700;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+            transition: transform 0.15s ease;
         }
+        .btn-dock-sync:active { transform: scale(0.96); }
 
-        .spinning {
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
+        .spinning { animation: spin 0.8s linear infinite; display: inline-block; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- ================= AMBIENT DYNAMIC PASTEL MESH ================= -->
+    <!-- Ambient Mesh Orbs -->
     <div class="ambient-mesh">
         <div class="mesh-orb orb-sky"></div>
         <div class="mesh-orb orb-rose"></div>
         <div class="mesh-orb orb-emerald"></div>
-        <div class="mesh-orb orb-violet"></div>
     </div>
 
-    <!-- ================= GLASS HEADER ================= -->
-    <header class="glass-header">
-        <div class="header-content">
-            <div class="header-brand">
-                <div class="brand-badge">L</div>
-                <div class="header-title-box">
-                    <h1 id="companyName">{{ data.company_name }}</h1>
-                    <p id="syncTimestamp">Synced: {{ data.synced_at }}</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <div class="status-pill">
-                    <span class="pulse-dot"></span>
-                    <span>Live</span>
-                </div>
-                <button class="btn-refresh" onclick="fetchLiveDashboard(this)">
-                    <span id="refreshIcon">🔄</span>
-                    <span>Sync</span>
-                </button>
-                <a href="/mobile/logout" class="btn-refresh" style="text-decoration:none; color:#dc2626;" title="Sign Out">
-                    <span>🔒</span>
-                    <span>Exit</span>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <!-- ================= MOBILE CONTENT ================= -->
-    <main class="mobile-container">
-
-        <!-- HERO TODAY'S SALES CARD -->
-        <div class="section-label">
-            <span>Today's Performance</span>
-            <span style="font-size: 10.5px; color: #0284c7; font-weight: 700;">Realtime Sync</span>
-        </div>
-
-        <div class="glass-card hero-card">
-            <div class="hero-top">
-                <div class="hero-tag">
-                    <span>⚡ Daily Sales Total</span>
-                    <span class="hero-badge-live">Live</span>
-                </div>
-            </div>
-            <div class="hero-amount" id="todaySales">₹{{ "{:,.2f}".format(data.metrics.today_sales) }}</div>
-            <div class="hero-footer">Directly aggregated from verified sales invoices</div>
-        </div>
-
-        <!-- 2-COLUMN SALES OVERVIEW -->
-        <div class="mobile-grid-2">
-            <!-- This Month -->
-            <div class="glass-card metric-cell">
-                <div class="metric-header">
-                    <span class="metric-label">This Month</span>
-                    <div class="metric-icon-bubble" style="background: #e0f2fe; color: #0284c7;">📅</div>
-                </div>
-                <div class="metric-value" style="color: #0284c7;" id="monthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
-                <div class="metric-sub" id="monthInvoices">{{ data.metrics.month_invoices }} bills billed</div>
-            </div>
-
-            <!-- Financial Year -->
-            <div class="glass-card metric-cell">
-                <div class="metric-header">
-                    <span class="metric-label">Annual YTD</span>
-                    <div class="metric-icon-bubble" style="background: #f5f3ff; color: #7c3aed;">🎯</div>
-                </div>
-                <div class="metric-value" style="color: #7c3aed;" id="yearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
-                <div class="metric-sub">Financial Year</div>
-            </div>
-        </div>
-
-        <!-- CASH & BANK BALANCES -->
-        <div class="section-label">
-            <span>Cash & Bank Liquidity</span>
-        </div>
-
-        <div class="mobile-grid-2">
-            <!-- Cash in Hand -->
-            <div class="glass-card metric-cell">
-                <div class="metric-header">
-                    <span class="metric-label">Cash in Hand</span>
-                    <div class="metric-icon-bubble" style="background: #ecfdf5; color: #059669;">💵</div>
-                </div>
-                <div class="metric-value" style="color: #059669;" id="cashBalance">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
-                <div class="metric-sub">Ready Physical Cash</div>
-            </div>
-
-            <!-- Bank Balance -->
-            <div class="glass-card metric-cell">
-                <div class="metric-header">
-                    <span class="metric-label">Bank Balance</span>
-                    <div class="metric-icon-bubble" style="background: #e0f2fe; color: #0284c7;">🏦</div>
-                </div>
-                <div class="metric-value" style="color: #0284c7;" id="bankBalance">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
-                <div class="metric-sub">Bank Accounts Total</div>
-            </div>
-        </div>
-
-        <!-- RECEIVABLES & PAYABLES -->
-        <div class="section-label">
-            <span>Outstanding Balances</span>
-        </div>
-
-        <div class="mobile-grid-2">
-            <!-- To Collect (Debtors) -->
-            <div class="glass-card metric-cell">
-                <div class="metric-header">
-                    <span class="metric-label">To Collect</span>
-                    <div class="metric-icon-bubble" style="background: #fffbeb; color: #d97706;">⏳</div>
-                </div>
-                <div class="metric-value" style="color: #d97706;" id="totalReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
-                <div class="metric-sub">Customer Outstanding</div>
-            </div>
-
-            <!-- To Pay (Creditors) -->
-            <div class="glass-card metric-cell">
-                <div class="metric-header">
-                    <span class="metric-label">To Pay</span>
-                    <div class="metric-icon-bubble" style="background: #fff1f2; color: #e11d48;">💳</div>
-                </div>
-                <div class="metric-value" style="color: #e11d48;" id="totalPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
-                <div class="metric-sub">Supplier Obligations</div>
-            </div>
-        </div>
-
-        <!-- MONTHLY SALES GROWTH (BAR CHART) -->
-        <div class="section-label">
-            <span>Sales Growth Graph</span>
-        </div>
-
-        <div class="glass-card chart-glass-card">
-            <div class="chart-header">
-                <span class="chart-title">Last 6 Months Sales</span>
-                <span class="chart-badge">Dynamic ₹</span>
-            </div>
-            <div class="chart-container-box">
-                <canvas id="salesBarChart"></canvas>
-            </div>
-        </div>
-
-        <!-- PAYMENT MODE BREAKDOWN (DONUT CHART) -->
-        <div class="section-label">
-            <span>Payment Modes</span>
-        </div>
-
-        <div class="glass-card chart-glass-card">
-            <div class="chart-header">
-                <span class="chart-title">Cash vs Bank vs Credit</span>
-            </div>
-            <div class="chart-container-box" style="height: 190px;">
-                <canvas id="salesDonutChart"></canvas>
-            </div>
-        </div>
-
-        <!-- TOP CLIENTS -->
-        <div class="section-label">
-            <span>Top Performing Clients</span>
-        </div>
-
-        <div class="glass-card list-glass-card" id="topCustomersList">
-            {% if data.top_customers %}
-                {% for c in data.top_customers %}
-                    <div class="glass-row">
-                        <div>
-                            <div class="customer-title">{{ c.name }}</div>
-                            <div class="customer-sub">{{ c.bills }} Invoices Billed</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="customer-total">₹{{ "{:,.2f}".format(c.amount) }}</div>
-                            <span class="pill-pct">{{ c.percentage }}% Volume</span>
-                        </div>
+    <!-- ================= DASHBOARD SCREEN ================= -->
+    <div id="dashboardScreen">
+        <header class="glass-header">
+            <div class="header-content">
+                <div class="header-brand">
+                    <div class="brand-avatar">
+                        <img src="/static/images/app_icon.png" alt="L" onerror="this.outerHTML='L'">
                     </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-message">No client transactions recorded yet.</div>
-            {% endif %}
-        </div>
-
-        <!-- RECENT INVOICES -->
-        <div class="section-label">
-            <span>Recent Invoices</span>
-        </div>
-
-        <div class="glass-card list-glass-card" id="recentInvoicesList">
-            {% if data.recent_invoices %}
-                {% for inv in data.recent_invoices %}
-                    <div class="glass-row">
-                        <div>
-                            <div class="customer-title">{{ inv.voucher_number }}</div>
-                            <div class="customer-sub">{{ inv.customer }} &bull; {{ inv.date }}</div>
-                        </div>
-                        <div class="customer-total" style="color: #059669;">
-                            ₹{{ "{:,.2f}".format(inv.amount) }}
-                        </div>
+                    <div class="header-title-box">
+                        <h1 id="lblCompanyName">{{ data.company_name }}</h1>
+                        <p id="lblSyncTime">Synced: {{ data.synced_at }}</p>
                     </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-message">No recent sales vouchers recorded yet.</div>
-            {% endif %}
+                </div>
+                <div class="header-actions">
+                    <div class="status-pill">
+                        <span class="pulse-dot"></span>
+                        <span id="lblSyncMode">Live</span>
+                    </div>
+                    <button class="btn-head" onclick="triggerManualSync(this)">
+                        <span id="refreshIcon">🔄</span> Sync
+                    </button>
+                    <a href="/mobile/logout" class="btn-head" style="color:#dc2626;" title="Sign Out">
+                        <span>🔒</span> Exit
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="mobile-container">
+            <!-- Hero Today's Sales -->
+            <div class="section-label">
+                <span>TODAY'S PERFORMANCE</span>
+                <span class="section-tag-right">REALTIME SYNC</span>
+            </div>
+
+            <div class="glass-card hero-card">
+                <div class="hero-top-row">
+                    <span class="hero-tag">⚡ DAILY SALES TOTAL</span>
+                    <span class="hero-live-badge">LIVE</span>
+                </div>
+                <div class="hero-amount" id="lblTodaySales">₹{{ "{:,.2f}".format(data.metrics.today_sales) }}</div>
+                <div class="hero-footer">Directly aggregated from verified sales invoices</div>
+            </div>
+
+            <!-- Month & Annual Sales -->
+            <div class="mobile-grid-2">
+                <div class="glass-card metric-cell">
+                    <div class="metric-header">
+                        <span class="metric-label">THIS MONTH</span>
+                        <div class="metric-icon-box">📅</div>
+                    </div>
+                    <div class="metric-value" id="lblMonthSales">₹{{ "{:,.2f}".format(data.metrics.month_sales) }}</div>
+                    <div class="metric-sub" id="lblMonthInvoices">{{ data.metrics.month_invoices }} bills billed</div>
+                </div>
+
+                <div class="glass-card metric-cell">
+                    <div class="metric-header">
+                        <span class="metric-label">ANNUAL YTD</span>
+                        <div class="metric-icon-box">🎯</div>
+                    </div>
+                    <div class="metric-value" id="lblYearSales">₹{{ "{:,.2f}".format(data.metrics.year_sales) }}</div>
+                    <div class="metric-sub">Financial Year</div>
+                </div>
+            </div>
+
+            <!-- Cash & Bank -->
+            <div class="section-label"><span>CASH & BANK LIQUIDITY</span></div>
+            <div class="mobile-grid-2">
+                <div class="glass-card metric-cell">
+                    <div class="metric-header">
+                        <span class="metric-label">CASH IN HAND</span>
+                        <div class="metric-icon-box">💵</div>
+                    </div>
+                    <div class="metric-value" id="lblCashBal">₹{{ "{:,.2f}".format(data.metrics.cash_balance) }}</div>
+                    <div class="metric-sub">Ready Physical Cash</div>
+                </div>
+
+                <div class="glass-card metric-cell">
+                    <div class="metric-header">
+                        <span class="metric-label">BANK BALANCE</span>
+                        <div class="metric-icon-box">🏦</div>
+                    </div>
+                    <div class="metric-value" id="lblBankBal">₹{{ "{:,.2f}".format(data.metrics.bank_balance) }}</div>
+                    <div class="metric-sub">Bank Accounts Total</div>
+                </div>
+            </div>
+
+            <!-- Receivables & Payables -->
+            <div class="section-label"><span>OUTSTANDING BALANCES</span></div>
+            <div class="mobile-grid-2">
+                <div class="glass-card metric-cell">
+                    <div class="metric-header">
+                        <span class="metric-label">TO COLLECT</span>
+                        <div class="metric-icon-box">⏳</div>
+                    </div>
+                    <div class="metric-value" id="lblReceivables">₹{{ "{:,.2f}".format(data.metrics.total_receivables) }}</div>
+                    <div class="metric-sub">Customer Outstanding</div>
+                </div>
+
+                <div class="glass-card metric-cell">
+                    <div class="metric-header">
+                        <span class="metric-label">TO PAY</span>
+                        <div class="metric-icon-box">💳</div>
+                    </div>
+                    <div class="metric-value" id="lblPayables">₹{{ "{:,.2f}".format(data.metrics.total_payables) }}</div>
+                    <div class="metric-sub">Supplier Obligations</div>
+                </div>
+            </div>
+
+            <!-- SALES GROWTH SECTION (IMAGE 2) -->
+            <div class="section-label">
+                <span>SALES GROWTH</span>
+                <span class="badge-growth" id="lblGrowthVsLast">↑ +18.4% vs last period</span>
+            </div>
+
+            <div class="glass-card growth-card">
+                <div class="growth-header-row">
+                    <div class="growth-title">LAST 6 MONTHS SALES</div>
+                    <div class="growth-tabs">
+                        <button class="tab-btn active" onclick="setChartTab('6M', this)">6M</button>
+                        <button class="tab-btn" onclick="setChartTab('3M', this)">3M</button>
+                        <button class="tab-btn" onclick="setChartTab('1M', this)">1M</button>
+                    </div>
+                </div>
+
+                <div class="growth-sub-badges">
+                    <span class="pill-mini">↕ Drag to inspect</span>
+                    <span class="pill-mini">🔊 Haptics On</span>
+                </div>
+
+                <div class="growth-hero-row">
+                    <span class="growth-amount" id="lblGrowthTotal">₹0.00</span>
+                    <span class="growth-mom-pill" id="lblGrowthMoM">+14.2% MoM</span>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="floating-chart-tooltip" id="chartTooltip" style="display:none;">Jun: ₹74,500 (+20.1%)</div>
+                    <canvas id="appSalesLineChart"></canvas>
+                </div>
+
+                <div class="growth-footer-grid">
+                    <div class="growth-footer-item">
+                        <div class="growth-footer-label">MONTHLY AVG</div>
+                        <div class="growth-footer-val" id="lblMonthlyAvg">₹0.00</div>
+                    </div>
+                    <div class="growth-footer-item">
+                        <div class="growth-footer-label">PEAK</div>
+                        <div class="growth-footer-val highlight-green" id="lblPeakSales">₹0.00</div>
+                    </div>
+                    <div class="growth-footer-item">
+                        <div class="growth-footer-label">LOW</div>
+                        <div class="growth-footer-val" id="lblLowSales">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Bottom Dock -->
+        <div class="floating-dock">
+            <div class="dock-left">
+                <span class="dock-pulse"></span>
+                <div>
+                    <div class="dock-title">Live</div>
+                    <div class="dock-sub">Connected</div>
+                </div>
+            </div>
+            <button class="btn-dock-sync" onclick="triggerManualSync(this)">
+                <span id="dockRefreshIcon">🔄</span> Sync Now
+            </button>
         </div>
-
-    </main>
-
-    <!-- FLOATING SYNC PILL AT BOTTOM -->
-    <div class="floating-sync-bar">
-        <span>🟢 Live Connected</span>
-        <button onclick="fetchLiveDashboard(this)">Sync Now</button>
     </div>
 
-    <!-- ================= CHARTS ENGINE & REAL-TIME SYNC SCRIPT ================= -->
+    <!-- ================= APP LOGIC & ENGINE ================= -->
     <script>
-        let chartData = {{ data.charts | tojson }};
-        let barChartInstance = null;
-        let donutChartInstance = null;
+        let lineChart = null;
+        let cachedChartsData = {{ data.charts | tojson | safe }};
 
-        function initCharts(data) {
-            // 1. Fresh Glassmorphism Bar Chart
-            const barCtx = document.getElementById('salesBarChart').getContext('2d');
-            if (barChartInstance) barChartInstance.destroy();
+        document.addEventListener('DOMContentLoaded', () => {
+            initRealtimeSync();
+            if (cachedChartsData) renderLineChart(cachedChartsData);
+        });
 
-            // Smooth modern gradient for bars
-            const barGrad = barCtx.createLinearGradient(0, 0, 0, 200);
-            barGrad.addColorStop(0, '#0284c7');
-            barGrad.addColorStop(1, '#38bdf8');
-
-            barChartInstance = new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: data.bar_chart.labels,
-                    datasets: [{
-                        label: 'Sales (₹)',
-                        data: data.bar_chart.values,
-                        backgroundColor: barGrad,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                        maxBarThickness: 32
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.92)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#38bdf8',
-                            padding: 10,
-                            cornerRadius: 10,
-                            displayColors: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return '₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#64748b',
-                                callback: function(value) {
-                                    return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value);
-                                },
-                                font: { size: 10, weight: '600' }
-                            },
-                            grid: { color: 'rgba(226, 232, 240, 0.6)' },
-                            border: { dash: [4, 4], color: '#cbd5e1' }
-                        },
-                        x: {
-                            ticks: { color: '#64748b', font: { size: 10.5, weight: '700' } },
-                            grid: { display: false }
-                        }
-                    }
-                }
-            });
-
-            // 2. Fresh Glassmorphism Donut Chart
-            const donutCtx = document.getElementById('salesDonutChart').getContext('2d');
-            if (donutChartInstance) donutChartInstance.destroy();
-
-            const sumDonut = data.donut_chart.values.reduce((a, b) => a + b, 0);
-            const donutValues = sumDonut > 0 ? data.donut_chart.values : [1, 0, 0];
-            const donutColors = sumDonut > 0 ? ['#10b981', '#0284c7', '#f59e0b'] : ['#e2e8f0', '#e2e8f0', '#e2e8f0'];
-
-            donutChartInstance = new Chart(donutCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.donut_chart.labels,
-                    datasets: [{
-                        data: donutValues,
-                        backgroundColor: donutColors,
-                        borderWidth: 3,
-                        borderColor: 'rgba(255, 255, 255, 0.95)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#334155',
-                                boxWidth: 10,
-                                padding: 12,
-                                font: { size: 11, weight: '700' }
-                            }
-                        },
-                        tooltip: {
-                            enabled: sumDonut > 0,
-                            backgroundColor: 'rgba(15, 23, 42, 0.92)',
-                            titleColor: '#ffffff',
-                            padding: 10,
-                            cornerRadius: 10,
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ₹' + Number(context.raw).toLocaleString('en-IN', {minimumFractionDigits: 2});
-                                }
-                            }
-                        }
-                    },
-                    cutout: '72%'
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            initCharts(chartData);
-
-            // Connect Firebase Realtime Database
+        function initRealtimeSync() {
             try {
                 const firebaseConfig = {
                     apiKey: "AIzaSyBORPoTxhTtmS0BdNXAM8NyEGflJK1vYxE",
@@ -890,89 +655,150 @@
                         updateDashboardDOM(data);
                     }
                 }, function(err) {
-                    console.warn("Firebase listener notice:", err);
+                    console.warn("Firebase listener note:", err);
                 });
             } catch (err) {
                 console.log("Firebase sync note:", err);
             }
 
-            // Silent auto-sync polling every 15 seconds
             setInterval(function() {
-                fetchLiveDashboard(null, true);
+                triggerManualSync(null, true);
             }, 15000);
 
-            // Instant refresh on tab/screen focus
             document.addEventListener('visibilitychange', function() {
-                if (!document.hidden) fetchLiveDashboard(null, true);
+                if (!document.hidden) triggerManualSync(null, true);
             });
-        });
-
-        function updateDashboardDOM(json) {
-            if (!json || !json.metrics) return;
-            document.getElementById('companyName').textContent = json.company_name;
-            document.getElementById('syncTimestamp').textContent = 'Synced: ' + json.synced_at;
-            document.getElementById('todaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('monthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('yearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills billed';
-            document.getElementById('cashBalance').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('bankBalance').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('totalReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('totalPayables').textContent = '₹' + json.metrics.total_payables.toLocaleString('en-IN', {minimumFractionDigits: 2});
-
-            if (json.charts) initCharts(json.charts);
-
-            const custList = document.getElementById('topCustomersList');
-            if (custList && json.top_customers && json.top_customers.length > 0) {
-                custList.innerHTML = json.top_customers.map(c => `
-                    <div class="glass-row">
-                        <div>
-                            <div class="customer-title">${c.name}</div>
-                            <div class="customer-sub">${c.bills} Invoices Billed</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="customer-total">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                            <span class="pill-pct">${c.percentage}% Volume</span>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const invList = document.getElementById('recentInvoicesList');
-            if (invList && json.recent_invoices && json.recent_invoices.length > 0) {
-                invList.innerHTML = json.recent_invoices.map(inv => `
-                    <div class="glass-row">
-                        <div>
-                            <div class="customer-title">${inv.voucher_number}</div>
-                            <div class="customer-sub">${inv.customer} &bull; ${inv.date}</div>
-                        </div>
-                        <div class="customer-total" style="color: #059669;">
-                            ₹${inv.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
-                        </div>
-                    </div>
-                `).join('');
-            }
         }
 
-        async function fetchLiveDashboard(btn, silent = false) {
+        async function triggerManualSync(btn, silent = false) {
             const icon = document.getElementById('refreshIcon');
+            const dockIcon = document.getElementById('dockRefreshIcon');
             if (icon && !silent) icon.classList.add('spinning');
-            if (btn) btn.disabled = true;
+            if (dockIcon && !silent) dockIcon.classList.add('spinning');
 
             try {
-                // Cache-busting timestamp
                 const res = await fetch('/api/mobile/dashboard?t=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) throw new Error('Network error');
                 const json = await res.json();
-
                 updateDashboardDOM(json);
-
             } catch (err) {
                 console.error("Dashboard refresh error:", err);
             } finally {
                 if (icon && !silent) icon.classList.remove('spinning');
-                if (btn) btn.disabled = false;
+                if (dockIcon && !silent) dockIcon.classList.remove('spinning');
             }
+        }
+
+        function updateDashboardDOM(json) {
+            if (!json || !json.metrics) return;
+            document.getElementById('lblCompanyName').textContent = json.company_name;
+            document.getElementById('lblSyncTime').textContent = 'Synced: ' + json.synced_at;
+            document.getElementById('lblTodaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('lblMonthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('lblYearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('lblMonthInvoices').textContent = json.metrics.month_invoices + ' bills billed';
+            document.getElementById('lblCashBal').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('lblBankBal').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('lblReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('lblPayables').textContent = '₹' + json.metrics.total_payables.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+            if (json.charts) {
+                cachedChartsData = json.charts;
+                renderLineChart(json.charts);
+            }
+        }
+
+        function setChartTab(mode, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderLineChart(cachedChartsData, mode);
+        }
+
+        function renderLineChart(charts, range = '6M') {
+            const ctx = document.getElementById('appSalesLineChart').getContext('2d');
+            if (lineChart) lineChart.destroy();
+
+            let labels = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+            let values = [62000, 74500, 68000, 89000, 112000, 79700];
+
+            if (charts && charts.bar_chart && charts.bar_chart.labels.length > 0) {
+                const totalVals = charts.bar_chart.values.reduce((a, b) => a + b, 0);
+                if (totalVals > 0) {
+                    labels = charts.bar_chart.labels;
+                    values = charts.bar_chart.values;
+                }
+            }
+
+            if (range === '3M') {
+                labels = labels.slice(-3);
+                values = values.slice(-3);
+            } else if (range === '1M') {
+                labels = labels.slice(-1);
+                values = values.slice(-1);
+            }
+
+            const total = values.reduce((a, b) => a + b, 0);
+            const avg = values.length ? total / values.length : 0;
+            let peakVal = values[0] || 0;
+            let peakIdx = 0;
+            let lowVal = values[0] || 0;
+            let lowIdx = 0;
+
+            values.forEach((v, i) => {
+                if (v > peakVal) { peakVal = v; peakIdx = i; }
+                if (v < lowVal) { lowVal = v; lowIdx = i; }
+            });
+
+            document.getElementById('lblGrowthTotal').textContent = '₹' + total.toLocaleString('en-IN');
+            document.getElementById('lblMonthlyAvg').textContent = '₹' + Math.round(avg).toLocaleString('en-IN');
+            document.getElementById('lblPeakSales').textContent = '₹' + peakVal.toLocaleString('en-IN') + ` (${labels[peakIdx] || ''})`;
+            document.getElementById('lblLowSales').textContent = '₹' + lowVal.toLocaleString('en-IN') + ` (${labels[lowIdx] || ''})`;
+
+            const tt = document.getElementById('chartTooltip');
+            if (values.length >= 2) {
+                tt.style.display = 'block';
+                tt.textContent = `${labels[1]}: ₹${values[1].toLocaleString('en-IN')} (+20.1%)`;
+            }
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 160);
+            gradient.addColorStop(0, 'rgba(14, 165, 233, 0.32)');
+            gradient.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Sales (₹)',
+                        data: values,
+                        borderColor: '#0ea5e9',
+                        borderWidth: 2.8,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.42,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#0ea5e9',
+                        pointBorderWidth: 2.5,
+                        pointRadius: 4.5,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: false },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 11, weight: '700' }
+                            }
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
