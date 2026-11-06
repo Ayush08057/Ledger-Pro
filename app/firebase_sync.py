@@ -32,39 +32,47 @@ def push_dashboard_to_firebase(company_id: int = 1) -> bool:
     """
     Computes real-time analytics from local SQLite and pushes
     directly to Firebase Realtime Database at /dashboard.json.
+    Automatically supports US and Asia-Southeast regional database endpoints.
     """
     config = get_firebase_config()
     db_url = config.get("database_url", "").strip()
 
-    # If user hasn't configured Firebase yet or left placeholder, skip gracefully
     if not db_url or "YOUR_PROJECT_ID" in db_url:
         return False
 
-    if not db_url.startswith("http"):
-        db_url = "https://" + db_url
-    if db_url.endswith("/"):
-        db_url = db_url[:-1]
-
-    target_endpoint = f"{db_url}/dashboard.json"
+    project_id = config.get("project_id", "ledger-pro-19a1e")
+    urls_to_try = [
+        db_url,
+        f"https://{project_id}-default-rtdb.firebaseio.com",
+        f"https://{project_id}-default-rtdb.asia-southeast1.firebasedatabase.app"
+    ]
+    
+    data = get_mobile_dashboard_data(company_id)
+    payload = json.dumps(data).encode("utf-8")
     auth_token = config.get("auth_token", "").strip()
-    if auth_token:
-        target_endpoint += f"?auth={auth_token}"
 
-    try:
-        data = get_mobile_dashboard_data(company_id)
-        payload = json.dumps(data).encode("utf-8")
+    for u in urls_to_try:
+        if not u.startswith("http"):
+            u = "https://" + u
+        if u.endswith("/"):
+            u = u[:-1]
+        endpoint = f"{u}/dashboard.json"
+        if auth_token:
+            endpoint += f"?auth={auth_token}"
 
-        req = urllib.request.Request(
-            target_endpoint,
-            data=payload,
-            method="PUT",
-            headers={"Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=8) as res:
-            return res.status in (200, 204)
-    except Exception as e:
-        print(f"[Firebase Sync Notice] {e}")
-        return False
+        try:
+            req = urllib.request.Request(
+                endpoint,
+                data=payload,
+                method="PUT",
+                headers={"Content-Type": "application/json", "User-Agent": "LedgerProSync/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=6) as res:
+                if res.status in (200, 204):
+                    return True
+        except Exception:
+            continue
+    return False
 
 
 def async_firebase_sync(company_id: int = 1):
@@ -74,3 +82,4 @@ def async_firebase_sync(company_id: int = 1):
     """
     thread = threading.Thread(target=push_dashboard_to_firebase, args=(company_id,), daemon=True)
     thread.start()
+

@@ -1,5 +1,10 @@
 {
-  "database_url": "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  "auth_token": "",
+  "api_key": "AIzaSyBORPoTxhTtmS0BdNXAM8NyEGflJK1vYxE",
+  "auth_domain": "ledger-pro-19a1e.firebaseapp.com",
+  "project_id": "ledger-pro-19a1e",
+  "storage_bucket": "ledger-pro-19a1e.firebasestorage.app",
+  "messaging_sender_id": "837076241623",
+  "app_id": "1:837076241623:web:58fa38f953c2bab0183492",
+  "database_url": "https://ledger-pro-19a1e-default-rtdb.firebaseio.com",
   "auto_sync_enabled": true
 }

@@ -15,6 +15,10 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+    <!-- Firebase App & Database SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             /* Fresh Light Glassmorphism Tokens */
@@ -863,7 +867,78 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             initCharts(chartData);
+
+            // Connect Firebase Realtime Database
+            try {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBORPoTxhTtmS0BdNXAM8NyEGflJK1vYxE",
+                    authDomain: "ledger-pro-19a1e.firebaseapp.com",
+                    projectId: "ledger-pro-19a1e",
+                    storageBucket: "ledger-pro-19a1e.firebasestorage.app",
+                    messagingSenderId: "837076241623",
+                    appId: "1:837076241623:web:58fa38f953c2bab0183492",
+                    measurementId: "G-WK508FGPKR",
+                    databaseURL: "https://ledger-pro-19a1e-default-rtdb.firebaseio.com"
+                };
+                firebase.initializeApp(firebaseConfig);
+                const db = firebase.database();
+                db.ref('dashboard').on('value', function(snapshot) {
+                    const data = snapshot.val();
+                    if (data && data.metrics) {
+                        updateDashboardDOM(data);
+                    }
+                });
+            } catch (err) {
+                console.log("Firebase sync note:", err);
+            }
         });
+
+        function updateDashboardDOM(json) {
+            if (!json || !json.metrics) return;
+            document.getElementById('companyName').textContent = json.company_name;
+            document.getElementById('syncTimestamp').textContent = 'Synced: ' + json.synced_at;
+            document.getElementById('todaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('monthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('yearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills billed';
+            document.getElementById('cashBalance').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('bankBalance').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('totalReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('totalPayables').textContent = '₹' + json.metrics.total_payables.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+            if (json.charts) initCharts(json.charts);
+
+            const custList = document.getElementById('topCustomersList');
+            if (custList && json.top_customers && json.top_customers.length > 0) {
+                custList.innerHTML = json.top_customers.map(c => `
+                    <div class="glass-row">
+                        <div>
+                            <div class="customer-title">${c.name}</div>
+                            <div class="customer-sub">${c.bills} Invoices Billed</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="customer-total">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                            <span class="pill-pct">${c.percentage}% Volume</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const invList = document.getElementById('recentInvoicesList');
+            if (invList && json.recent_invoices && json.recent_invoices.length > 0) {
+                invList.innerHTML = json.recent_invoices.map(inv => `
+                    <div class="glass-row">
+                        <div>
+                            <div class="customer-title">${inv.voucher_number}</div>
+                            <div class="customer-sub">${inv.customer} &bull; ${inv.date}</div>
+                        </div>
+                        <div class="customer-total" style="color: #059669;">
+                            ₹${inv.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
 
         async function fetchLiveDashboard(btn) {
             const icon = document.getElementById('refreshIcon');
@@ -876,49 +951,7 @@
                 if (!res.ok) throw new Error('Network error');
                 const json = await res.json();
 
-                document.getElementById('companyName').textContent = json.company_name;
-                document.getElementById('syncTimestamp').textContent = 'Synced: ' + json.synced_at;
-                document.getElementById('todaySales').textContent = '₹' + json.metrics.today_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('monthSales').textContent = '₹' + json.metrics.month_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('yearSales').textContent = '₹' + json.metrics.year_sales.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('monthInvoices').textContent = json.metrics.month_invoices + ' bills billed';
-                document.getElementById('cashBalance').textContent = '₹' + json.metrics.cash_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('bankBalance').textContent = '₹' + json.metrics.bank_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('totalReceivables').textContent = '₹' + json.metrics.total_receivables.toLocaleString('en-IN', {minimumFractionDigits: 2});
-                document.getElementById('totalPayables').textContent = '₹' + json.metrics.total_payables.toLocaleString('en-IN', {minimumFractionDigits: 2});
-
-                initCharts(json.charts);
-
-                const custList = document.getElementById('topCustomersList');
-                if (json.top_customers && json.top_customers.length > 0) {
-                    custList.innerHTML = json.top_customers.map(c => `
-                        <div class="glass-row">
-                            <div>
-                                <div class="customer-title">${c.name}</div>
-                                <div class="customer-sub">${c.bills} Invoices Billed</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div class="customer-total">₹${c.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-                                <span class="pill-pct">${c.percentage}% Volume</span>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
-                const invList = document.getElementById('recentInvoicesList');
-                if (json.recent_invoices && json.recent_invoices.length > 0) {
-                    invList.innerHTML = json.recent_invoices.map(inv => `
-                        <div class="glass-row">
-                            <div>
-                                <div class="customer-title">${inv.voucher_number}</div>
-                                <div class="customer-sub">${inv.customer} &bull; ${inv.date}</div>
-                            </div>
-                            <div class="customer-total" style="color: #059669;">
-                                ₹${inv.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
-                            </div>
-                        </div>
-                    `).join('');
-                }
+                updateDashboardDOM(json);
 
             } catch (err) {
                 console.error("Dashboard refresh error:", err);
