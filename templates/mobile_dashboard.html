@@ -880,17 +880,31 @@
                     measurementId: "G-WK508FGPKR",
                     databaseURL: "https://ledger-pro-19a1e-default-rtdb.firebaseio.com"
                 };
-                firebase.initializeApp(firebaseConfig);
+                if (!firebase.apps || !firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
                 const db = firebase.database();
                 db.ref('dashboard').on('value', function(snapshot) {
                     const data = snapshot.val();
                     if (data && data.metrics) {
                         updateDashboardDOM(data);
                     }
+                }, function(err) {
+                    console.warn("Firebase listener notice:", err);
                 });
             } catch (err) {
                 console.log("Firebase sync note:", err);
             }
+
+            // Silent auto-sync polling every 15 seconds
+            setInterval(function() {
+                fetchLiveDashboard(null, true);
+            }, 15000);
+
+            // Instant refresh on tab/screen focus
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) fetchLiveDashboard(null, true);
+            });
         });
 
         function updateDashboardDOM(json) {
@@ -940,14 +954,14 @@
             }
         }
 
-        async function fetchLiveDashboard(btn) {
+        async function fetchLiveDashboard(btn, silent = false) {
             const icon = document.getElementById('refreshIcon');
-            if (icon) icon.classList.add('spinning');
+            if (icon && !silent) icon.classList.add('spinning');
             if (btn) btn.disabled = true;
 
             try {
                 // Cache-busting timestamp
-                const res = await fetch('/api/mobile/dashboard?t=' + Date.now());
+                const res = await fetch('/api/mobile/dashboard?t=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) throw new Error('Network error');
                 const json = await res.json();
 
@@ -956,7 +970,7 @@
             } catch (err) {
                 console.error("Dashboard refresh error:", err);
             } finally {
-                if (icon) icon.classList.remove('spinning');
+                if (icon && !silent) icon.classList.remove('spinning');
                 if (btn) btn.disabled = false;
             }
         }
