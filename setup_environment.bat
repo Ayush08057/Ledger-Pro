@@ -30,9 +30,9 @@ call create_desktop_shortcut.bat
 
 echo.
 echo ========================================================
-echo   TallySoft Setup Completed Successfully!
+echo   Ledger Pro Setup Completed Successfully!
 echo   You can now double-click "start_tally.bat" or the
-echo   "TallySoft Offline Accounting" icon on your Desktop.
+echo   "Ledger Pro Offline Accounting" icon on your Desktop.
 echo ========================================================
 echo.
 pause
